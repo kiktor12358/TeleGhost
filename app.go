@@ -293,9 +293,19 @@ func (a *App) GetMyInfo() *UserInfo {
 		return nil
 	}
 
+	nickname := "User"
+
+	// Получаем профиль из БД
+	if a.repo != nil {
+		profile, err := a.repo.GetMyProfile(a.ctx)
+		if err == nil && profile != nil {
+			nickname = profile.Nickname
+		}
+	}
+
 	return &UserInfo{
 		ID:          a.identity.Keys.UserID,
-		Nickname:    "User",
+		Nickname:    nickname,
 		PublicKey:   a.identity.Keys.PublicKeyBase64,
 		Destination: a.GetMyDestination(),
 		Fingerprint: a.identity.Keys.Fingerprint(),
