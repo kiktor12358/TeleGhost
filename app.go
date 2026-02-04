@@ -61,13 +61,14 @@ type UserInfo struct {
 
 // App основная структура приложения
 type App struct {
-	ctx       context.Context
-	identity  *identity.Identity
-	repo      *sqlite.Repository
-	router    *router.SAMRouter
-	messenger *messenger.Service
-	status    NetworkStatus
-	dataDir   string
+	ctx          context.Context
+	identity     *identity.Identity
+	repo         *sqlite.Repository
+	router       *router.SAMRouter
+	messenger    *messenger.Service
+	status       NetworkStatus
+	dataDir      string
+	embeddedStop func() error
 }
 
 // NewApp creates a new App application struct
@@ -113,6 +114,11 @@ func (a *App) startup(ctx context.Context) {
 		log.Printf("[App] Found existing profile: %s", profile.Nickname)
 	}
 
+	// Инициализируем встроенный роутер (если есть)
+	if err := a.initEmbeddedRouter(ctx); err != nil {
+		log.Printf("[App] Failed to init embedded router: %v", err)
+	}
+
 	log.Printf("[App] Started. Data dir: %s", a.dataDir)
 }
 
@@ -130,6 +136,10 @@ func (a *App) shutdown(ctx context.Context) {
 
 	if a.repo != nil {
 		a.repo.Close()
+	}
+
+	if a.embeddedStop != nil {
+		a.embeddedStop()
 	}
 }
 

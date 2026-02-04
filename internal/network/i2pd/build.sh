@@ -12,22 +12,47 @@ echo ""
 
 # Check dependencies
 echo "[1/4] Checking dependencies..."
-DEPS="g++ cmake libboost-all-dev libssl-dev zlib1g-dev"
-MISSING=""
 
-for dep in $DEPS; do
-    if ! dpkg -s $dep >/dev/null 2>&1; then
-        MISSING="$MISSING $dep"
+if command -v pacman &> /dev/null; then
+    # Arch Linux
+    echo "Detected Arch Linux"
+    DEPS="base-devel cmake boost openssl zlib git"
+    MISSING=""
+    for dep in $DEPS; do
+        if ! pacman -Qi $dep &> /dev/null && ! pacman -Qg $dep &> /dev/null; then
+             # base-devel is a group, so check if expanded or group exists
+             if [ "$dep" == "base-devel" ]; then
+                 continue # assume installed or user knows
+             fi
+             MISSING="$MISSING $dep"
+        fi
+    done
+    
+    if [ -n "$MISSING" ]; then
+        echo "Missing dependencies:$MISSING"
+        echo "Install with: sudo pacman -S$MISSING"
+        exit 1
     fi
-done
 
-if [ -n "$MISSING" ]; then
-    echo "Missing dependencies:$MISSING"
-    echo ""
-    echo "Install them with:"
-    echo "  sudo apt update && sudo apt install -y$MISSING"
-    echo ""
-    exit 1
+elif command -v dpkg &> /dev/null; then
+    # Debian/Ubuntu
+    echo "Detected Debian/Ubuntu"
+    DEPS="g++ cmake libboost-all-dev libssl-dev zlib1g-dev"
+    MISSING=""
+
+    for dep in $DEPS; do
+        if ! dpkg -s $dep >/dev/null 2>&1; then
+            MISSING="$MISSING $dep"
+        fi
+    done
+
+    if [ -n "$MISSING" ]; then
+        echo "Missing dependencies:$MISSING"
+        echo "Install with: sudo apt update && sudo apt install -y$MISSING"
+        exit 1
+    fi
+else
+    echo "Unknown OS. Please ensure you have: cmake, boost, openssl, zlib, g++ installed."
 fi
 
 echo "All dependencies installed ✓"
@@ -47,23 +72,27 @@ fi
 # Build libi2pd static library
 echo ""
 echo "[3/4] Building libi2pd.a..."
-cd "$I2PD_DIR"
+cd "$I2PD_DIR/build"
 
-# Create build directory
-mkdir -p build && cd build
+# Create binary directory
+mkdir -p obj && cd obj
 
-# Configure with CMake
+# Configure with CMake (CMakeLists.txt is in ../)
 cmake -DWITH_STATIC=ON \
       -DWITH_LIBRARY=ON \
       -DWITH_BINARY=OFF \
       -DWITH_UPNP=OFF \
       -DCMAKE_BUILD_TYPE=Release \
+      -DOPENSSL_ROOT_DIR=/usr \
       ..
 
 # Build
 make -j$(nproc) libi2pd
 
 echo "Built ✓"
+
+# Copy library to a location expected by wrapper
+cp libi2pd.a "$I2PD_DIR/"
 
 # Build the wrapper
 echo ""
@@ -78,15 +107,11 @@ g++ -std=c++17 -c i2pd_wrapper.cpp \
     -o i2pd_wrapper.o
 
 # Create combined static library
-ar rcs libi2pd_wrapper.a i2pd_wrapper.o
+ar rcs libi2pd_wrapper.a i2pd_wrapper.o "$I2PD_DIR/libi2pd.a"
 
 echo "Wrapper built ✓"
 
 echo ""
 echo "=== Build Complete ==="
-echo ""
-echo "Files created:"
-echo "  - $I2PD_DIR/build/libi2pd/libi2pd.a"
-echo "  - $SCRIPT_DIR/libi2pd_wrapper.a"
 echo ""
 echo "Now you can build TeleGhost with CGO_ENABLED=1"

@@ -101,6 +101,10 @@
     isLoading = false;
   }
 
+  // Mnemonic Modal State
+  let showMnemonicModal = false;
+  let newMnemonic = '';
+
   async function handleCreateAccount() {
     if (!wailsReady) await waitForWails();
     if (!wailsReady) { alert('Приложение не готово'); return; }
@@ -108,14 +112,21 @@
     isLoading = true;
     try {
       const mnemonic = await CreateAccount();
-      seedPhrase = mnemonic;
-      alert('🔐 Сохраните вашу seed-фразу!\n\n' + mnemonic);
-      screen = 'main';
-      await loadInitialData();
+      if (mnemonic) {
+        newMnemonic = mnemonic;
+        showMnemonicModal = true;
+      }
     } catch (e) {
       alert('Ошибка: ' + e);
     }
     isLoading = false;
+  }
+
+  function confirmMnemonicSaved() {
+    showMnemonicModal = false;
+    seedPhrase = newMnemonic;
+    screen = 'main';
+    loadInitialData();
   }
 
   async function loadInitialData() {
@@ -286,6 +297,40 @@
     <p class="login-footer">🔒 Все данные хранятся локально</p>
   </div>
 </div>
+
+<!-- Mnemonic Modal -->
+{#if showMnemonicModal}
+<div class="modal-backdrop animate-fade-in">
+  <div class="modal-content animate-slide-down">
+    <div class="modal-header">
+      <h2>🔐 Ваш секретный ключ</h2>
+    </div>
+    <div class="modal-body">
+      <p class="warning-text">⚠️ Сохраните эти 12 слов. Без них восстановить доступ невозможно!</p>
+      
+      <div class="mnemonic-grid">
+        {#each newMnemonic.split(' ') as word, i}
+          <div class="mnemonic-word">
+            <span class="word-index">{i+1}</span>
+            <span class="word-text">{word}</span>
+          </div>
+        {/each}
+      </div>
+
+      <div class="mnemonic-actions">
+         <button class="btn-text" on:click={() => { CopyToClipboard(newMnemonic); alert('Скопировано!'); }}>
+           📋 Скопировать всё
+         </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary full-width" on:click={confirmMnemonicSaved}>
+        Я сохранил(а) seed-фразу
+      </button>
+    </div>
+  </div>
+</div>
+{/if}
 
 {:else}
 <!-- Main Screen -->
@@ -599,6 +644,84 @@
     outline: none;
     transition: border-color 0.3s, box-shadow 0.3s;
   }
+
+  /* === Modal === */
+  .modal-backdrop {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 32px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
+  }
+
+  .modal-header h2 {
+    font-size: 24px;
+    margin-bottom: 16px;
+    text-align: center;
+    color: var(--text-primary);
+  }
+
+  .warning-text {
+    background: rgba(244, 67, 54, 0.1);
+    color: #ff6b6b;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  .mnemonic-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .mnemonic-word {
+    background: var(--bg-input);
+    padding: 8px 12px;
+    border-radius: var(--radius-xs);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: monospace;
+    font-size: 14px;
+  }
+
+  .word-index { color: var(--text-secondary); opacity: 0.5; font-size: 12px; }
+  .word-text { color: var(--text-primary); font-weight: bold; }
+
+  .mnemonic-actions {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+
+  .btn-text {
+    background: none;
+    border: none;
+    color: var(--accent-light);
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .btn-text:hover { text-decoration: underline; }
+  .full-width { width: 100%; }
 
   .seed-input:focus, .input-field:focus {
     border-color: var(--accent);
