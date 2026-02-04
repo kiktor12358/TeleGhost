@@ -19,8 +19,8 @@
 package i2pd
 
 /*
-#cgo CXXFLAGS: -std=c++17 -I${SRCDIR}/i2pd/libi2pd -I${SRCDIR}/i2pd/i18n -I${SRCDIR}/i2pd
-#cgo LDFLAGS: -L${SRCDIR} -li2pd_wrapper -lssl -lcrypto -lz -lboost_system -lboost_filesystem -lboost_program_options -lboost_date_time -lpthread -lstdc++
+#cgo CXXFLAGS: -std=c++17 -I${SRCDIR}/i2pd/libi2pd -I${SRCDIR}/i2pd/libi2pd_client -I${SRCDIR}/i2pd/i18n -I${SRCDIR}/i2pd
+#cgo LDFLAGS: -L${SRCDIR} -li2pd -lssl -lcrypto -lz -lboost_system -lboost_filesystem -lboost_program_options -lboost_date_time -lpthread -lstdc++
 
 #include <stdlib.h>
 

@@ -91,25 +91,10 @@ make -j$(nproc) libi2pd
 
 echo "Built ✓"
 
-# Copy library to a location expected by wrapper
-cp libi2pd.a "$I2PD_DIR/"
+# Copy library to current directory for CGO
+cp libi2pd.a "$SCRIPT_DIR/"
 
-# Build the wrapper
-echo ""
-echo "[4/4] Building C++ wrapper..."
-cd "$SCRIPT_DIR"
-
-g++ -std=c++17 -c i2pd_wrapper.cpp \
-    -I"$I2PD_DIR/libi2pd" \
-    -I"$I2PD_DIR/libi2pd_client" \
-    -I"$I2PD_DIR/i18n" \
-    -I"$I2PD_DIR" \
-    -o i2pd_wrapper.o
-
-# Create combined static library
-ar rcs libi2pd_wrapper.a i2pd_wrapper.o "$I2PD_DIR/libi2pd.a"
-
-echo "Wrapper built ✓"
+echo "Built libi2pd.a ✓"
 
 echo ""
 echo "=== Build Complete ==="
