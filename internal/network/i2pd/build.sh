@@ -75,7 +75,11 @@ echo "[3/4] Building libi2pd.a..."
 cd "$I2PD_DIR/build"
 
 # Create binary directory
+rm -rf obj
 mkdir -p obj && cd obj
+
+# Patch CMakeLists.txt to allow dynamic OpenSSL (Arch usually lacks static libs)
+sed -i 's/set(OPENSSL_USE_STATIC_LIBS ON)/set(OPENSSL_USE_STATIC_LIBS OFF)/g' "$I2PD_DIR/build/CMakeLists.txt"
 
 # Configure with CMake (CMakeLists.txt is in ../)
 cmake -DWITH_STATIC=ON \
@@ -83,7 +87,9 @@ cmake -DWITH_STATIC=ON \
       -DWITH_BINARY=OFF \
       -DWITH_UPNP=OFF \
       -DCMAKE_BUILD_TYPE=Release \
-      -DOPENSSL_ROOT_DIR=/usr \
+      -DOPENSSL_USE_STATIC_LIBS=FALSE \
+      -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/libcrypto.so \
+      -DOPENSSL_SSL_LIBRARY=/usr/lib/libssl.so \
       ..
 
 # Build
