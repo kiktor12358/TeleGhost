@@ -79,6 +79,7 @@ jobs:
         with:
           msystem: MINGW64
           update: true
+          path-type: inherit
           install: >-
             git
             make
@@ -101,9 +102,7 @@ jobs:
       - name: Build Wails App
         shell: msys2 {0}
         run: |
-          # Add Go and Node to MSYS2 path
-          export PATH=$PATH:/c/hostedtoolcache/go/1.21.13/x64/bin
-          export PATH=$PATH:/c/npm/prefix
+          # Ensure Go bin is in path for Wails
           export PATH=$PATH:$(go env GOPATH)/bin
           
           # Build with cgo_i2pd
