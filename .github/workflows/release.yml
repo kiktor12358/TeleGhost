@@ -74,18 +74,37 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Dependencies
-        run: |
-          choco install -y cmake boost-msvc-14.2 openssl
-          go install github.com/wailsapp/wails/v2/cmd/wails@latest
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-boost
+            mingw-w64-x86_64-openssl
+            mingw-w64-x86_64-zlib
 
-      - name: Build Wails App (Skip i2pd for now if libs missing)
-        shell: bash
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build i2pd libraries (Windows)
+        shell: msys2 {0}
         run: |
-          # If you have pre-compiled .lib files for Windows, put them in internal/network/i2pd/
-          # For now, we build without cgo_i2pd on Windows if it's too complex to compile on the fly
-          # Or try to build with it:
-          wails build -platform windows/amd64
+          chmod +x internal/network/i2pd/build.sh
+          ./internal/network/i2pd/build.sh
+
+      - name: Build Wails App
+        shell: msys2 {0}
+        run: |
+          # Add Go and Node to MSYS2 path
+          export PATH=$PATH:/c/hostedtoolcache/go/1.21.13/x64/bin
+          export PATH=$PATH:/c/npm/prefix
+          export PATH=$PATH:$(go env GOPATH)/bin
+          
+          # Build with cgo_i2pd
+          wails build -tags cgo_i2pd -platform windows/amd64
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4

@@ -80,19 +80,26 @@ cd "$I2PD_DIR/build"
 rm -rf obj
 mkdir -p obj && cd obj
 
-# Patch CMakeLists.txt to allow dynamic OpenSSL (Arch usually lacks static libs)
-sed -i 's/set(OPENSSL_USE_STATIC_LIBS ON)/set(OPENSSL_USE_STATIC_LIBS OFF)/g' "$I2PD_DIR/build/CMakeLists.txt"
-
-# Configure with CMake (CMakeLists.txt is in ../)
-cmake -DWITH_STATIC=ON \
-      -DWITH_BINARY=OFF \
-      -DWITH_UPNP=OFF \
-      -DWITH_SAM=ON \
-      -DCMAKE_BUILD_TYPE=Release \
-      -DOPENSSL_USE_STATIC_LIBS=FALSE \
-      -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/libcrypto.so \
-      -DOPENSSL_SSL_LIBRARY=/usr/lib/libssl.so \
-      ..
+# Configure with CMake
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+    echo "Configuring for Windows..."
+    cmake -G "MSYS Makefiles" \
+          -DWITH_STATIC=ON \
+          -DWITH_BINARY=OFF \
+          -DWITH_UPNP=OFF \
+          -DWITH_SAM=ON \
+          -DCMAKE_BUILD_TYPE=Release \
+          ..
+else
+    # Linux (Arch, Debian, etc.)
+    # Remove previous patching if any, or just don't hardcode paths
+    cmake -DWITH_STATIC=ON \
+          -DWITH_BINARY=OFF \
+          -DWITH_UPNP=OFF \
+          -DWITH_SAM=ON \
+          -DCMAKE_BUILD_TYPE=Release \
+          ..
+fi
 
 # Build
 make -j$(nproc) libi2pd libi2pdclient libi2pdlang
