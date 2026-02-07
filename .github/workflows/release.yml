@@ -42,7 +42,7 @@ jobs:
       - name: Build Wails App
         run: |
           export CGO_LDFLAGS_ALLOW="-Wl,--whole-archive|-Wl,--no-whole-archive|-Wl,--start-group|-Wl,--end-group"
-          wails build -tags cgo_i2pd -platform linux/amd64
+          wails build -tags cgo_i2pd -platform linux/amd64 -ldflags "-static-libgcc -static-libstdc++"
 
       - name: Rename and Prepare Binary
         run: |

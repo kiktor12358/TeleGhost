@@ -27,6 +27,8 @@ cmake -DWITH_STATIC=ON \
       -DWITH_UPNP=OFF \
       -DWITH_SAM=ON \
       -DCMAKE_BUILD_TYPE=Release \
+      -DBOOST_STATIC=ON \
+      -DOPENSSL_USE_STATIC_LIBS=TRUE \
       ..
 
 make -j$(nproc) libi2pd libi2pdclient libi2pdlang
