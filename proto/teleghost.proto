@@ -11,6 +11,8 @@ enum PacketType {
   TEXT_MESSAGE = 2;      // Текстовое сообщение
   PROFILE_UPDATE = 3;    // Обновление профиля
   HANDSHAKE = 4;         // Рукопожатие для установки соединения
+  MESSAGE_EDIT = 5;      // Редактирование сообщения
+  MESSAGE_DELETE = 6;    // Удаление сообщения
 }
 
 // Packet — универсальная обёртка для всех сообщений в сети
@@ -71,4 +73,43 @@ message Handshake {
   
   // Timestamp для проверки свежести
   int64 timestamp = 4;
+  
+  // Никнейм отправителя (для отображения в UI)
+  string nickname = 5;
+  
+  // I2P адрес отправителя (для обратной связи)
+  string i2p_address = 6;
+
+  // Аватар отправителя (сжатое изображение)
+  bytes avatar = 7;
+}
+
+// MessageEdit — редактирование существующего сообщения
+message MessageEdit {
+  // ID редактируемого сообщения
+  string message_id = 1;
+  
+  // Новое содержимое сообщения
+  string new_content = 2;
+  
+  // Timestamp редактирования
+  int64 timestamp = 3;
+  
+  // ID чата (для маршрутизации)
+  string chat_id = 4;
+}
+
+// MessageDelete — удаление сообщения
+message MessageDelete {
+  // ID удаляемого сообщения
+  string message_id = 1;
+  
+  // Timestamp удаления
+  int64 timestamp = 2;
+  
+  // ID чата (для маршрутизации)
+  string chat_id = 3;
+  
+  // Удалить у всех (true) или только локально (false)
+  bool delete_for_all = 4;
 }

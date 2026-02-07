@@ -30,6 +30,8 @@ const (
 	PacketType_TEXT_MESSAGE            PacketType = 2 // Текстовое сообщение
 	PacketType_PROFILE_UPDATE          PacketType = 3 // Обновление профиля
 	PacketType_HANDSHAKE               PacketType = 4 // Рукопожатие для установки соединения
+	PacketType_MESSAGE_EDIT            PacketType = 5 // Редактирование сообщения
+	PacketType_MESSAGE_DELETE          PacketType = 6 // Удаление сообщения
 )
 
 // Enum value maps for PacketType.
@@ -40,6 +42,8 @@ var (
 		2: "TEXT_MESSAGE",
 		3: "PROFILE_UPDATE",
 		4: "HANDSHAKE",
+		5: "MESSAGE_EDIT",
+		6: "MESSAGE_DELETE",
 	}
 	PacketType_value = map[string]int32{
 		"PACKET_TYPE_UNSPECIFIED": 0,
@@ -47,6 +51,8 @@ var (
 		"TEXT_MESSAGE":            2,
 		"PROFILE_UPDATE":          3,
 		"HANDSHAKE":               4,
+		"MESSAGE_EDIT":            5,
+		"MESSAGE_DELETE":          6,
 	}
 )
 
@@ -306,7 +312,11 @@ type Handshake struct {
 	// Nonce для предотвращения replay атак
 	Nonce []byte `protobuf:"bytes,3,opt,name=nonce,proto3" json:"nonce,omitempty"`
 	// Timestamp для проверки свежести
-	Timestamp     int64 `protobuf:"varint,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Timestamp int64 `protobuf:"varint,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	// Никнейм отправителя (для отображения в UI)
+	Nickname string `protobuf:"bytes,5,opt,name=nickname,proto3" json:"nickname,omitempty"`
+	// I2P адрес отправителя (для обратной связи)
+	I2PAddress    string `protobuf:"bytes,6,opt,name=i2p_address,json=i2pAddress,proto3" json:"i2p_address,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -369,6 +379,166 @@ func (x *Handshake) GetTimestamp() int64 {
 	return 0
 }
 
+func (x *Handshake) GetNickname() string {
+	if x != nil {
+		return x.Nickname
+	}
+	return ""
+}
+
+func (x *Handshake) GetI2PAddress() string {
+	if x != nil {
+		return x.I2PAddress
+	}
+	return ""
+}
+
+// MessageEdit — редактирование существующего сообщения
+type MessageEdit struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// ID редактируемого сообщения
+	MessageId string `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	// Новое содержимое сообщения
+	NewContent string `protobuf:"bytes,2,opt,name=new_content,json=newContent,proto3" json:"new_content,omitempty"`
+	// Timestamp редактирования
+	Timestamp int64 `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	// ID чата (для маршрутизации)
+	ChatId        string `protobuf:"bytes,4,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MessageEdit) Reset() {
+	*x = MessageEdit{}
+	mi := &file_proto_teleghost_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MessageEdit) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MessageEdit) ProtoMessage() {}
+
+func (x *MessageEdit) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_teleghost_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MessageEdit.ProtoReflect.Descriptor instead.
+func (*MessageEdit) Descriptor() ([]byte, []int) {
+	return file_proto_teleghost_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *MessageEdit) GetMessageId() string {
+	if x != nil {
+		return x.MessageId
+	}
+	return ""
+}
+
+func (x *MessageEdit) GetNewContent() string {
+	if x != nil {
+		return x.NewContent
+	}
+	return ""
+}
+
+func (x *MessageEdit) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+func (x *MessageEdit) GetChatId() string {
+	if x != nil {
+		return x.ChatId
+	}
+	return ""
+}
+
+// MessageDelete — удаление сообщения
+type MessageDelete struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// ID удаляемого сообщения
+	MessageId string `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	// Timestamp удаления
+	Timestamp int64 `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	// ID чата (для маршрутизации)
+	ChatId string `protobuf:"bytes,3,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
+	// Удалить у всех (true) или только локально (false)
+	DeleteForAll  bool `protobuf:"varint,4,opt,name=delete_for_all,json=deleteForAll,proto3" json:"delete_for_all,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MessageDelete) Reset() {
+	*x = MessageDelete{}
+	mi := &file_proto_teleghost_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MessageDelete) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MessageDelete) ProtoMessage() {}
+
+func (x *MessageDelete) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_teleghost_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MessageDelete.ProtoReflect.Descriptor instead.
+func (*MessageDelete) Descriptor() ([]byte, []int) {
+	return file_proto_teleghost_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *MessageDelete) GetMessageId() string {
+	if x != nil {
+		return x.MessageId
+	}
+	return ""
+}
+
+func (x *MessageDelete) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+func (x *MessageDelete) GetChatId() string {
+	if x != nil {
+		return x.ChatId
+	}
+	return ""
+}
+
+func (x *MessageDelete) GetDeleteForAll() bool {
+	if x != nil {
+		return x.DeleteForAll
+	}
+	return false
+}
+
 var File_proto_teleghost_proto protoreflect.FileDescriptor
 
 const file_proto_teleghost_proto_rawDesc = "" +
@@ -389,19 +559,37 @@ const file_proto_teleghost_proto_rawDesc = "" +
 	"\rProfileUpdate\x12\x1a\n" +
 	"\bnickname\x18\x01 \x01(\tR\bnickname\x12\x10\n" +
 	"\x03bio\x18\x02 \x01(\tR\x03bio\x12\x16\n" +
-	"\x06avatar\x18\x03 \x01(\fR\x06avatar\"\x97\x01\n" +
+	"\x06avatar\x18\x03 \x01(\fR\x06avatar\"\xd4\x01\n" +
 	"\tHandshake\x12*\n" +
 	"\x11initiator_pub_key\x18\x01 \x01(\fR\x0finitiatorPubKey\x12*\n" +
 	"\x11ephemeral_pub_key\x18\x02 \x01(\fR\x0fephemeralPubKey\x12\x14\n" +
 	"\x05nonce\x18\x03 \x01(\fR\x05nonce\x12\x1c\n" +
-	"\ttimestamp\x18\x04 \x01(\x03R\ttimestamp*m\n" +
+	"\ttimestamp\x18\x04 \x01(\x03R\ttimestamp\x12\x1a\n" +
+	"\bnickname\x18\x05 \x01(\tR\bnickname\x12\x1f\n" +
+	"\vi2p_address\x18\x06 \x01(\tR\n" +
+	"i2pAddress\"\x84\x01\n" +
+	"\vMessageEdit\x12\x1d\n" +
+	"\n" +
+	"message_id\x18\x01 \x01(\tR\tmessageId\x12\x1f\n" +
+	"\vnew_content\x18\x02 \x01(\tR\n" +
+	"newContent\x12\x1c\n" +
+	"\ttimestamp\x18\x03 \x01(\x03R\ttimestamp\x12\x17\n" +
+	"\achat_id\x18\x04 \x01(\tR\x06chatId\"\x8b\x01\n" +
+	"\rMessageDelete\x12\x1d\n" +
+	"\n" +
+	"message_id\x18\x01 \x01(\tR\tmessageId\x12\x1c\n" +
+	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp\x12\x17\n" +
+	"\achat_id\x18\x03 \x01(\tR\x06chatId\x12$\n" +
+	"\x0edelete_for_all\x18\x04 \x01(\bR\fdeleteForAll*\x93\x01\n" +
 	"\n" +
 	"PacketType\x12\x1b\n" +
 	"\x17PACKET_TYPE_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tHEARTBEAT\x10\x01\x12\x10\n" +
 	"\fTEXT_MESSAGE\x10\x02\x12\x12\n" +
 	"\x0ePROFILE_UPDATE\x10\x03\x12\r\n" +
-	"\tHANDSHAKE\x10\x04B+Z)github.com/teleghost/internal/proto;protob\x06proto3"
+	"\tHANDSHAKE\x10\x04\x12\x10\n" +
+	"\fMESSAGE_EDIT\x10\x05\x12\x12\n" +
+	"\x0eMESSAGE_DELETE\x10\x06B+Z)github.com/teleghost/internal/proto;protob\x06proto3"
 
 var (
 	file_proto_teleghost_proto_rawDescOnce sync.Once
@@ -416,13 +604,15 @@ func file_proto_teleghost_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_teleghost_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_teleghost_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_teleghost_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_proto_teleghost_proto_goTypes = []any{
 	(PacketType)(0),       // 0: teleghost.PacketType
 	(*Packet)(nil),        // 1: teleghost.Packet
 	(*TextMessage)(nil),   // 2: teleghost.TextMessage
 	(*ProfileUpdate)(nil), // 3: teleghost.ProfileUpdate
 	(*Handshake)(nil),     // 4: teleghost.Handshake
+	(*MessageEdit)(nil),   // 5: teleghost.MessageEdit
+	(*MessageDelete)(nil), // 6: teleghost.MessageDelete
 }
 var file_proto_teleghost_proto_depIdxs = []int32{
 	0, // 0: teleghost.Packet.type:type_name -> teleghost.PacketType
@@ -444,7 +634,7 @@ func file_proto_teleghost_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_teleghost_proto_rawDesc), len(file_proto_teleghost_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

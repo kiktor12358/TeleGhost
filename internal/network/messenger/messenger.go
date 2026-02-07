@@ -29,28 +29,37 @@ const (
 	// HeartbeatInterval интервал отправки heartbeat
 	HeartbeatInterval = 60 * time.Second
 
-	// ConnectionTimeout таймаут соединения
-	ConnectionTimeout = 30 * time.Second
+	// ConnectionTimeout таймаут соединения (для I2P нужны большие значения)
+	ConnectionTimeout = 3 * time.Minute
 
-	// ReadTimeout таймаут чтения
-	ReadTimeout = 60 * time.Second
+	// ReadTimeout таймаут чтения (I2P медленный, особенно при первом подключении)
+	ReadTimeout = 5 * time.Minute
 )
 
 // MessageHandler обработчик входящих сообщений
-type MessageHandler func(msg *core.Message, senderPubKey string)
+type MessageHandler func(msg *core.Message, senderPubKey, senderAddr string)
+
+// ContactRequestHandler обработчик входящих запросов "дружбы" (handshake)
+type ContactRequestHandler func(pubKey, nickname, i2pAddress string)
+
+// ProfileUpdateHandler handler
+type ProfileUpdateHandler func(pubKey, nickname, bio string, avatar []byte)
 
 // Service — мессенджер сервис
 type Service struct {
-	router      *router.SAMRouter
-	identity    *identity.Keys
-	handler     MessageHandler
-	connections map[string]net.Conn // destination -> connection
-	connMu      sync.RWMutex
-	ctx         context.Context
-	cancel      context.CancelFunc
-	wg          sync.WaitGroup
-	started     bool
-	mu          sync.Mutex
+	router         *router.SAMRouter
+	identity       *identity.Keys
+	handler        MessageHandler
+	contactHandler ContactRequestHandler
+	profileHandler ProfileUpdateHandler
+	connections    map[string]net.Conn // destination -> connection
+	connMu         sync.RWMutex
+	ctx            context.Context
+	cancel         context.CancelFunc
+	wg             sync.WaitGroup
+	started        bool
+	mu             sync.Mutex
+	myNickname     string // Для отправки в handshake
 }
 
 // NewService создаёт новый MessengerService
@@ -60,7 +69,18 @@ func NewService(r *router.SAMRouter, id *identity.Keys, handler MessageHandler) 
 		identity:    id,
 		handler:     handler,
 		connections: make(map[string]net.Conn),
+		myNickname:  "User", // Default
 	}
+}
+
+// SetContactHandler устанавливает обработчик запросов дружбы
+func (s *Service) SetContactHandler(h ContactRequestHandler) {
+	s.contactHandler = h
+}
+
+// SetNickname устанавливает никнейм для handshake
+func (s *Service) SetNickname(nickname string) {
+	s.myNickname = nickname
 }
 
 // Start запускает сервис: listener и heartbeat
@@ -193,6 +213,31 @@ func (s *Service) SendHeartbeat(destination string) error {
 	return s.SendMessage(destination, packet)
 }
 
+// SendHandshake отправляет handshake пакет для установления контакта
+func (s *Service) SendHandshake(destination string) error {
+	now := time.Now().UnixMilli()
+
+	handshake := &pb.Handshake{
+		InitiatorPubKey: []byte(s.identity.PublicKeyBase64),
+		Timestamp:       now,
+		Nickname:        s.myNickname,
+		I2PAddress:      s.router.GetDestination(),
+	}
+
+	payload, err := proto.Marshal(handshake)
+	if err != nil {
+		return fmt.Errorf("marshal handshake failed: %w", err)
+	}
+
+	packet := &pb.Packet{
+		Type:    pb.PacketType_HANDSHAKE,
+		Payload: payload,
+	}
+
+	log.Printf("[Messenger] Sending handshake to %s...", destination[:32])
+	return s.SendMessage(destination, packet)
+}
+
 // getOrCreateConnection получает существующее или создаёт новое соединение
 func (s *Service) getOrCreateConnection(destination string) (net.Conn, error) {
 	s.connMu.RLock()
@@ -305,12 +350,22 @@ func (s *Service) listenLoop() {
 
 		conn, err := listener.Accept()
 		if err != nil {
+			// Если роутер остановлен, выходим
+			if !s.router.IsReady() {
+				return
+			}
+
 			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
 				continue
 			}
 			if s.ctx.Err() != nil {
 				return
 			}
+			// Проверяем на ошибку закрытия (строковое сравнение для надежности с разными реализациями)
+			if err != nil && (err.Error() == "use of closed network connection" || err.Error() == "listener closed") {
+				return
+			}
+
 			log.Printf("[Messenger] Accept error: %v", err)
 			continue
 		}
@@ -354,12 +409,12 @@ func (s *Service) handleConnection(conn net.Conn) {
 		}
 
 		// Обрабатываем пакет
-		s.handlePacket(packet)
+		s.handlePacket(packet, remoteAddr)
 	}
 }
 
 // handlePacket обрабатывает входящий пакет
-func (s *Service) handlePacket(packet *pb.Packet) {
+func (s *Service) handlePacket(packet *pb.Packet, remoteAddr string) {
 	senderPubKey := string(packet.SenderPubKey)
 
 	// Проверяем подпись (если есть payload)
@@ -376,7 +431,7 @@ func (s *Service) handlePacket(packet *pb.Packet) {
 		log.Printf("[Messenger] Heartbeat from %s...", senderPubKey[:16])
 
 	case pb.PacketType_TEXT_MESSAGE:
-		s.handleTextMessage(packet, senderPubKey)
+		s.handleTextMessage(packet, senderPubKey, remoteAddr)
 
 	case pb.PacketType_PROFILE_UPDATE:
 		s.handleProfileUpdate(packet, senderPubKey)
@@ -390,7 +445,7 @@ func (s *Service) handlePacket(packet *pb.Packet) {
 }
 
 // handleTextMessage обрабатывает текстовое сообщение
-func (s *Service) handleTextMessage(packet *pb.Packet, senderPubKey string) {
+func (s *Service) handleTextMessage(packet *pb.Packet, senderPubKey, remoteAddr string) {
 	textMsg := &pb.TextMessage{}
 	if err := proto.Unmarshal(packet.Payload, textMsg); err != nil {
 		log.Printf("[Messenger] Failed to unmarshal TextMessage: %v", err)
@@ -415,7 +470,7 @@ func (s *Service) handleTextMessage(packet *pb.Packet, senderPubKey string) {
 
 	// Вызываем callback для обработки
 	if s.handler != nil {
-		s.handler(msg, senderPubKey)
+		s.handler(msg, senderPubKey, remoteAddr)
 	}
 }
 
@@ -428,7 +483,9 @@ func (s *Service) handleProfileUpdate(packet *pb.Packet, senderPubKey string) {
 	}
 
 	log.Printf("[Messenger] Profile update from %s: %s", senderPubKey[:16], profileUpdate.Nickname)
-	// TODO: обновить профиль контакта в БД
+	if s.profileHandler != nil {
+		s.profileHandler(senderPubKey, profileUpdate.Nickname, profileUpdate.Bio, profileUpdate.Avatar)
+	}
 }
 
 // handleHandshake обрабатывает рукопожатие
@@ -439,8 +496,19 @@ func (s *Service) handleHandshake(packet *pb.Packet, senderPubKey string) {
 		return
 	}
 
-	log.Printf("[Messenger] Handshake from %s...", senderPubKey[:16])
-	// TODO: реализовать полное рукопожатие с ECDH
+	nickname := handshake.Nickname
+	if nickname == "" {
+		nickname = "Unknown"
+	}
+
+	i2pAddress := handshake.I2PAddress
+
+	log.Printf("[Messenger] Handshake from %s (nickname: %s)", senderPubKey[:16], nickname)
+
+	// Вызываем callback для создания контакта
+	if s.contactHandler != nil {
+		s.contactHandler(senderPubKey, nickname, i2pAddress)
+	}
 }
 
 // heartbeatLoop отправляет heartbeat всем активным соединениям
@@ -486,4 +554,23 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// SetProfileUpdateHandler sets the profile update handler
+func (s *Service) SetProfileUpdateHandler(h ProfileUpdateHandler) {
+	s.profileHandler = h
+}
+
+// Broadcast sends a packet to all connected peers
+func (s *Service) Broadcast(packet *pb.Packet) {
+	s.connMu.RLock()
+	destinations := make([]string, 0, len(s.connections))
+	for dest := range s.connections {
+		destinations = append(destinations, dest)
+	}
+	s.connMu.RUnlock()
+
+	for _, dest := range destinations {
+		_ = s.SendMessage(dest, packet)
+	}
 }

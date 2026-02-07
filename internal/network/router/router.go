@@ -63,11 +63,11 @@ func DefaultConfig() *Config {
 	return &Config{
 		SAMAddress:       "127.0.0.1:7656",
 		DataDir:          ".teleghost/i2p",
-		SessionName:      "TeleGhost",
-		InboundLength:    3,
-		OutboundLength:   3,
-		InboundQuantity:  2,
-		OutboundQuantity: 2,
+		SessionName:      fmt.Sprintf("TeleGhost-%d", time.Now().Unix()),
+		InboundLength:    1,
+		OutboundLength:   1,
+		InboundQuantity:  1,
+		OutboundQuantity: 1,
 		UseNTCP2Only:     true,
 	}
 }
@@ -99,24 +99,30 @@ func NewSAMRouter(config *Config) *SAMRouter {
 // Start подключается к SAM и создаёт сессию
 func (r *SAMRouter) Start(ctx context.Context) error {
 	r.mu.Lock()
-	defer r.mu.Unlock()
-
 	r.ctx, r.cancel = context.WithCancel(ctx)
+	r.mu.Unlock() // Разблокируем сразу, чтобы можно было вызвать Stop()
 
 	// Пробуем подключиться к SAM с ретраями
+	// Используем r.config.SAMAddress без лока (он не меняется)
 	var samConn *sam3.SAM
 	var err error
 
-	for i := 0; i < 5; i++ {
+	log.Printf("[SAMRouter] Connecting to SAM at %s...", r.config.SAMAddress)
+	for i := 0; i < 30; i++ {
+		// Проверяем отмену перед попыткой
+		if r.ctx.Err() != nil {
+			return r.ctx.Err()
+		}
+
 		samConn, err = sam3.NewSAM(r.config.SAMAddress)
 		if err == nil {
 			break
 		}
-		log.Printf("[SAMRouter] Retry %d: waiting for SAM at %s...", i+1, r.config.SAMAddress)
+		log.Printf("[SAMRouter] Attempt %d failed: %v. Retrying in 3s...", i+1, err)
 		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(2 * time.Second):
+		case <-r.ctx.Done():
+			return r.ctx.Err()
+		case <-time.After(3 * time.Second):
 		}
 	}
 
@@ -124,44 +130,112 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 		return fmt.Errorf("failed to connect to SAM at %s: %w", r.config.SAMAddress, err)
 	}
 
-	r.sam = samConn
-
-	// Генерируем новые ключи для сессии
-	keys, err := samConn.NewKeys()
-	if err != nil {
-		return fmt.Errorf("failed to generate I2P keys: %w", err)
+	// Сохраняем samConn сразу, чтобы Stop мог его закрыть
+	r.mu.Lock()
+	if r.ctx.Err() != nil {
+		samConn.Close()
+		r.mu.Unlock()
+		return r.ctx.Err()
 	}
-	r.keys = keys
-	r.destination = keys.Addr().Base64()
+	r.sam = samConn
+	r.mu.Unlock()
+
+	log.Printf("[SAMRouter] Connected to SAM bridge")
+
+	// Если ключи не заданы, генерируем новые
+	// Используем копию ключей или проверяем под блокировкой, если нужно.
+	// Но r.keys доступны только нам пока.
+	r.mu.RLock()
+	hasKeys := r.keys.String() != ""
+	r.mu.RUnlock()
+
+	if !hasKeys {
+		log.Println("[SAMRouter] Generating new I2P keys... (this may take a while)")
+		keys, err := samConn.NewKeys()
+		if err != nil {
+			// Проверяем, не вызвана ли ошибка закрытием сокета
+			r.mu.Lock()
+			defer r.mu.Unlock()
+			// Если контекст отменен, возвращаем ошибку контекста
+			if r.ctx.Err() != nil {
+				return r.ctx.Err()
+			}
+			return fmt.Errorf("failed to generate I2P keys: %w", err)
+		}
+
+		r.mu.Lock()
+		r.keys = keys
+		r.destination = keys.Addr().Base64()
+		r.mu.Unlock()
+
+		log.Println("[SAMRouter] New keys generated")
+	} else {
+		log.Println("[SAMRouter] Using existing I2P keys")
+	}
+
+	// Еще раз проверяем перед созданием сессии
+	if r.ctx.Err() != nil {
+		return r.ctx.Err()
+	}
 
 	// Формируем опции для сессии
 	opts := []string{
-		fmt.Sprintf("inbound.length=%d", r.config.InboundLength),
-		fmt.Sprintf("outbound.length=%d", r.config.OutboundLength),
-		fmt.Sprintf("inbound.quantity=%d", r.config.InboundQuantity),
-		fmt.Sprintf("outbound.quantity=%d", r.config.OutboundQuantity),
-		"inbound.allowZeroHop=false",
-		"outbound.allowZeroHop=false",
+		"inbound.length=1",
+		"outbound.length=1",
+		"inbound.quantity=2",
+		"outbound.quantity=2",
+		"inbound.allowZeroHop=true",
+		"outbound.allowZeroHop=true",
 	}
 
 	// Создаём Streaming сессию
-	session, err := samConn.NewStreamSession(r.config.SessionName, keys, opts)
+	log.Printf("[SAMRouter] Creating stream session '%s'...", r.config.SessionName)
+
+	// Получаем текущие ключи для сессии
+	r.mu.RLock()
+	currentKeys := r.keys
+	r.mu.RUnlock()
+
+	session, err := samConn.NewStreamSession(r.config.SessionName, currentKeys, opts)
 	if err != nil {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+		if r.ctx.Err() != nil {
+			return r.ctx.Err()
+		}
 		return fmt.Errorf("failed to create SAM session: %w", err)
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Финальная проверка
+	if r.ctx.Err() != nil {
+		session.Close()
+		return r.ctx.Err()
 	}
 
 	r.session = session
 	r.ready = true
 
-	log.Printf("[SAMRouter] Started. Destination: %s...", r.destination[:32])
-
+	log.Printf("[SAMRouter] Session established")
 	return nil
+}
+
+// SetKeys устанавливает I2P ключи
+func (r *SAMRouter) SetKeys(keys i2pkeys.I2PKeys) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.keys = keys
+	r.destination = keys.Addr().Base64()
 }
 
 // Stop останавливает роутер
 func (r *SAMRouter) Stop() error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
+	log.Printf("[SAMRouter] Stopping...")
 
 	if r.cancel != nil {
 		r.cancel()
@@ -174,11 +248,13 @@ func (r *SAMRouter) Stop() error {
 		r.listener = nil
 	}
 
+	// Закрываем сессию (это закроет и connection-ы от нее)
 	if r.session != nil {
 		r.session.Close()
 		r.session = nil
 	}
 
+	// Закрываем SAM соединение (это прервет создание ключей или сессии)
 	if r.sam != nil {
 		r.sam.Close()
 		r.sam = nil

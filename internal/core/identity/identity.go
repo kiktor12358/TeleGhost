@@ -176,3 +176,14 @@ func (k *Keys) Fingerprint() string {
 func ValidateMnemonic(mnemonic string) bool {
 	return bip39.IsMnemonicValid(mnemonic)
 }
+
+// CalculateChatID вычисляет детерминированный ID для чата между двумя пользователями.
+// Порядок ключей не важен.
+func CalculateChatID(pubKey1, pubKey2 string) string {
+	keys := []string{pubKey1, pubKey2}
+	if pubKey1 > pubKey2 {
+		keys = []string{pubKey2, pubKey1}
+	}
+	hash := sha256.Sum256([]byte(keys[0] + "|" + keys[1]))
+	return base64.RawURLEncoding.EncodeToString(hash[:16])
+}

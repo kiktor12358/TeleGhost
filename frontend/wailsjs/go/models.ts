@@ -4,6 +4,7 @@ export namespace main {
 	    id: string;
 	    nickname: string;
 	    publicKey: string;
+	    avatar: string;
 	    i2pAddress: string;
 	    lastMessage: string;
 	    lastSeen: string;
@@ -18,10 +19,31 @@ export namespace main {
 	        this.id = source["id"];
 	        this.nickname = source["nickname"];
 	        this.publicKey = source["publicKey"];
+	        this.avatar = source["avatar"];
 	        this.i2pAddress = source["i2pAddress"];
 	        this.lastMessage = source["lastMessage"];
 	        this.lastSeen = source["lastSeen"];
 	        this.isOnline = source["isOnline"];
+	    }
+	}
+	export class FolderInfo {
+	    id: string;
+	    name: string;
+	    icon: string;
+	    chatIds: string[];
+	    position: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new FolderInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.name = source["name"];
+	        this.icon = source["icon"];
+	        this.chatIds = source["chatIds"];
+	        this.position = source["position"];
 	    }
 	}
 	export class MessageInfo {
@@ -47,6 +69,7 @@ export namespace main {
 	export class UserInfo {
 	    id: string;
 	    nickname: string;
+	    avatar: string;
 	    publicKey: string;
 	    destination: string;
 	    fingerprint: string;
@@ -59,6 +82,7 @@ export namespace main {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.nickname = source["nickname"];
+	        this.avatar = source["avatar"];
 	        this.publicKey = source["publicKey"];
 	        this.destination = source["destination"];
 	        this.fingerprint = source["fingerprint"];

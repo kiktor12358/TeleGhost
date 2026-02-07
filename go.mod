@@ -3,6 +3,7 @@ module teleghost
 go 1.24.0
 
 require (
+	fyne.io/systray v1.12.0
 	github.com/go-i2p/i2pkeys v0.0.0-20241108200332-e4f5ccdff8c4
 	github.com/go-i2p/sam3 v0.33.92
 	github.com/google/uuid v1.6.0

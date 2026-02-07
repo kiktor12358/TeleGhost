@@ -52,6 +52,7 @@ func (r *Repository) Migrate(ctx context.Context) error {
 		bio TEXT DEFAULT '',
 		avatar TEXT DEFAULT '',
 		i2p_address TEXT DEFAULT '',
+		i2p_keys BLOB,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
@@ -91,6 +92,22 @@ func (r *Repository) Migrate(ctx context.Context) error {
 	CREATE INDEX IF NOT EXISTS idx_messages_chat_id ON messages(chat_id);
 	CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(chat_id, timestamp DESC);
 	CREATE INDEX IF NOT EXISTS idx_contacts_public_key ON contacts(public_key);
+
+	-- Таблица папок
+	CREATE TABLE IF NOT EXISTS folders (
+		id TEXT PRIMARY KEY,
+		name TEXT NOT NULL,
+		icon TEXT DEFAULT '',
+		position INTEGER DEFAULT 0
+	);
+
+	-- Таблица связи чатов и папок
+	CREATE TABLE IF NOT EXISTS folder_chats (
+		folder_id TEXT NOT NULL,
+		contact_id TEXT NOT NULL,
+		PRIMARY KEY(folder_id, contact_id),
+		FOREIGN KEY(folder_id) REFERENCES folders(id) ON DELETE CASCADE
+	);
 	`
 
 	_, err := r.db.ExecContext(ctx, schema)
@@ -112,14 +129,14 @@ func (r *Repository) Close() error {
 func (r *Repository) GetMyProfile(ctx context.Context) (*core.User, error) {
 	query := `
 		SELECT id, public_key, private_key, mnemonic, nickname, bio, avatar, 
-		       i2p_address, created_at, updated_at
+		       i2p_address, i2p_keys, created_at, updated_at
 		FROM users LIMIT 1
 	`
 
 	user := &core.User{}
 	err := r.db.QueryRowContext(ctx, query).Scan(
 		&user.ID, &user.PublicKey, &user.PrivateKey, &user.Mnemonic,
-		&user.Nickname, &user.Bio, &user.Avatar, &user.I2PAddress,
+		&user.Nickname, &user.Bio, &user.Avatar, &user.I2PAddress, &user.I2PKeys,
 		&user.CreatedAt, &user.UpdatedAt,
 	)
 
@@ -136,13 +153,14 @@ func (r *Repository) GetMyProfile(ctx context.Context) (*core.User, error) {
 // SaveUser сохраняет или обновляет профиль пользователя
 func (r *Repository) SaveUser(ctx context.Context, user *core.User) error {
 	query := `
-		INSERT INTO users (id, public_key, private_key, mnemonic, nickname, bio, avatar, i2p_address, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO users (id, public_key, private_key, mnemonic, nickname, bio, avatar, i2p_address, i2p_keys, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			nickname = excluded.nickname,
 			bio = excluded.bio,
 			avatar = excluded.avatar,
 			i2p_address = excluded.i2p_address,
+			i2p_keys = excluded.i2p_keys,
 			updated_at = excluded.updated_at
 	`
 
@@ -154,7 +172,7 @@ func (r *Repository) SaveUser(ctx context.Context, user *core.User) error {
 
 	_, err := r.db.ExecContext(ctx, query,
 		user.ID, user.PublicKey, user.PrivateKey, user.Mnemonic,
-		user.Nickname, user.Bio, user.Avatar, user.I2PAddress,
+		user.Nickname, user.Bio, user.Avatar, user.I2PAddress, user.I2PKeys,
 		user.CreatedAt, user.UpdatedAt,
 	)
 
@@ -238,6 +256,56 @@ func (r *Repository) GetContact(ctx context.Context, id string) (*core.Contact, 
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get contact: %w", err)
+	}
+
+	return contact, nil
+}
+
+// GetContactByPublicKey возвращает контакт по его публичному ключу
+func (r *Repository) GetContactByPublicKey(ctx context.Context, publicKey string) (*core.Contact, error) {
+	query := `
+		SELECT id, public_key, nickname, bio, avatar, i2p_address, chat_id,
+		       is_blocked, is_verified, last_seen, added_at, updated_at
+		FROM contacts WHERE public_key = ?
+	`
+
+	contact := &core.Contact{}
+	err := r.db.QueryRowContext(ctx, query, publicKey).Scan(
+		&contact.ID, &contact.PublicKey, &contact.Nickname, &contact.Bio, &contact.Avatar,
+		&contact.I2PAddress, &contact.ChatID, &contact.IsBlocked, &contact.IsVerified,
+		&contact.LastSeen, &contact.AddedAt, &contact.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get contact by pubkey: %w", err)
+	}
+
+	return contact, nil
+}
+
+// GetContactByAddress возвращает контакт по его I2P адресу
+func (r *Repository) GetContactByAddress(ctx context.Context, address string) (*core.Contact, error) {
+	query := `
+		SELECT id, public_key, nickname, bio, avatar, i2p_address, chat_id,
+		       is_blocked, is_verified, last_seen, added_at, updated_at
+		FROM contacts WHERE i2p_address = ?
+	`
+
+	contact := &core.Contact{}
+	err := r.db.QueryRowContext(ctx, query, address).Scan(
+		&contact.ID, &contact.PublicKey, &contact.Nickname, &contact.Bio, &contact.Avatar,
+		&contact.I2PAddress, &contact.ChatID, &contact.IsBlocked, &contact.IsVerified,
+		&contact.LastSeen, &contact.AddedAt, &contact.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get contact by address: %w", err)
 	}
 
 	return contact, nil
@@ -393,6 +461,23 @@ func (r *Repository) DeleteMessage(ctx context.Context, id string) error {
 	return nil
 }
 
+// UpdateMessageContent обновляет содержимое сообщения (редактирование)
+func (r *Repository) UpdateMessageContent(ctx context.Context, id, newContent string) error {
+	query := `UPDATE messages SET content = ?, updated_at = ? WHERE id = ?`
+
+	result, err := r.db.ExecContext(ctx, query, newContent, time.Now(), id)
+	if err != nil {
+		return fmt.Errorf("failed to update message content: %w", err)
+	}
+
+	rows, _ := result.RowsAffected()
+	if rows == 0 {
+		return fmt.Errorf("message not found: %s", id)
+	}
+
+	return nil
+}
+
 // SearchMessages ищет сообщения по тексту в чате
 func (r *Repository) SearchMessages(ctx context.Context, chatID, queryStr string) ([]*core.Message, error) {
 	query := `
@@ -424,4 +509,70 @@ func (r *Repository) SearchMessages(ctx context.Context, chatID, queryStr string
 	}
 
 	return messages, rows.Err()
+}
+
+// === Folder Methods ===
+
+// CreateFolder создаёт новую папку
+func (r *Repository) CreateFolder(ctx context.Context, folder *core.Folder) error {
+	query := `INSERT INTO folders (id, name, icon, position) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET name=excluded.name, icon=excluded.icon, position=excluded.position`
+	_, err := r.db.ExecContext(ctx, query, folder.ID, folder.Name, folder.Icon, folder.Position)
+	return err
+}
+
+// GetFolders возвращает все папки
+func (r *Repository) GetFolders(ctx context.Context) ([]*core.Folder, error) {
+	query := `SELECT id, name, icon, position FROM folders ORDER BY position ASC`
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var folders []*core.Folder
+	for rows.Next() {
+		f := &core.Folder{}
+		if err := rows.Scan(&f.ID, &f.Name, &f.Icon, &f.Position); err != nil {
+			return nil, err
+		}
+		folders = append(folders, f)
+	}
+	return folders, nil
+}
+
+// DeleteFolder удаляет папку
+func (r *Repository) DeleteFolder(ctx context.Context, id string) error {
+	_, err := r.db.ExecContext(ctx, "DELETE FROM folders WHERE id = ?", id)
+	return err
+}
+
+// AddChatToFolder добавляет чат (контакт) в папку
+func (r *Repository) AddChatToFolder(ctx context.Context, folderID, contactID string) error {
+	_, err := r.db.ExecContext(ctx, "INSERT OR IGNORE INTO folder_chats (folder_id, contact_id) VALUES (?, ?)", folderID, contactID)
+	return err
+}
+
+// RemoveChatFromFolder удаляет чат из папки
+func (r *Repository) RemoveChatFromFolder(ctx context.Context, folderID, contactID string) error {
+	_, err := r.db.ExecContext(ctx, "DELETE FROM folder_chats WHERE folder_id = ? AND contact_id = ?", folderID, contactID)
+	return err
+}
+
+// GetFolderChats возвращает список ID контактов в папке
+func (r *Repository) GetFolderChats(ctx context.Context, folderID string) ([]string, error) {
+	rows, err := r.db.QueryContext(ctx, "SELECT contact_id FROM folder_chats WHERE folder_id = ?", folderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var chatIDs []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		chatIDs = append(chatIDs, id)
+	}
+	return chatIDs, nil
 }

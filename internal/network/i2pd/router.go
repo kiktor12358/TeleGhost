@@ -19,15 +19,15 @@
 package i2pd
 
 /*
-#cgo CXXFLAGS: -std=c++17 -I${SRCDIR}/i2pd/libi2pd -I${SRCDIR}/i2pd/libi2pd_client -I${SRCDIR}/i2pd/i18n -I${SRCDIR}/i2pd
-#cgo LDFLAGS: -L${SRCDIR} -Wl,--start-group -li2pdclient -li2pd -li2pdlang -Wl,--end-group -lssl -lcrypto -lz -lboost_filesystem -lboost_program_options -lboost_date_time -lpthread -lstdc++
+#cgo CXXFLAGS: -std=c++17 -I${SRCDIR}/i2pd/libi2pd -I${SRCDIR}/i2pd/libi2pd_client -I${SRCDIR}/i2pd/i18n -I${SRCDIR}/i2pd -I${SRCDIR}/i2pd/libi2pd_wrapper
+#cgo LDFLAGS: -L${SRCDIR} -Wl,--whole-archive -li2pdclient -li2pd -li2pdlang -Wl,--no-whole-archive -Wl,--start-group -lssl -lcrypto -lz -lboost_filesystem -lboost_program_options -lboost_date_time -lpthread -lstdc++ -lm -latomic -Wl,--end-group
 
 #include <stdlib.h>
 
 // C wrapper functions for C++ i2pd API
 // These are defined in i2pd_wrapper.cpp
 
-extern void i2pd_init(const char* datadir, int sam_enabled, int sam_port);
+extern void i2pd_init(const char* datadir, int sam_enabled, int sam_port, int debug_mode);
 extern void i2pd_start();
 extern void i2pd_stop();
 extern void i2pd_terminate();
@@ -38,8 +38,13 @@ import "C"
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"log"
+	"net"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 	"unsafe"
@@ -50,6 +55,7 @@ type Router struct {
 	dataDir    string
 	samPort    int
 	samEnabled bool
+	debug      bool
 	running    bool
 	mu         sync.RWMutex
 }
@@ -64,6 +70,9 @@ type Config struct {
 
 	// SAMPort — порт SAM API
 	SAMPort int
+
+	// Debug включает подробное логирование i2pd
+	Debug bool
 }
 
 // DefaultConfig возвращает конфигурацию по умолчанию
@@ -84,6 +93,7 @@ func NewRouter(config *Config) *Router {
 		dataDir:    config.DataDir,
 		samPort:    config.SAMPort,
 		samEnabled: config.SAMEnabled,
+		debug:      config.Debug,
 	}
 }
 
@@ -96,6 +106,24 @@ func (r *Router) Start(ctx context.Context) error {
 		return fmt.Errorf("router already running")
 	}
 
+	// Обеспечиваем наличие директории
+	if err := os.MkdirAll(r.dataDir, 0700); err != nil {
+		return fmt.Errorf("failed to create data dir: %w", err)
+	}
+
+	// Копируем сертификаты, если их нет
+	certsDir := filepath.Join(r.dataDir, "certificates")
+	if _, err := os.Stat(certsDir); os.IsNotExist(err) {
+		log.Printf("[i2pd] Copying certificates to %s...", certsDir)
+		// Extract embedded certificates
+		if err := copyEmbeddedCerts(certsDir); err != nil {
+			log.Printf("[i2pd] Warning: failed to copy certificates: %v", err)
+		}
+	}
+
+	// Не создаём i2pd.conf, полагаемся на аргументы CLI
+	// Это избегает конфликтов конфигурации
+
 	// Инициализируем i2pd
 	dataDir := C.CString(r.dataDir)
 	defer C.free(unsafe.Pointer(dataDir))
@@ -105,38 +133,61 @@ func (r *Router) Start(ctx context.Context) error {
 		samEnabled = C.int(1)
 	}
 
-	log.Printf("[i2pd] Initializing with datadir=%s, SAM=%v, port=%d", r.dataDir, r.samEnabled, r.samPort)
+	debugMode := C.int(0)
+	if r.debug {
+		debugMode = C.int(1)
+	}
 
-	C.i2pd_init(dataDir, samEnabled, C.int(r.samPort))
+	log.Printf("[i2pd] Initializing with datadir=%s, SAM=%v, port=%d, debug=%v", r.dataDir, r.samEnabled, r.samPort, r.debug)
+
+	C.i2pd_init(dataDir, samEnabled, C.int(r.samPort), debugMode)
 	C.i2pd_start()
 
 	r.running = true
-	log.Printf("[i2pd] Router started")
+	log.Printf("[i2pd] Router started, waiting for services...")
 
-	// Ждём готовности SAM
-	go r.waitForReady(ctx)
+	// Ждём готовности SAM (блокирующе)
+	if err := r.waitForReady(ctx); err != nil {
+		r.Stop()
+		return err
+	}
 
 	return nil
 }
 
-// waitForReady ожидает готовности роутера
-func (r *Router) waitForReady(ctx context.Context) {
+// waitForReady ожидает готовности роутера и SAM моста
+func (r *Router) waitForReady(ctx context.Context) error {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
-	timeout := time.After(120 * time.Second)
+	timeout := time.After(60 * time.Second)
 
 	for {
 		select {
 		case <-ctx.Done():
-			return
+			return ctx.Err()
 		case <-timeout:
-			log.Printf("[i2pd] Timeout waiting for router to be ready")
-			return
+			return fmt.Errorf("timeout waiting for SAM bridge to be ready")
 		case <-ticker.C:
+			// Проверяем через C++ обертку
 			if C.i2pd_is_running() == 1 {
-				log.Printf("[i2pd] Router is ready")
-				return
+				// Дополнительно проверяем, слушает ли порт (SAM) и отвечает ли он
+				conn, err := net.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", r.samPort), 200*time.Millisecond)
+				if err == nil {
+					// Пробуем поздороваться
+					conn.SetDeadline(time.Now().Add(200 * time.Millisecond))
+					_, err := conn.Write([]byte("HELLO VERSION MIN=3.0 MAX=3.3\n"))
+					if err == nil {
+						buf := make([]byte, 128)
+						n, err := conn.Read(buf)
+						if err == nil && n > 0 && strings.Contains(string(buf[:n]), "HELLO REPLY") {
+							conn.Close()
+							log.Printf("[i2pd] Router and SAM bridge are ready")
+							return nil
+						}
+					}
+					conn.Close()
+				}
 			}
 		}
 	}
@@ -161,11 +212,22 @@ func (r *Router) Stop() error {
 	return nil
 }
 
-// IsRunning проверяет работает ли роутер
-func (r *Router) IsRunning() bool {
+// IsReady проверяет, готов ли роутер и SAM мост
+func (r *Router) IsReady() bool {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	return r.running && C.i2pd_is_running() == 1
+
+	if !r.running || C.i2pd_is_running() != 1 {
+		return false
+	}
+
+	// Дополнительная проверка на возможность подключения
+	conn, err := net.DialTimeout("tcp", fmt.Sprintf("127.0.0.1:%d", r.samPort), 50*time.Millisecond)
+	if err == nil {
+		conn.Close()
+		return true
+	}
+	return false
 }
 
 // GetB32Address возвращает B32 адрес роутера
@@ -180,4 +242,37 @@ func (r *Router) GetB32Address() string {
 // GetSAMAddress возвращает адрес SAM API
 func (r *Router) GetSAMAddress() string {
 	return fmt.Sprintf("127.0.0.1:%d", r.samPort)
+}
+
+//go:embed i2pd/contrib/certificates/*
+var embeddedCerts embed.FS
+
+// copyEmbeddedCerts extracts embedded certificates to the destination
+func copyEmbeddedCerts(dst string) error {
+	log.Println("[i2pd] Extracting embedded certificates...")
+
+	entries, err := embeddedCerts.ReadDir("i2pd/contrib/certificates")
+	if err != nil {
+		return fmt.Errorf("failed to read embedded certs dir: %w", err)
+	}
+
+	if err := os.MkdirAll(dst, 0700); err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		data, err := embeddedCerts.ReadFile("i2pd/contrib/certificates/" + entry.Name())
+		if err != nil {
+			return err
+		}
+
+		if err := os.WriteFile(filepath.Join(dst, entry.Name()), data, 0644); err != nil {
+			return err
+		}
+	}
+	return nil
 }

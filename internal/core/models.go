@@ -33,6 +33,9 @@ type User struct {
 	// I2PAddress — полный I2P destination address (base64, ~516 chars)
 	I2PAddress string `json:"i2p_address" db:"i2p_address"`
 
+	// I2PKeys — приватные ключи I2P (зашифрованы, хранятся как байты)
+	I2PKeys []byte `json:"-" db:"i2p_keys"`
+
 	// CreatedAt — время создания аккаунта
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 
@@ -96,6 +99,24 @@ const (
 	MessageStatusFailed
 )
 
+// String возвращает строковое представление статуса
+func (s MessageStatus) String() string {
+	switch s {
+	case MessageStatusPending:
+		return "pending"
+	case MessageStatusSent:
+		return "sent"
+	case MessageStatusDelivered:
+		return "delivered"
+	case MessageStatusRead:
+		return "read"
+	case MessageStatusFailed:
+		return "failed"
+	default:
+		return "unknown"
+	}
+}
+
 // Message представляет сообщение в чате
 type Message struct {
 	// ID — уникальный идентификатор сообщения (UUID)
@@ -154,4 +175,19 @@ type Chat struct {
 
 	// UpdatedAt — время последней активности
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+}
+
+// Folder представляет папку с чатами
+type Folder struct {
+	// ID — уникальный идентификатор папки
+	ID string `json:"id" db:"id"`
+
+	// Name — название папки
+	Name string `json:"name" db:"name"`
+
+	// Icon — иконка (emoji или URL)
+	Icon string `json:"icon" db:"icon"`
+
+	// Position — позиция в списке (для сортировки)
+	Position int `json:"position" db:"position"`
 }
