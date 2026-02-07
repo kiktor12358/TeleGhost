@@ -27,14 +27,10 @@
 - **Server Federation**: Encrypted mail exchange between trusted nodes.
 - **Anti-Spam**: Proof-of-Work (RandomX/SHA) implementation for unknown senders.
 
-### Phase 3: Real-Time & Modes
+### Phase 3: Real-Time & Mobility
 - **Calls**: Audio calls via UDP (SSU2) support.
 - **Security Profiles**: On-the-fly tunnel mode switching (🚀 **Fast**, 🛡️ **Default**, 👻 **Invisible**).
-
-### Phase 4: Ecosystem
-- **Gateways**: Email gateways to the clear web via PoW payment.
-- **Mobile**: Core engine porting to Android (Gomobile).
-- **Fidonet 2.0**: A network of transit nodes to ensure unblockable communication.
+- **Mobile Support**: Engine optimization for mobile platforms and development of a native mobile client.
 
 
 ---
