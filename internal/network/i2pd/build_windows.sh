@@ -22,16 +22,14 @@ cd "$I2PD_DIR/build"
 rm -rf obj && mkdir -p obj && cd obj
 
 echo "Configuring for Windows (MinGW64)..."
-# Don't specify generator, let CMake pick Unix Makefiles or MinGW Makefiles
 cmake -DWITH_STATIC=ON \
       -DWITH_BINARY=OFF \
       -DWITH_UPNP=OFF \
-      -DWITH_SAM=ON \
       -DCMAKE_BUILD_TYPE=Release \
       ..
 
-# Try make, if fails try mingw32-make
-make -j$(nproc) libi2pd libi2pdclient libi2pdlang || mingw32-make -j$(nproc) libi2pd libi2pdclient libi2pdlang
+echo "Building targets..."
+cmake --build . --target libi2pd libi2pdclient libi2pdlang -- -j$(nproc)
 
 # Copy library to current directory for CGO
 cp libi2pd.a libi2pdclient.a libi2pdlang.a "$SCRIPT_DIR/"
