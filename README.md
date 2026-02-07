@@ -1,4 +1,4 @@
-# TeleGhost 👻 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fkiktor12358%2FTeleGhost&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false)](https://hits.seeyoufarm.com)
+# TeleGhost 👻 ![visitors](https://visitor-badge.laobi.icu/badge?page_id=kiktor12358.TeleGhost)
 
 **TeleGhost** — это современный, быстрый и анонимный мессенджер, работающий внутри сети I2P. Он обеспечивает высокую степень приватности и безопасности общения, используя сквозное шифрование и скрытые сетевые туннели.
 
