@@ -1,0 +1,119 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libboost-all-dev libssl-dev zlib1g-dev cmake build-essential
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build i2pd libraries
+        run: |
+          chmod +x internal/network/i2pd/build.sh
+          ./internal/network/i2pd/build.sh
+
+      - name: Build Wails App
+        run: |
+          export CGO_LDFLAGS_ALLOW=".*"
+          wails build -tags cgo_i2pd -platform linux/amd64
+
+      - name: Rename and Prepare Binary
+        run: |
+          mv build/bin/TeleGhost TeleGhost-linux-amd64
+          chmod +x TeleGhost-linux-amd64
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: teleghost-linux
+          path: TeleGhost-linux-amd64
+
+  # Note: Windows build is complex due to C++ dependencies (Boost/OpenSSL)
+  # This is a best-effort configuration.
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: |
+          choco install -y cmake boost-msvc-14.2 openssl
+          go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build Wails App (Skip i2pd for now if libs missing)
+        shell: bash
+        run: |
+          # If you have pre-compiled .lib files for Windows, put them in internal/network/i2pd/
+          # For now, we build without cgo_i2pd on Windows if it's too complex to compile on the fly
+          # Or try to build with it:
+          wails build -platform windows/amd64
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: teleghost-windows
+          path: build/bin/TeleGhost.exe
+
+  release:
+    name: Create Release
+    needs: [build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: teleghost-linux
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: teleghost-windows
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            TeleGhost-linux-amd64
+            TeleGhost.exe
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
