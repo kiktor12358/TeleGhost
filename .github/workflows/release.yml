@@ -36,8 +36,8 @@ jobs:
 
       - name: Build i2pd libraries
         run: |
-          chmod +x internal/network/i2pd/build.sh
-          ./internal/network/i2pd/build.sh
+          chmod +x internal/network/i2pd/build_linux.sh
+          ./internal/network/i2pd/build_linux.sh
 
       - name: Build Wails App
         run: |
@@ -92,8 +92,8 @@ jobs:
       - name: Build i2pd libraries (Windows)
         shell: msys2 {0}
         run: |
-          chmod +x internal/network/i2pd/build.sh
-          ./internal/network/i2pd/build.sh
+          chmod +x internal/network/i2pd/build_windows.sh
+          ./internal/network/i2pd/build_windows.sh
 
       - name: Build Wails App
         shell: msys2 {0}
