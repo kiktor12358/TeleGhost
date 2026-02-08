@@ -61,6 +61,7 @@ type ContactInfo struct {
 	LastMessage string `json:"lastMessage"`
 	LastSeen    string `json:"lastSeen"`
 	IsOnline    bool   `json:"isOnline"`
+	ChatID      string `json:"chatId"`
 }
 
 // MessageInfo сообщение для фронтенда
@@ -904,6 +905,7 @@ func (a *App) AddContactFromClipboard() (*ContactInfo, error) {
 		ID:         contact.ID,
 		Nickname:   contact.Nickname,
 		I2PAddress: destination[:32] + "...",
+		ChatID:     contact.ChatID,
 	}, nil
 }
 
@@ -934,6 +936,7 @@ func (a *App) AddContact(name, destination string) (*ContactInfo, error) {
 		ID:         contact.ID,
 		Nickname:   contact.Nickname,
 		I2PAddress: destination[:32] + "...",
+		ChatID:     contact.ChatID,
 	}, nil
 }
 
@@ -981,6 +984,7 @@ func (a *App) GetContacts() ([]*ContactInfo, error) {
 			I2PAddress:  fullAddr,
 			LastMessage: lastMsg,
 			LastSeen:    c.LastSeen.Format("15:04"),
+			ChatID:      c.ChatID,
 		}
 	}
 

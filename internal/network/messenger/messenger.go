@@ -24,7 +24,7 @@ const (
 	ProtocolVersion = 1
 
 	// MaxPacketSize максимальный размер пакета (10MB for images)
-	MaxPacketSize = 10 * 1024 * 1024
+	MaxPacketSize = 50 * 1024 * 1024
 
 	// HeartbeatInterval интервал отправки heartbeat
 	HeartbeatInterval = 60 * time.Second

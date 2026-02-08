@@ -9,6 +9,7 @@ export namespace main {
 	    lastMessage: string;
 	    lastSeen: string;
 	    isOnline: boolean;
+	    chatId: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ContactInfo(source);
@@ -24,6 +25,7 @@ export namespace main {
 	        this.lastMessage = source["lastMessage"];
 	        this.lastSeen = source["lastSeen"];
 	        this.isOnline = source["isOnline"];
+	        this.chatId = source["chatId"];
 	    }
 	}
 	export class FolderInfo {
