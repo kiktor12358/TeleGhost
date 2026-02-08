@@ -723,6 +723,17 @@
       }
   }
 
+  async function copyPathToClipboard(path) {
+      if (!path) return;
+      try {
+          await CopyToClipboard(path);
+          showToast('Путь к файлу скопирован', 'success');
+      } catch (err) {
+          console.error(err);
+          showToast('Ошибка копирования: ' + err, 'error');
+      }
+  }
+
   // Handle Clipboard Paste
   async function handlePaste(e) {
       console.log('Paste event triggered', e);
@@ -1545,7 +1556,7 @@
                                  on:click={(e) => previewImage = e.currentTarget.src}
                              />
                          {:else}
-                             <div class="file-attachment-card" on:click={() => copyImageToClipboard(att.local_path)} title="Нажмите чтобы скопировать путь">
+                             <div class="file-attachment-card" on:click={() => copyPathToClipboard(att.local_path)} title="Нажмите чтобы скопировать путь">
                                  <div class="file-icon">📄</div>
                                  <div class="file-details">
                                      <div class="file-name">{att.filename || 'File'}</div>
