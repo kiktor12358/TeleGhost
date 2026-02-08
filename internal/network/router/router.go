@@ -66,8 +66,8 @@ func DefaultConfig() *Config {
 		SessionName:      fmt.Sprintf("TeleGhost-%d", time.Now().Unix()),
 		InboundLength:    1,
 		OutboundLength:   1,
-		InboundQuantity:  1,
-		OutboundQuantity: 1,
+		InboundQuantity:  2,
+		OutboundQuantity: 2,
 		UseNTCP2Only:     true,
 	}
 }
@@ -179,11 +179,12 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 	}
 
 	// Формируем опции для сессии
+	// Формируем опции для сессии
 	opts := []string{
-		"inbound.length=1",
-		"outbound.length=1",
-		"inbound.quantity=2",
-		"outbound.quantity=2",
+		fmt.Sprintf("inbound.length=%d", r.config.InboundLength),
+		fmt.Sprintf("outbound.length=%d", r.config.OutboundLength),
+		fmt.Sprintf("inbound.quantity=%d", r.config.InboundQuantity),
+		fmt.Sprintf("outbound.quantity=%d", r.config.OutboundQuantity),
 		"inbound.allowZeroHop=true",
 		"outbound.allowZeroHop=true",
 	}

@@ -341,8 +341,14 @@ func (a *App) CreateAccount() (string, error) {
 func (a *App) connectToI2P() {
 	a.setNetworkStatus(NetworkStatusConnecting)
 
-	// Создаём роутер
+	// Создаём роутер (SAM клиент)
 	cfg := router.DefaultConfig()
+	// Применяем настройки
+	settings := a.GetRouterSettings()
+	if settings != nil {
+		cfg.InboundLength = settings.TunnelLength
+		cfg.OutboundLength = settings.TunnelLength
+	}
 	a.router = router.NewSAMRouter(cfg)
 
 	// Если у нас есть встроенный роутер, ждем пока он будет готов

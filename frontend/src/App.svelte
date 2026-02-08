@@ -1471,10 +1471,10 @@
                     <!-- Tunnel Length -->
                     <div class="setting-item" style="margin-bottom: 20px;">
                         <label class="form-label" style="color: var(--text-primary); display: block; margin-bottom: 8px;">Режим анонимности (длина туннелей)</label>
-                        <select bind:value={routerSettings.tunnelLength} class="input-field" style="width: 100%; padding: 10px; background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px;">
-                            <option value={1} style="background: var(--bg-tertiary); color: var(--text-primary);">Fast (1 хоп) - Быстро, низкая анонимность</option>
-                            <option value={3} style="background: var(--bg-tertiary); color: var(--text-primary);">Default (3 хопа) - Баланс (Рекомендуется)</option>
-                            <option value={5} style="background: var(--bg-tertiary); color: var(--text-primary);">Invisibility (5 хопов) - Максимальная анонимность, медленно</option>
+                        <select bind:value={routerSettings.tunnelLength} class="input-field settings-select">
+                            <option value={1}>Fast (1 хоп) - Быстро, низкая анонимность</option>
+                            <option value={3}>Default (3 хопа) - Баланс (Рекомендуется)</option>
+                            <option value={5}>Invisibility (5 хопов) - Максимальная анонимность, медленно</option>
                         </select>
                     </div>
 
