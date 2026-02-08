@@ -54,6 +54,7 @@ export namespace main {
 	    timestamp: number;
 	    isOutgoing: boolean;
 	    status: string;
+	    attachments: any[];
 	
 	    static createFrom(source: any = {}) {
 	        return new MessageInfo(source);
@@ -66,6 +67,7 @@ export namespace main {
 	        this.timestamp = source["timestamp"];
 	        this.isOutgoing = source["isOutgoing"];
 	        this.status = source["status"];
+	        this.attachments = source["attachments"];
 	    }
 	}
 	export class RouterSettings {

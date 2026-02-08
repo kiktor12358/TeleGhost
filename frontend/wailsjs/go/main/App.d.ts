@@ -52,6 +52,8 @@ export function GetRouterSettings():Promise<main.RouterSettings>;
 
 export function Login(arg1:string):Promise<void>;
 
+export function OpenFile(arg1:string):Promise<void>;
+
 export function QuitApp():Promise<void>;
 
 export function RemoveChatFromFolder(arg1:string,arg2:string):Promise<void>;
@@ -67,6 +69,8 @@ export function SelectFiles():Promise<Array<string>>;
 export function SendFileMessage(arg1:string,arg2:string,arg3:Array<string>,arg4:boolean):Promise<void>;
 
 export function SendText(arg1:string,arg2:string):Promise<void>;
+
+export function ShowInFolder(arg1:string):Promise<void>;
 
 export function ShowWindow():Promise<void>;
 

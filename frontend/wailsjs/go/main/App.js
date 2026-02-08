@@ -102,6 +102,10 @@ export function Login(arg1) {
   return window['go']['main']['App']['Login'](arg1);
 }
 
+export function OpenFile(arg1) {
+  return window['go']['main']['App']['OpenFile'](arg1);
+}
+
 export function QuitApp() {
   return window['go']['main']['App']['QuitApp']();
 }
@@ -132,6 +136,10 @@ export function SendFileMessage(arg1, arg2, arg3, arg4) {
 
 export function SendText(arg1, arg2) {
   return window['go']['main']['App']['SendText'](arg1, arg2);
+}
+
+export function ShowInFolder(arg1) {
+  return window['go']['main']['App']['ShowInFolder'](arg1);
 }
 
 export function ShowWindow() {
