@@ -615,8 +615,12 @@ func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) e
 		return nil
 	}
 
+	// Generate Message ID upfront for consistency
+	now := time.Now().UnixMilli()
+	msgID := fmt.Sprintf("%d-%s", now, a.identity.Keys.UserID[:8])
+
 	// Normal (compressed) flow
-	if err := a.messenger.SendAttachmentMessage(destination, actualChatID, text, attachments); err != nil {
+	if err := a.messenger.SendAttachmentMessageWithID(destination, actualChatID, msgID, text, attachments); err != nil {
 		return fmt.Errorf("failed to send message: %w", err)
 	}
 
@@ -644,10 +648,7 @@ func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) e
 		coreAttachments = append(coreAttachments, coreAtt)
 	}
 
-	// Temporarily: I will use the same ID generation logic.
-	now := time.Now().UnixMilli()
-	msgID := fmt.Sprintf("%d-%s", now, a.identity.Keys.UserID[:8])
-
+	// Local storage uses the same ID
 	msg := &core.Message{
 		ID:          msgID,
 		ChatID:      actualChatID,

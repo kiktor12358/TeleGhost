@@ -273,6 +273,8 @@
 
       EventsOn('new_message', (msg) => {
         console.log('[App] New message received:', msg);
+        if(selectedContact) console.log('[App] Selected:', selectedContact.chatId, 'MsgChat:', msg.chatId, 'Sender:', msg.senderId);
+
         // Проверяем совпадение по chatId или по senderId контакта
         if (selectedContact && (msg.chatId === selectedContact.chatId || msg.senderId === selectedContact.publicKey)) {
           // Обновляем или добавляем сообщение
