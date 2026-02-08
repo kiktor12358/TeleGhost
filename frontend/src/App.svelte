@@ -27,7 +27,10 @@
     SelectImages,
     SendImageMessage,
     GetFileBase64,
-    CopyImageToClipboard
+    CopyImageToClipboard,
+    GetImageThumbnail,
+    AcceptFileTransfer,
+    DeclineFileTransfer
   } from '../wailsjs/go/main/App.js';
   import logo from './assets/images/logo.png';
 
@@ -492,7 +495,8 @@
       }
     } catch (e) {
       console.error(e);
-      showToast('Ошибка выбора изображений', 'error');
+      console.error(e);
+      showToast('Ошибка выбора изображений: ' + e, 'error');
     }
   }
 
@@ -765,6 +769,29 @@
     CopyToClipboard(msg.content);
     messageContextMenu.show = false;
     // TODO: Toast вместо alert
+  }
+
+  // === File Transfer Logic ===
+  async function acceptTransfer(msg) {
+      try {
+          // Optimistic update
+          // messages = messages.filter(m => m.id !== msg.id); // Remove offer? No, keep logic in backend
+          await AcceptFileTransfer(msg.id);
+          showToast('Принято! Скачивание начнется...', 'success');
+      } catch (e) {
+          showToast('Ошибка принятия: ' + e, 'error');
+      }
+  }
+
+  async function declineTransfer(msg) {
+      try {
+          await DeclineFileTransfer(msg.id);
+          // Optimistic update to remove or strike-through
+          // messages = messages.filter(m => m.id !== msg.id); 
+          showToast('Отклонено', 'info');
+      } catch (e) {
+          showToast('Ошибка отклонения: ' + e, 'error');
+      }
   }
 
   // Keyboard shortcuts
@@ -1460,7 +1487,31 @@
                     </div>
                   </div>
                 {:else}
-                  <div class="message-content">{@html parseMarkdown(msg.content)}</div>
+                  {#if msg.contentType === 'file_offer'}
+                      <div class="file-offer-card">
+                          <div class="file-icon-large">📁</div>
+                          <div class="file-info">
+                              <div class="file-title">Предложено файлов: {msg.fileCount || (msg.filenames ? msg.filenames.length : '?')}</div>
+                              <div class="file-size">Общий размер: {msg.totalSize ? (msg.totalSize / 1024 / 1024).toFixed(2) + ' MB' : 'Неизвестно'}</div>
+                              {#if msg.filenames && msg.filenames.length > 0}
+                                  <div class="file-list-preview" style="font-size: 11px; opacity: 0.7; margin-top: 4px;">
+                                      {msg.filenames.slice(0, 3).join(', ')}{msg.filenames.length > 3 ? '...' : ''}
+                                  </div>
+                              {/if}
+                          </div>
+                      </div>
+                      
+                      <div class="file-actions" style="margin-top: 10px; display: flex; gap: 8px;">
+                          {#if msg.isOutgoing}
+                              <div class="status-badge">⏳ Ожидание подтверждения...</div>
+                          {:else}
+                              <button class="btn-small btn-success" on:click={() => acceptTransfer(msg)}>✅ Принять</button>
+                              <button class="btn-small btn-danger" on:click={() => declineTransfer(msg)}>❌ Отклонить</button>
+                          {/if}
+                      </div>
+                  {:else}
+                      <div class="message-content">{@html parseMarkdown(msg.content)}</div>
+                  {/if}
                 {/if}
                 <div class="message-meta">
                   {#if msg.edited}
@@ -2554,6 +2605,80 @@
   }
 
   .close-preview:hover { opacity: 1; }
+
+  /* === File Offer === */
+  .file-offer-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .file-icon-large {
+      font-size: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  }
+
+  .file-info {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-width: 0;
+  }
+
+  .file-title {
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 14px;
+      margin-bottom: 2px;
+  }
+
+  .file-size {
+      font-size: 11px;
+      color: var(--text-secondary);
+  }
+  
+  .file-list-preview {
+      color: var(--text-secondary);
+      opacity: 0.7;
+  }
+
+  .file-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+  }
+
+  .btn-success {
+      background: var(--accent); /* Use accent or specific green? */
+      background: #00b894;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 12px;
+      border: 1px solid rgba(0,0,0,0.1);
+  }
+  
+  .btn-success:hover { background: #00a884; }
+
+  .status-badge {
+      font-size: 11px;
+      color: var(--text-secondary);
+      background: rgba(0,0,0,0.2);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-style: italic;
+      display: inline-block;
+  }
 </style>
 
 <svelte:window on:paste={handlePaste} />

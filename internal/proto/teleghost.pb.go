@@ -33,6 +33,8 @@ const (
 	PacketType_MESSAGE_EDIT            PacketType = 5 // Редактирование сообщения
 	PacketType_MESSAGE_DELETE          PacketType = 6 // Удаление сообщения
 	PacketType_PROFILE_REQUEST         PacketType = 7 // Запрос обновления профиля
+	PacketType_FILE_OFFER              PacketType = 8 // Предложение файла
+	PacketType_FILE_RESPONSE           PacketType = 9 // Ответ на предложение
 )
 
 // Enum value maps for PacketType.
@@ -46,6 +48,8 @@ var (
 		5: "MESSAGE_EDIT",
 		6: "MESSAGE_DELETE",
 		7: "PROFILE_REQUEST",
+		8: "FILE_OFFER",
+		9: "FILE_RESPONSE",
 	}
 	PacketType_value = map[string]int32{
 		"PACKET_TYPE_UNSPECIFIED": 0,
@@ -56,6 +60,8 @@ var (
 		"MESSAGE_EDIT":            5,
 		"MESSAGE_DELETE":          6,
 		"PROFILE_REQUEST":         7,
+		"FILE_OFFER":              8,
+		"FILE_RESPONSE":           9,
 	}
 )
 
@@ -661,6 +667,145 @@ func (x *MessageDelete) GetDeleteForAll() bool {
 	return false
 }
 
+// FileOffer — предложение отправки файлов (для подтверждения)
+type FileOffer struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	MessageId string                 `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	Filenames []string               `protobuf:"bytes,2,rep,name=filenames,proto3" json:"filenames,omitempty"`
+	TotalSize int64                  `protobuf:"varint,3,opt,name=total_size,json=totalSize,proto3" json:"total_size,omitempty"`
+	FileCount int32                  `protobuf:"varint,4,opt,name=file_count,json=fileCount,proto3" json:"file_count,omitempty"`
+	// Можно добавить previews, но пока опустим для простоты
+	ChatId        string `protobuf:"bytes,5,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FileOffer) Reset() {
+	*x = FileOffer{}
+	mi := &file_proto_teleghost_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FileOffer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FileOffer) ProtoMessage() {}
+
+func (x *FileOffer) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_teleghost_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FileOffer.ProtoReflect.Descriptor instead.
+func (*FileOffer) Descriptor() ([]byte, []int) {
+	return file_proto_teleghost_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *FileOffer) GetMessageId() string {
+	if x != nil {
+		return x.MessageId
+	}
+	return ""
+}
+
+func (x *FileOffer) GetFilenames() []string {
+	if x != nil {
+		return x.Filenames
+	}
+	return nil
+}
+
+func (x *FileOffer) GetTotalSize() int64 {
+	if x != nil {
+		return x.TotalSize
+	}
+	return 0
+}
+
+func (x *FileOffer) GetFileCount() int32 {
+	if x != nil {
+		return x.FileCount
+	}
+	return 0
+}
+
+func (x *FileOffer) GetChatId() string {
+	if x != nil {
+		return x.ChatId
+	}
+	return ""
+}
+
+// FileResponse — ответ на предложение
+type FileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MessageId     string                 `protobuf:"bytes,1,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
+	Accepted      bool                   `protobuf:"varint,2,opt,name=accepted,proto3" json:"accepted,omitempty"`
+	ChatId        string                 `protobuf:"bytes,3,opt,name=chat_id,json=chatId,proto3" json:"chat_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FileResponse) Reset() {
+	*x = FileResponse{}
+	mi := &file_proto_teleghost_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FileResponse) ProtoMessage() {}
+
+func (x *FileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_teleghost_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FileResponse.ProtoReflect.Descriptor instead.
+func (*FileResponse) Descriptor() ([]byte, []int) {
+	return file_proto_teleghost_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *FileResponse) GetMessageId() string {
+	if x != nil {
+		return x.MessageId
+	}
+	return ""
+}
+
+func (x *FileResponse) GetAccepted() bool {
+	if x != nil {
+		return x.Accepted
+	}
+	return false
+}
+
+func (x *FileResponse) GetChatId() string {
+	if x != nil {
+		return x.ChatId
+	}
+	return ""
+}
+
 var File_proto_teleghost_proto protoreflect.FileDescriptor
 
 const file_proto_teleghost_proto_rawDesc = "" +
@@ -714,7 +859,21 @@ const file_proto_teleghost_proto_rawDesc = "" +
 	"message_id\x18\x01 \x01(\tR\tmessageId\x12\x1c\n" +
 	"\ttimestamp\x18\x02 \x01(\x03R\ttimestamp\x12\x17\n" +
 	"\achat_id\x18\x03 \x01(\tR\x06chatId\x12$\n" +
-	"\x0edelete_for_all\x18\x04 \x01(\bR\fdeleteForAll*\xa8\x01\n" +
+	"\x0edelete_for_all\x18\x04 \x01(\bR\fdeleteForAll\"\x9f\x01\n" +
+	"\tFileOffer\x12\x1d\n" +
+	"\n" +
+	"message_id\x18\x01 \x01(\tR\tmessageId\x12\x1c\n" +
+	"\tfilenames\x18\x02 \x03(\tR\tfilenames\x12\x1d\n" +
+	"\n" +
+	"total_size\x18\x03 \x01(\x03R\ttotalSize\x12\x1d\n" +
+	"\n" +
+	"file_count\x18\x04 \x01(\x05R\tfileCount\x12\x17\n" +
+	"\achat_id\x18\x05 \x01(\tR\x06chatId\"b\n" +
+	"\fFileResponse\x12\x1d\n" +
+	"\n" +
+	"message_id\x18\x01 \x01(\tR\tmessageId\x12\x1a\n" +
+	"\baccepted\x18\x02 \x01(\bR\baccepted\x12\x17\n" +
+	"\achat_id\x18\x03 \x01(\tR\x06chatId*\xcb\x01\n" +
 	"\n" +
 	"PacketType\x12\x1b\n" +
 	"\x17PACKET_TYPE_UNSPECIFIED\x10\x00\x12\r\n" +
@@ -724,7 +883,10 @@ const file_proto_teleghost_proto_rawDesc = "" +
 	"\tHANDSHAKE\x10\x04\x12\x10\n" +
 	"\fMESSAGE_EDIT\x10\x05\x12\x12\n" +
 	"\x0eMESSAGE_DELETE\x10\x06\x12\x13\n" +
-	"\x0fPROFILE_REQUEST\x10\aB+Z)github.com/teleghost/internal/proto;protob\x06proto3"
+	"\x0fPROFILE_REQUEST\x10\a\x12\x0e\n" +
+	"\n" +
+	"FILE_OFFER\x10\b\x12\x11\n" +
+	"\rFILE_RESPONSE\x10\tB+Z)github.com/teleghost/internal/proto;protob\x06proto3"
 
 var (
 	file_proto_teleghost_proto_rawDescOnce sync.Once
@@ -739,7 +901,7 @@ func file_proto_teleghost_proto_rawDescGZIP() []byte {
 }
 
 var file_proto_teleghost_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_proto_teleghost_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_teleghost_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_proto_teleghost_proto_goTypes = []any{
 	(PacketType)(0),       // 0: teleghost.PacketType
 	(*Packet)(nil),        // 1: teleghost.Packet
@@ -749,6 +911,8 @@ var file_proto_teleghost_proto_goTypes = []any{
 	(*Handshake)(nil),     // 5: teleghost.Handshake
 	(*MessageEdit)(nil),   // 6: teleghost.MessageEdit
 	(*MessageDelete)(nil), // 7: teleghost.MessageDelete
+	(*FileOffer)(nil),     // 8: teleghost.FileOffer
+	(*FileResponse)(nil),  // 9: teleghost.FileResponse
 }
 var file_proto_teleghost_proto_depIdxs = []int32{
 	0, // 0: teleghost.Packet.type:type_name -> teleghost.PacketType
@@ -771,7 +935,7 @@ func file_proto_teleghost_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_teleghost_proto_rawDesc), len(file_proto_teleghost_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

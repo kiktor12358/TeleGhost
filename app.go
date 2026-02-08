@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -96,6 +97,17 @@ type App struct {
 	}
 	embeddedStop func() error
 	trayManager  *TrayManager
+
+	transferMu       sync.RWMutex
+	pendingTransfers map[string]*PendingTransfer // messageID -> transfer info
+}
+
+type PendingTransfer struct {
+	Destination string
+	ChatID      string
+	Files       []string
+	MessageID   string
+	Timestamp   int64
 }
 
 // NewApp creates a new App application struct
@@ -104,8 +116,9 @@ func NewApp(iconData []byte) *App {
 	dataDir := filepath.Join(homeDir, ".teleghost")
 
 	app := &App{
-		status:  NetworkStatusOffline,
-		dataDir: dataDir,
+		status:           NetworkStatusOffline,
+		dataDir:          dataDir,
+		pendingTransfers: make(map[string]*PendingTransfer),
 	}
 
 	app.trayManager = NewTrayManager(app, iconData)
@@ -380,6 +393,8 @@ func (a *App) connectToI2P() {
 	a.messenger.SetNickname(nickname)
 	a.messenger.SetProfileUpdateHandler(a.onProfileUpdate)
 	a.messenger.SetProfileRequestHandler(a.onProfileRequest)
+	a.messenger.SetFileOfferHandler(a.onFileOffer)
+	a.messenger.SetFileResponseHandler(a.onFileResponse)
 
 	// Запускаем мессенджер
 	if err := a.messenger.Start(a.ctx); err != nil {
@@ -488,6 +503,107 @@ func (a *App) SendImageMessage(chatID, text string, files []string, isRaw bool) 
 	}
 
 	// Отправляем через мессенджер
+	if isRaw {
+		// Для uncompressed отправляем сначала предложение (Offer)
+		// Генерируем ID сообщения заранее
+		now := time.Now().UnixMilli()
+		msgID := fmt.Sprintf("%d-%s", now, a.identity.Keys.UserID[:8])
+
+		// Сохраняем информацию о передаче
+		a.transferMu.Lock()
+		a.pendingTransfers[msgID] = &PendingTransfer{
+			Destination: destination,
+			ChatID:      chatID,
+			Files:       files, // Raw local paths
+			MessageID:   msgID,
+			Timestamp:   now,
+		}
+		a.transferMu.Unlock()
+
+		// Считаем общий размер
+		var totalSize int64
+		for _, f := range files {
+			info, _ := os.Stat(f)
+			if info != nil {
+				totalSize += info.Size()
+			}
+		}
+
+		filenames := make([]string, len(files))
+		for i, f := range files {
+			filenames[i] = filepath.Base(f)
+		}
+
+		// Отправляем Offer
+		if err := a.messenger.SendFileOffer(destination, chatID, msgID, filenames, totalSize, int32(len(files))); err != nil {
+			return fmt.Errorf("failed to send file offer: %w", err)
+		}
+
+		// Сохраняем сообщение локально со статусом 'offered' (или 'sending_offer')
+		// Пока используем стандартный статус, но можно добавить custom поле в Content
+		// Или просто статус PENDING.
+		// Используем core.MessageStatusPending если есть, или Sent.
+		// В UI мы будем отображать "Ожидание подтверждения" если это RAW.
+
+		msg := &core.Message{
+			ID:          msgID,
+			ChatID:      chatID,
+			SenderID:    a.identity.Keys.PublicKeyBase64,
+			Content:     text,         // Может быть пустым
+			ContentType: "file_offer", // Специальный тип
+			Status:      core.MessageStatusSent,
+			IsOutgoing:  true,
+			Timestamp:   now,
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			// Attachments мы пока НЕ сохраняем в БД как attachments,
+			// так как они еще не отправлены. Но нам нужно их отображать.
+			// Сохраним их как локальные вложения?
+			// Если мы их сохраним, то UI может попытаться их показать.
+			// Давайте сохраним, но пометим как-то?
+			// Пока сохраняем как есть.
+		}
+
+		// Save attachments info to DB so we show them in UI
+		coreAttachments := make([]*core.Attachment, 0, len(files))
+		for _, f := range files {
+			stat, _ := os.Stat(f)
+			size := int64(0)
+			if stat != nil {
+				size = stat.Size()
+			}
+			coreAtt := &core.Attachment{
+				ID:           uuid.New().String(),
+				MessageID:    msgID,
+				Filename:     filepath.Base(f),
+				MimeType:     "application/octet-stream", // Raw
+				Size:         size,
+				LocalPath:    f,
+				IsCompressed: false,
+			}
+			coreAttachments = append(coreAttachments, coreAtt)
+		}
+		msg.Attachments = coreAttachments
+
+		if err := a.repo.SaveMessage(a.ctx, msg); err != nil {
+			log.Printf("[App] Failed to save offer message: %v", err)
+		}
+
+		// Emit event update
+		runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
+			"id":          msg.ID,
+			"chatId":      msg.ChatID,
+			"senderId":    msg.SenderID,
+			"content":     msg.Content,
+			"timestamp":   msg.Timestamp,
+			"isOutgoing":  msg.IsOutgoing,
+			"contentType": "file_offer",
+		})
+
+		return nil
+	}
+
+	// Normal (compressed) flow
 	if err := a.messenger.SendAttachmentMessage(destination, chatID, text, attachments); err != nil {
 		return fmt.Errorf("failed to send message: %w", err)
 	}
@@ -516,32 +632,11 @@ func (a *App) SendImageMessage(chatID, text string, files []string, isRaw bool) 
 		coreAttachments = append(coreAttachments, coreAtt)
 	}
 
-	msg := &core.Message{
-		ID: fmt.Sprintf("%d-%s", time.Now().UnixMilli(), a.identity.Keys.UserID[:8]), // Should match ID generated in messenger?
-		// Wait, messenger generates ID. We should probably accept ID from messenger or generate it here and pass to messenger.
-		// Current SendAttachmentMessage generates ID internally.
-		// Strategy: Messenger should return the ID or we generate it.
-		// Looking at messenger code: MessageId: fmt.Sprintf("%d-%s", now, s.identity.UserID[:8])
-		// We can replicate logic or modify messenger to take ID.
-		// For now, let's replicate logic or assume approximate match? No, ID must be exact.
-		// Better: Generate ID here and pass to messenger?
-		// Messenger `SendAttachmentMessage` doesn't take ID.
-		// I will modify `ID` generation in `msg` here to match `messenger` logic closely, OR
-		// I'll trust `messenger` to handle sending, but for LOCAL save I need the ID.
-		// If I generate different ID, it's fine as long as I save it.
-		// But `messenger` sends `MessageId` in proto. Receiver uses that ID.
-		// If I save with `ID_A` and send `ID_B`, then if I receive a reply to `ID_B`, I won't map it.
-		// **Fix**: I should modify `SendAttachmentMessage` to accept `ID` or return it.
-		// Since I can't easily modify messenger signature without breaking things (maybe),
-		// I'll update `SendAttachmentMessage` to return the `messageID` it generated.
-		// Actually, let's update `SendAttachmentMessage` to return `(string, error)`.
-	}
-
 	// Temporarily: I will use the same ID generation logic.
 	now := time.Now().UnixMilli()
 	msgID := fmt.Sprintf("%d-%s", now, a.identity.Keys.UserID[:8])
 
-	msg = &core.Message{
+	msg := &core.Message{
 		ID:          msgID,
 		ChatID:      chatID,
 		SenderID:    a.identity.Keys.PublicKeyBase64,
@@ -1207,8 +1302,12 @@ func (a *App) SelectImages() ([]string, error) {
 		Title: "Выберите изображения",
 		Filters: []runtime.FileFilter{
 			{
-				DisplayName: "Images",
+				DisplayName: "Images (*.jpg, *.png, *.webp)",
 				Pattern:     "*.jpg;*.jpeg;*.png;*.webp",
+			},
+			{
+				DisplayName: "All Files",
+				Pattern:     "*",
 			},
 		},
 	})
@@ -1365,4 +1464,241 @@ func (a *App) GetImageThumbnail(path string, width, height uint) (string, error)
 	}
 
 	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
+}
+
+// onFileOffer handles incoming file transfer offers
+func (a *App) onFileOffer(senderPubKey, messageID, chatID string, filenames []string, totalSize int64, fileCount int32) {
+	if a.repo == nil {
+		return
+	}
+
+	// Create a message representing the offer
+	// We need to resolve sender ID and Chat ID properly
+	// senderPubKey is the key.
+	// chatID from packet might be empty or we should verify it.
+	// In Messenger.SendFileOffer we send chatID.
+	// But we should probably look up contact by senderPubKey to be sure.
+
+	contact, err := a.repo.GetContactByPublicKey(a.ctx, senderPubKey)
+	if err != nil || contact == nil {
+		log.Printf("[App] Received file offer from unknown contact: %s", senderPubKey[:16])
+		// Optionally create unknown contact logic here, similar to onMessageReceived
+		return
+	}
+
+	// Save this offer in pendingTransfers (Incoming)
+	// We use the same map, but maybe we need to distinguish?
+	// For incoming, we need to know who sent it to send response back.
+	// Destination (for response) is the sender's I2P address.
+	a.transferMu.Lock()
+	a.pendingTransfers[messageID] = &PendingTransfer{
+		Destination: contact.I2PAddress, // Send response here
+		ChatID:      contact.ChatID,
+		Files:       filenames, // Only names available now
+		MessageID:   messageID,
+		Timestamp:   time.Now().UnixMilli(),
+	}
+	a.transferMu.Unlock()
+
+	// Save message to DB with 'file_offer' type
+	msg := &core.Message{
+		ID:          messageID,
+		ChatID:      contact.ChatID,
+		SenderID:    senderPubKey,
+		Content:     "", // Empty content or description
+		ContentType: "file_offer",
+		Status:      core.MessageStatusDelivered, // It is delivered info
+		IsOutgoing:  false,
+		Timestamp:   time.Now().UnixMilli(),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	// Save attachments info (placeholders)
+	coreAttachments := make([]*core.Attachment, 0, len(filenames))
+	for _, fname := range filenames {
+		coreAtt := &core.Attachment{
+			ID:           uuid.New().String(),
+			MessageID:    messageID,
+			Filename:     fname,
+			MimeType:     "application/octet-stream",
+			Size:         totalSize / int64(fileCount), // Approximation if not per file
+			LocalPath:    "",                           // Not downloaded yet
+			IsCompressed: false,
+		}
+		coreAttachments = append(coreAttachments, coreAtt)
+	}
+	msg.Attachments = coreAttachments
+
+	if err := a.repo.SaveMessage(a.ctx, msg); err != nil {
+		log.Printf("[App] Failed to save incoming offer: %v", err)
+	}
+
+	// Notify Frontend
+	runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
+		"id":          msg.ID,
+		"chatId":      msg.ChatID,
+		"senderId":    msg.SenderID,
+		"content":     msg.Content,
+		"timestamp":   msg.Timestamp,
+		"isOutgoing":  msg.IsOutgoing,
+		"contentType": "file_offer",
+		"fileCount":   fileCount,
+		"totalSize":   totalSize,
+		"filenames":   filenames,
+	})
+
+	log.Printf("[App] Received file offer from %s: %d files", contact.Nickname, fileCount)
+}
+
+// onFileResponse handles response to our file offer
+func (a *App) onFileResponse(senderPubKey, messageID, chatID string, accepted bool) {
+	log.Printf("[App] Received file response for %s: accepted=%v", messageID[:8], accepted)
+
+	a.transferMu.Lock()
+	transfer, exists := a.pendingTransfers[messageID]
+	// Remove from pending only if rejected or finished?
+	// If accepted, we start sending. We can keep it or remove it if we have all info.
+	// We need the file paths to send.
+	if !exists {
+		a.transferMu.Unlock()
+		log.Printf("[App] Transfer info not found for %s", messageID[:8])
+		return
+	}
+	// Warning: we should not remove it yet if we need it for sending.
+	// But after sending we should.
+	// Let's remove it after sending.
+	a.transferMu.Unlock()
+
+	// Update message status in DB
+	msg, err := a.repo.GetMessage(a.ctx, messageID)
+	if err == nil && msg != nil {
+		if accepted {
+			// Update status? Or just start sending.
+			// Frontend will update based on events.
+		} else {
+			msg.Status = core.MessageStatusFailed // Or "rejected"
+			a.repo.SaveMessage(a.ctx, msg)        // Update status
+
+			// Notify frontend
+			runtime.EventsEmit(a.ctx, "message_update", map[string]interface{}{
+				"id":     messageID,
+				"chatId": msg.ChatID,
+				"status": "rejected",
+			})
+
+			// Cleanup
+			a.transferMu.Lock()
+			delete(a.pendingTransfers, messageID)
+			a.transferMu.Unlock()
+			return
+		}
+	}
+
+	if accepted {
+		// Start sending the actual files!
+		// We use the stored file paths in `transfer.Files`
+		log.Printf("[App] Starting transfer for %s...", messageID[:8])
+
+		// SendAttachmentMessageWithID logic
+		// We need to re-read files.
+		attachments := make([]*pb.Attachment, 0, len(transfer.Files))
+		for _, filePath := range transfer.Files {
+			data, err := os.ReadFile(filePath)
+			if err != nil {
+				log.Printf("[App] Failed to read file %s: %v", filePath, err)
+				continue
+			}
+
+			att := &pb.Attachment{
+				Id:           uuid.New().String(),
+				Filename:     filepath.Base(filePath),
+				MimeType:     "application/octet-stream",
+				Size:         int64(len(data)),
+				Data:         data,
+				IsCompressed: false,
+			}
+			attachments = append(attachments, att)
+		}
+
+		// Use the SAME MessageID
+		if err := a.messenger.SendAttachmentMessageWithID(transfer.Destination, transfer.ChatID, messageID, "", attachments); err != nil {
+			log.Printf("[App] Failed to send attachments: %v", err)
+			// Update status to failed
+		} else {
+			log.Printf("[App] Files sent successfully for %s", messageID[:8])
+			// Update status in DB
+			/*
+				if msg != nil {
+					msg.Status = core.MessageStatusSent
+					msg.ContentType = "mixed" // Now it has content
+					a.repo.SaveMessage(a.ctx, msg)
+				}
+			*/
+			// Actually SendAttachmentMessageWithID sends a TextMessage packet.
+			// The receiver will handle it as a new message?
+			// PROB: Receiver `handleTextMessage` creates a NEW message with `msg.ID`.
+			// Since `msg.ID` matches the `FileOffer` message ID?
+			// Yes, if we reuse ID.
+			// Receiver `handleTextMessage` does: `msg := &core.Message{ ID: textMsg.MessageId ... }`
+			// `repo.SaveMessage` usually does `INSERT OR REPLACE`?
+			// SQLite `SaveMessage` implementation check:
+			// `INSERT OR REPLACE INTO messages ...`
+			// So it should overwrite the "Offer" message with the "Real" message.
+			// This is perfect! The "Offer" bubble will be replaced by the actual files.
+		}
+
+		// Cleanup
+		a.transferMu.Lock()
+		delete(a.pendingTransfers, messageID)
+		a.transferMu.Unlock()
+	}
+}
+
+// AcceptFileTransfer accepts an incoming file offer
+func (a *App) AcceptFileTransfer(messageID string) error {
+	a.transferMu.RLock()
+	transfer, exists := a.pendingTransfers[messageID]
+	a.transferMu.RUnlock()
+
+	if !exists {
+		return fmt.Errorf("transfer not found or expired")
+	}
+
+	// Send acceptance
+	if err := a.messenger.SendFileResponse(transfer.Destination, transfer.ChatID, messageID, true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeclineFileTransfer declines an incoming file offer
+func (a *App) DeclineFileTransfer(messageID string) error {
+	a.transferMu.RLock()
+	transfer, exists := a.pendingTransfers[messageID]
+	a.transferMu.RUnlock()
+
+	if !exists {
+		return fmt.Errorf("transfer not found or expired")
+	}
+
+	// Send rejection
+	if err := a.messenger.SendFileResponse(transfer.Destination, transfer.ChatID, messageID, false); err != nil {
+		return err
+	}
+
+	// Cleanup
+	a.transferMu.Lock()
+	delete(a.pendingTransfers, messageID)
+	a.transferMu.Unlock()
+
+	// Update local message status
+	msg, err := a.repo.GetMessage(a.ctx, messageID)
+	if err == nil && msg != nil {
+		msg.Status = core.MessageStatusFailed // "rejected"
+		a.repo.SaveMessage(a.ctx, msg)
+	}
+
+	return nil
 }

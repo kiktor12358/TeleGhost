@@ -14,6 +14,8 @@ enum PacketType {
   MESSAGE_EDIT = 5;      // Редактирование сообщения
   MESSAGE_DELETE = 6;    // Удаление сообщения
   PROFILE_REQUEST = 7;   // Запрос обновления профиля
+  FILE_OFFER = 8;        // Предложение файла
+  FILE_RESPONSE = 9;     // Ответ на предложение
 }
 
 // Packet — универсальная обёртка для всех сообщений в сети
@@ -128,4 +130,21 @@ message MessageDelete {
   
   // Удалить у всех (true) или только локально (false)
   bool delete_for_all = 4;
+}
+
+// FileOffer — предложение отправки файлов (для подтверждения)
+message FileOffer {
+    string message_id = 1;
+    repeated string filenames = 2;
+    int64 total_size = 3;
+    int32 file_count = 4;
+    // Можно добавить previews, но пока опустим для простоты
+    string chat_id = 5;
+}
+
+// FileResponse — ответ на предложение
+message FileResponse {
+    string message_id = 1;
+    bool accepted = 2;
+    string chat_id = 3; 
 }

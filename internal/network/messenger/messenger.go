@@ -36,14 +36,20 @@ const (
 	ReadTimeout = 5 * time.Minute
 )
 
+// FileOfferHandler обработчик входящих предложений файла
+type FileOfferHandler func(senderPubKey, messageID, chatID string, filenames []string, totalSize int64, fileCount int32)
+
+// FileResponseHandler обработчик ответов на предложение файла
+type FileResponseHandler func(senderPubKey, messageID, chatID string, accepted bool)
+
 // MessageHandler обработчик входящих сообщений
 type MessageHandler func(msg *core.Message, senderPubKey, senderAddr string)
 
-// ContactRequestHandler обработчик входящих запросов "дружбы" (handshake)
-type ContactRequestHandler func(pubKey, nickname, i2pAddress string)
+// ContactRequestHandler обработчик запросов дружбы
+type ContactRequestHandler func(senderPubKey, nickname, i2pAddress string)
 
-// ProfileUpdateHandler handler
-type ProfileUpdateHandler func(pubKey, nickname, bio string, avatar []byte)
+// ProfileUpdateHandler обработчик обновлений профиля
+type ProfileUpdateHandler func(senderPubKey, nickname, bio string, avatar []byte)
 
 // Service — мессенджер сервис
 type Service struct {
@@ -54,15 +60,18 @@ type Service struct {
 
 	profileHandler        ProfileUpdateHandler
 	profileRequestHandler ProfileRequestHandler
-	attachmentSaver       AttachmentSaver
-	connections           map[string]net.Conn // destination -> connection
-	connMu                sync.RWMutex
-	ctx                   context.Context
-	cancel                context.CancelFunc
-	wg                    sync.WaitGroup
-	started               bool
-	mu                    sync.Mutex
-	myNickname            string // Для отправки в handshake
+	fileOfferHandler      FileOfferHandler
+	fileResponseHandler   FileResponseHandler
+
+	attachmentSaver AttachmentSaver
+	connections     map[string]net.Conn // destination -> connection
+	connMu          sync.RWMutex
+	ctx             context.Context
+	cancel          context.CancelFunc
+	wg              sync.WaitGroup
+	started         bool
+	mu              sync.Mutex
+	myNickname      string // Для отправки в handshake
 }
 
 // NewService создаёт новый MessengerService
@@ -203,6 +212,52 @@ func (s *Service) SendTextMessage(destination, chatID, content string) error {
 		Payload: payload,
 	}
 
+	return s.SendMessage(destination, packet)
+}
+
+// SendFileOffer отправляет предложение передачи файлов
+func (s *Service) SendFileOffer(destination, chatID, messageID string, filenames []string, totalSize int64, fileCount int32) error {
+	offer := &pb.FileOffer{
+		MessageId: messageID,
+		ChatId:    chatID,
+		Filenames: filenames,
+		TotalSize: totalSize,
+		FileCount: fileCount,
+	}
+
+	payload, err := proto.Marshal(offer)
+	if err != nil {
+		return fmt.Errorf("marshal file offer failed: %w", err)
+	}
+
+	packet := &pb.Packet{
+		Type:    pb.PacketType_FILE_OFFER,
+		Payload: payload,
+	}
+
+	log.Printf("[Messenger] Sending file offer (id=%s) to %s...", messageID[:8], destination[:32])
+	return s.SendMessage(destination, packet)
+}
+
+// SendFileResponse отправляет ответ на предложение
+func (s *Service) SendFileResponse(destination, chatID, messageID string, accepted bool) error {
+	resp := &pb.FileResponse{
+		MessageId: messageID,
+		ChatId:    chatID,
+		Accepted:  accepted,
+	}
+
+	payload, err := proto.Marshal(resp)
+	if err != nil {
+		return fmt.Errorf("marshal file response failed: %w", err)
+	}
+
+	packet := &pb.Packet{
+		Type:    pb.PacketType_FILE_RESPONSE,
+		Payload: payload,
+	}
+
+	log.Printf("[Messenger] Sending file response (accepted=%v) to %s...", accepted, destination[:32])
 	return s.SendMessage(destination, packet)
 }
 
@@ -456,6 +511,12 @@ func (s *Service) handlePacket(packet *pb.Packet, remoteAddr string) {
 	case pb.PacketType_PROFILE_REQUEST:
 		s.handleProfileRequest(packet, senderPubKey)
 
+	case pb.PacketType_FILE_OFFER:
+		s.handleFileOffer(packet, senderPubKey)
+
+	case pb.PacketType_FILE_RESPONSE:
+		s.handleFileResponse(packet, senderPubKey)
+
 	default:
 		log.Printf("[Messenger] Unknown packet type: %v", packet.Type)
 	}
@@ -497,12 +558,34 @@ func (s *Service) SetAttachmentSaver(saver AttachmentSaver) {
 func (s *Service) SendAttachmentMessage(destination, chatID, content string, attachments []*pb.Attachment) error {
 	now := time.Now().UnixMilli()
 
+	// Создаём TextMessage (MessageId is generated here but ignored by App.go for sent messages which creates its own ID)
+	// Wait, app.go uses its own ID for local storage, but sends this ID.
+	// If we use file offer, we need to match IDs.
+	// For normal flow, app.go generates ID before sending? No, app.go calls SendAttachmentMessage and saves whatever.
+	// BUT with FileOffer, we generate ID FIRST, then send Offer, then send File.
+	// So we need to allow passing MessageID externally if needed.
+	// Or we can assume app.go handles consistency.
+	// For now, let's keep it simple. If we need explicit ID, we should add it to arguments.
+	// But `SendAttachmentMessage` generates new ID here: `fmt.Sprintf("%d-%s", now, s.identity.UserID[:8])`.
+	// This is problematic for File Flow where ID is predetermined.
+	// I should overload this or start passing MessageID.
+	// I'll add `messageID` optional parameter? No, Go doesn't support optional.
+	// I'll create `SendAttachmentMessageWithID`.
+
+	msgID := fmt.Sprintf("%d-%s", now, s.identity.UserID[:8])
+	return s.SendAttachmentMessageWithID(destination, chatID, msgID, content, attachments)
+}
+
+// SendAttachmentMessageWithID отправляет сообщение с вложениями и указанным ID
+func (s *Service) SendAttachmentMessageWithID(destination, chatID, messageID, content string, attachments []*pb.Attachment) error {
+	now := time.Now().UnixMilli()
+
 	// Создаём TextMessage
 	textMsg := &pb.TextMessage{
 		ChatId:      chatID,
 		Content:     content,
 		Timestamp:   now,
-		MessageId:   fmt.Sprintf("%d-%s", now, s.identity.UserID[:8]),
+		MessageId:   messageID,
 		Attachments: attachments,
 	}
 
@@ -645,6 +728,34 @@ func (s *Service) handleHandshake(packet *pb.Packet, senderPubKey string) {
 	}
 }
 
+// handleFileOffer обрабатывает предложение файла
+func (s *Service) handleFileOffer(packet *pb.Packet, senderPubKey string) {
+	offer := &pb.FileOffer{}
+	if err := proto.Unmarshal(packet.Payload, offer); err != nil {
+		log.Printf("[Messenger] Failed to unmarshal FileOffer: %v", err)
+		return
+	}
+
+	log.Printf("[Messenger] File offer from %s: %d files", senderPubKey[:16], offer.FileCount)
+	if s.fileOfferHandler != nil {
+		s.fileOfferHandler(senderPubKey, offer.MessageId, offer.ChatId, offer.Filenames, offer.TotalSize, offer.FileCount)
+	}
+}
+
+// handleFileResponse обрабатывает ответ на предложение
+func (s *Service) handleFileResponse(packet *pb.Packet, senderPubKey string) {
+	resp := &pb.FileResponse{}
+	if err := proto.Unmarshal(packet.Payload, resp); err != nil {
+		log.Printf("[Messenger] Failed to unmarshal FileResponse: %v", err)
+		return
+	}
+
+	log.Printf("[Messenger] File response from %s: accepted=%v", senderPubKey[:16], resp.Accepted)
+	if s.fileResponseHandler != nil {
+		s.fileResponseHandler(senderPubKey, resp.MessageId, resp.ChatId, resp.Accepted)
+	}
+}
+
 // heartbeatLoop отправляет heartbeat всем активным соединениям
 func (s *Service) heartbeatLoop() {
 	defer s.wg.Done()
@@ -693,6 +804,16 @@ func min(a, b int) int {
 // SetProfileUpdateHandler sets the profile update handler
 func (s *Service) SetProfileUpdateHandler(h ProfileUpdateHandler) {
 	s.profileHandler = h
+}
+
+// SetFileOfferHandler sets the file offer handler
+func (s *Service) SetFileOfferHandler(h FileOfferHandler) {
+	s.fileOfferHandler = h
+}
+
+// SetFileResponseHandler sets the file response handler
+func (s *Service) SetFileResponseHandler(h FileResponseHandler) {
+	s.fileResponseHandler = h
 }
 
 // Broadcast sends a packet to all connected peers
