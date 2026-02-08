@@ -58,9 +58,9 @@ export function RequestProfileUpdate(arg1:string):Promise<void>;
 
 export function SaveTempImage(arg1:string,arg2:string):Promise<string>;
 
-export function SelectImages():Promise<Array<string>>;
+export function SelectFiles():Promise<Array<string>>;
 
-export function SendImageMessage(arg1:string,arg2:string,arg3:Array<string>,arg4:boolean):Promise<void>;
+export function SendFileMessage(arg1:string,arg2:string,arg3:Array<string>,arg4:boolean):Promise<void>;
 
 export function SendText(arg1:string,arg2:string):Promise<void>;
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"mime"
 	"os"
 	"path/filepath"
 	"strings"
@@ -434,8 +435,8 @@ func (a *App) saveAttachment(filename string, data []byte) (string, error) {
 	return fullPath, nil
 }
 
-// SendImageMessage отправляет сообщение с изображениями
-func (a *App) SendImageMessage(chatID, text string, files []string, isRaw bool) error {
+// SendFileMessage отправляет сообщение с файлами
+func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) error {
 	if a.messenger == nil {
 		return fmt.Errorf("messenger not started")
 	}
@@ -466,18 +467,28 @@ func (a *App) SendImageMessage(chatID, text string, files []string, isRaw bool) 
 		var width, height int
 		var isCompressed bool
 
-		if isRaw {
+		// Check if it's an image for compression
+		ext := strings.ToLower(filepath.Ext(filePath))
+		isImage := ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".webp"
+
+		if isRaw || !isImage {
 			// Читаем как есть
 			d, err := os.ReadFile(filePath)
 			if err != nil {
 				return fmt.Errorf("failed to read file %s: %w", filePath, err)
 			}
 			data = d
-			mimeType = "application/octet-stream" // Или определить по расширению
+			mimeType = mime.TypeByExtension(ext)
+			if mimeType == "" {
+				mimeType = "application/octet-stream"
+			}
 			isCompressed = false
-			wd, ht, _ := utils.GetImageDimensions(filePath)
-			width, height = wd, ht
+			if isImage {
+				wd, ht, _ := utils.GetImageDimensions(filePath)
+				width, height = wd, ht
+			}
 		} else {
+			// Алиас: isRaw == false AND isImage == true => Compress
 			// Сжимаем
 			// Макс размер 1280x1280
 			d, mime, w, h, err := utils.CompressImage(filePath, 1280, 1280)
@@ -703,17 +714,31 @@ func (a *App) onMessageReceived(msg *core.Message, senderPubKey, senderAddr stri
 		return
 	}
 
+	// Подготавливаем вложения для события
+	attList := make([]map[string]interface{}, 0, len(msg.Attachments))
+	for _, att := range msg.Attachments {
+		attList = append(attList, map[string]interface{}{
+			"id":         att.ID,
+			"filename":   att.Filename,
+			"mimeType":   att.MimeType,
+			"size":       att.Size,
+			"local_path": att.LocalPath,
+		})
+	}
+
 	// Отправляем событие во фронтенд
 	runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
-		"id":         msg.ID,
-		"chatId":     msg.ChatID,
-		"senderId":   msg.SenderID,
-		"content":    msg.Content,
-		"timestamp":  msg.Timestamp,
-		"isOutgoing": msg.IsOutgoing,
+		"id":          msg.ID,
+		"chatId":      msg.ChatID,
+		"senderId":    msg.SenderID,
+		"content":     msg.Content, // Может быть пустым для файлов
+		"timestamp":   msg.Timestamp,
+		"isOutgoing":  msg.IsOutgoing,
+		"contentType": msg.ContentType,
+		"attachments": attList,
 	})
 
-	log.Printf("[App] New message received: %s", msg.Content[:min(20, len(msg.Content))])
+	log.Printf("[App] New message received: %s (attachments: %d)", msg.Content, len(msg.Attachments))
 }
 
 // onContactRequest обработчик входящих handshake — автоматически создаёт контакт
@@ -1030,7 +1055,7 @@ func (a *App) SendText(contactID, text string) error {
 		log.Printf("[App] Failed to save outgoing message: %v", err)
 	}
 
-	// Отправляем событие во фронтенд для мгновенного отображения
+	// Отправляем событие во фронтенд
 	runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
 		"id":         msg.ID,
 		"chatId":     msg.ChatID,
@@ -1297,18 +1322,18 @@ func (a *App) SaveTempImage(base64Data string, name string) (string, error) {
 	return path, nil
 }
 
-// SelectImages открывает диалог выбора изображений
-func (a *App) SelectImages() ([]string, error) {
+// SelectFiles открывает диалог выбора файлов
+func (a *App) SelectFiles() ([]string, error) {
 	selection, err := runtime.OpenMultipleFilesDialog(a.ctx, runtime.OpenDialogOptions{
-		Title: "Выберите изображения",
+		Title: "Выберите файлы",
 		Filters: []runtime.FileFilter{
-			{
-				DisplayName: "Images (*.jpg, *.png, *.webp)",
-				Pattern:     "*.jpg;*.jpeg;*.png;*.webp",
-			},
 			{
 				DisplayName: "All Files",
 				Pattern:     "*",
+			},
+			{
+				DisplayName: "Images",
+				Pattern:     "*.jpg;*.jpeg;*.png;*.webp;*.gif;*.bmp",
 			},
 		},
 	})

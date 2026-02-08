@@ -114,12 +114,12 @@ export function SaveTempImage(arg1, arg2) {
   return window['go']['main']['App']['SaveTempImage'](arg1, arg2);
 }
 
-export function SelectImages() {
-  return window['go']['main']['App']['SelectImages']();
+export function SelectFiles() {
+  return window['go']['main']['App']['SelectFiles']();
 }
 
-export function SendImageMessage(arg1, arg2, arg3, arg4) {
-  return window['go']['main']['App']['SendImageMessage'](arg1, arg2, arg3, arg4);
+export function SendFileMessage(arg1, arg2, arg3, arg4) {
+  return window['go']['main']['App']['SendFileMessage'](arg1, arg2, arg3, arg4);
 }
 
 export function SendText(arg1, arg2) {

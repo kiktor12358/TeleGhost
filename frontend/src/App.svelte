@@ -24,8 +24,8 @@
     UpdateFolder,
     AddChatToFolder,
     RemoveChatFromFolder,
-    SelectImages,
-    SendImageMessage,
+    SelectFiles,
+    SendFileMessage,
     GetFileBase64,
     CopyImageToClipboard,
     GetImageThumbnail,
@@ -470,39 +470,50 @@
 
   // === Messages ===
   
-  async function handleSelectImages() {
-    try {
-      const files = await SelectImages();
-      if (!files || files.length === 0) return;
-      
-      const availableSlots = 6 - selectedFiles.length;
-      if (availableSlots <= 0) {
-          showToast('Максимум 6 вложений', 'error');
-          return;
-      }
-      
-      const newFiles = files.slice(0, availableSlots);
-      // Immediately add paths so user sees loading state
-      selectedFiles = [...selectedFiles, ...newFiles];
-      
-      // Load thumbnails in background without blocking state too much
-      for (const path of newFiles) {
-          if (!filePreviews[path]) {
-              GetImageThumbnail(path, 100, 100).then(b64 => {
-                  filePreviews[path] = b64;
-                  filePreviews = filePreviews;
-              }).catch(e => console.error("Thumb error", e));
+  async function handleSelectFiles() {
+      try {
+          const files = await SelectFiles();
+          if (!files || files.length === 0) return;
+
+          const availableSlots = 6 - selectedFiles.length;
+          if (availableSlots <= 0) {
+              showToast('Максимум 6 вложений', 'error');
+              return;
           }
+          
+          const newFiles = files.slice(0, availableSlots);
+          // Immediately add paths so user sees loading state
+          selectedFiles = [...selectedFiles, ...newFiles];
+          
+          // Load thumbnails in background without blocking state too much
+          for (const path of newFiles) {
+              if (!filePreviews[path]) {
+                  const ext = path.split('.').pop().toLowerCase();
+                  if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'].includes(ext)) {
+                      GetImageThumbnail(path, 100, 100).then(b64 => {
+                          filePreviews[path] = b64;
+                          filePreviews = filePreviews; // Trigger reactivity
+                      }).catch(e => console.error("Thumb error", e));
+                  } else {
+                      // For non-image files, just store a placeholder or null
+                      filePreviews[path] = null; // Or a specific icon base64
+                      filePreviews = filePreviews; // Trigger reactivity
+                  }
+              }
+          }
+      } catch (e) {
+          console.error(e);
+          showToast('Ошибка выбора файлов: ' + e, 'error');
       }
-    } catch (e) {
-      console.error(e);
-      console.error(e);
-      showToast('Ошибка выбора изображений: ' + e, 'error');
-    }
   }
 
   function removeFile(index) {
+    const fileToRemove = selectedFiles[index];
     selectedFiles = selectedFiles.filter((_, i) => i !== index);
+    // Remove preview for the removed file
+    const newFilePreviews = { ...filePreviews };
+    delete newFilePreviews[fileToRemove];
+    filePreviews = newFilePreviews;
   }
 
   // Action for loading images in messages
@@ -546,12 +557,11 @@
     // Clear input immediately
     newMessage = '';
     selectedFiles = [];
-    // Keep filePreviews for optimistic render, clear later? 
-    // Actually we can keep them in cache or clear.
+    filePreviews = {}; // Clear all previews
     
     try {
         if (files.length > 0) {
-            await SendImageMessage(selectedContact.id, text, files, !compress);
+            await SendFileMessage(selectedContact.id, text, files, !compress);
         } else {
             await SendText(selectedContact.id, text);
         }
@@ -1537,35 +1547,29 @@
         
         <div class="input-area-wrapper">
           {#if selectedFiles.length > 0}
-            <div class="attachment-preview">
-              {#each selectedFiles as file, i}
-                  <div class="preview-item">
-                     <!-- svelte-ignore a11y-click-events-have-key-events -->
-                      <img 
-                          src={filePreviews[file] ? `data:image/png;base64,${filePreviews[file]}` : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="} 
-                          class="preview-img" 
-                          alt="preview" 
-                          on:click={() => {
-                              // For full preview, we can load full image on demand
-                              GetFileBase64(file).then(b64 => {
-                                  previewImage = "data:image/jpeg;base64," + b64;
-                              });
-                          }}
-                      />
-                     <button class="btn-remove-att" on:click={() => removeFile(i)}>X</button>
-                  </div>
-              {/each}
-              <div class="compress-opt">
-                  <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
-                      <input type="checkbox" bind:checked={isCompressed}>
-                      Сжать
-                  </label>
-              </div>
+            <div class="attachment-preview animate-slide-down">
+               {#each selectedFiles as file, i}
+                   <div class="preview-item">
+                       {#if filePreviews[file]}
+                           <img src={`data:image/png;base64,${filePreviews[file]}`} alt="preview" />
+                       {:else}
+                           <div class="file-icon-preview">📄</div>
+                           <div class="file-name-preview" style="font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px;">{file.split(/[\\/]/).pop()}</div>
+                       {/if}
+                       <button class="btn-remove-att" on:click={() => removeFile(i)}>X</button>
+                   </div>
+               {/each}
+               <div class="compress-opt">
+                   <label style="cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Сжать изображения (для файлов игнорируется)">
+                       <input type="checkbox" bind:checked={isCompressed}>
+                       Сжать
+                   </label>
+               </div>
             </div>
           {/if}
           
           <div class="input-area">
-            <button class="btn-icon" on:click={handleSelectImages} title="Прикрепить фото">
+            <button class="btn-icon" on:click={handleSelectFiles} title="Прикрепить файл">
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5a.5.5 0 0 1-1 0V5a1.5 1.5 0 0 0-3 0v12.5c0 1.38 1.12 2.5 2.5 2.5 1.38 0 2.5-1.12 2.5-2.5V6a.5.5 0 0 1 1 0z"/></svg>
             </button>
           
