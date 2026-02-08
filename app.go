@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/skratchdot/open-golang/open"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"teleghost/internal/core"
@@ -1873,4 +1874,18 @@ func (a *App) DeclineFileTransfer(messageID string) error {
 	}
 
 	return nil
+}
+
+// OpenFile opens a file using the system's default application
+func (a *App) OpenFile(path string) error {
+	log.Printf("[App] Opening file: %s", path)
+	return open.Run(path)
+}
+
+// ShowInFolder opens the file manager showing the file
+func (a *App) ShowInFolder(path string) error {
+	log.Printf("[App] Showing in folder: %s", path)
+	// For Linux/Windows checking just directory
+	dir := filepath.Dir(path)
+	return open.Run(dir)
 }

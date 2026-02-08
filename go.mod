@@ -9,6 +9,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/mattn/go-sqlite3 v1.14.33
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/skratchdot/open-golang v0.0.0-20200116055534-eef842397966
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/wailsapp/wails/v2 v2.11.0
 	golang.design/x/clipboard v0.7.1

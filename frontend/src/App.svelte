@@ -31,7 +31,10 @@
     GetImageThumbnail,
     AcceptFileTransfer,
     DeclineFileTransfer,
-    RequestProfileUpdate
+    DeclineFileTransfer,
+    RequestProfileUpdate,
+    OpenFile,
+    ShowInFolder
   } from '../wailsjs/go/main/App.js';
   import logo from './assets/images/logo.png';
 
@@ -59,7 +62,8 @@
   let contextMenu = { show: false, x: 0, y: 0, contact: null };
 
   // Context Menu для сообщений
-  let messageContextMenu = { show: false, x: 0, y: 0, message: null };
+  // Added filePath for file context menu
+  let messageContextMenu = { show: false, x: 0, y: 0, message: null, imagePath: null, filePath: null };
   
   // Редактирование сообщений
   let editingMessageId = null;
@@ -696,7 +700,8 @@
         x: x, 
         y: y, 
         message: msg,
-        imagePath: (e.target.tagName === 'IMG' && e.target.classList.contains('msg-img')) ? e.target.dataset.path : null
+        imagePath: (e.target.tagName === 'IMG' && e.target.classList.contains('msg-img')) ? e.target.dataset.path : null,
+        filePath: (e.target.closest('.file-attachment-card')) ? e.target.closest('.file-attachment-card').dataset.path : null
     };
 
     // Correct position if overflows
@@ -728,9 +733,31 @@
       try {
           await CopyToClipboard(path);
           showToast('Путь к файлу скопирован', 'success');
+          messageContextMenu.show = false;
       } catch (err) {
           console.error(err);
           showToast('Ошибка копирования: ' + err, 'error');
+      }
+  }
+
+  async function openFile(path) {
+      if (!path) return;
+      try {
+          await OpenFile(path);
+      } catch (err) {
+          console.error(err);
+          showToast('Не удалось открыть файл: ' + err, 'error');
+      }
+  }
+
+  async function showInFolder(path) {
+      if (!path) return;
+      try {
+          await ShowInFolder(path);
+          messageContextMenu.show = false;
+      } catch (err) {
+          console.error(err);
+          showToast('Не удалось открыть папку: ' + err, 'error');
       }
   }
 
@@ -1556,7 +1583,7 @@
                                  on:click={(e) => previewImage = e.currentTarget.src}
                              />
                          {:else}
-                             <div class="file-attachment-card" on:click={() => copyPathToClipboard(att.local_path)} title="Нажмите чтобы скопировать путь">
+                             <div class="file-attachment-card" on:click={() => openFile(att.local_path)} on:contextmenu|preventDefault={(e) => showMessageMenu(e, msg)} title="Нажмите чтобы открыть файл">
                                  <div class="file-icon">📄</div>
                                  <div class="file-details">
                                      <div class="file-name">{att.filename || 'File'}</div>
@@ -2803,5 +2830,41 @@
             <button class="btn-small btn-primary" on:click={handleConfirmAction}>OK</button>
         </div>
     </div>
+</div>
+{/if}
+
+<!-- Context Menu for Contacts -->
+{#if contextMenu.show}
+<div class="context-menu" style="top: {contextMenu.y}px; left: {contextMenu.x}px">
+    <div class="context-item" on:click={copyAddressFromMenu}>Скопировать адрес</div>
+    <div class="context-item" style="color: #ff6b6b;" on:click={deleteContactFromMenu}>Удалить контакт</div>
+</div>
+{/if}
+
+<!-- Context Menu for Messages/Files -->
+{#if messageContextMenu.show}
+<div class="context-menu" style="top: {messageContextMenu.y}px; left: {messageContextMenu.x}px">
+    {#if messageContextMenu.imagePath}
+        <div class="context-item" on:click={() => copyImageToClipboard(messageContextMenu.imagePath)}>Скопировать картинку</div>
+        <div class="context-item" on:click={() => showInFolder(messageContextMenu.imagePath)}>Показать в папке</div>
+    {:else if messageContextMenu.filePath}
+        <div class="context-item" on:click={() => openFile(messageContextMenu.filePath)}>Открыть файл</div>
+        <div class="context-item" on:click={() => copyPathToClipboard(messageContextMenu.filePath)}>Скопировать путь</div>
+        <div class="context-item" on:click={() => showInFolder(messageContextMenu.filePath)}>Показать в папке</div>
+    {:else}
+        {#if messageContextMenu.message && !messageContextMenu.message.isOutgoing}
+             <!-- Incoming message options -->
+             <div class="context-item" on:click={() => { navigator.clipboard.writeText(messageContextMenu.message.content); messageContextMenu.show=false; }}>Скопировать текст</div>
+        {:else}
+             <!-- Outgoing message options -->
+             <div class="context-item" on:click={() => startEditMessage(messageContextMenu.message)}>Редактировать</div>
+             <div class="context-item" on:click={() => { navigator.clipboard.writeText(messageContextMenu.message.content); messageContextMenu.show=false; }}>Скопировать текст</div>
+        {/if}
+    {/if}
+    
+    {#if messageContextMenu.message}
+        <div class="context-item" style="color: #ff6b6b;" on:click={() => deleteMsg(messageContextMenu.message)}>Удалить у себя</div>
+        <div class="context-item" style="color: #ff6b6b;" on:click={() => deleteMsg(messageContextMenu.message, true)}>Удалить у всех</div>
+    {/if}
 </div>
 {/if}
