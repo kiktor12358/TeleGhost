@@ -441,20 +441,21 @@ func (a *App) SendImageMessage(chatID, text string, files []string, isRaw bool) 
 	}
 
 	// Ищем I2P адрес контакта по chatID
-	var destination string
-	// Сначала ищем контакт с этим chatID
-	// GetChat? No direct method to get contact by chatID efficiently in repo interface?
-	// We can iterate or add a method.
-	// Actually `ChatRepository` has `GetChat`. `Chat` has `ContactID`. `ContactRepository` has `GetContact`.
-	chat, err := a.repo.GetChat(a.ctx, chatID)
-	if err != nil {
-		return fmt.Errorf("chat not found: %w", err)
-	}
-	contact, err := a.repo.GetContact(a.ctx, chat.ContactID)
+	// Ищем контакт по ID (первый аргумент это contactID, как и в SendText)
+	contact, err := a.repo.GetContact(a.ctx, chatID)
 	if err != nil {
 		return fmt.Errorf("contact not found: %w", err)
 	}
-	destination = contact.I2PAddress
+	if contact == nil {
+		return fmt.Errorf("contact not found")
+	}
+
+	destination := contact.I2PAddress
+	actualChatID := contact.ChatID
+	if actualChatID == "" {
+		// Calculate if missing (shouldn't happen for active chat but good safety)
+		actualChatID = identity.CalculateChatID(a.identity.Keys.PublicKeyBase64, contact.PublicKey)
+	}
 
 	attachments := make([]*pb.Attachment, 0, len(files))
 
@@ -513,7 +514,7 @@ func (a *App) SendImageMessage(chatID, text string, files []string, isRaw bool) 
 		a.transferMu.Lock()
 		a.pendingTransfers[msgID] = &PendingTransfer{
 			Destination: destination,
-			ChatID:      chatID,
+			ChatID:      actualChatID,
 			Files:       files, // Raw local paths
 			MessageID:   msgID,
 			Timestamp:   now,
@@ -535,7 +536,7 @@ func (a *App) SendImageMessage(chatID, text string, files []string, isRaw bool) 
 		}
 
 		// Отправляем Offer
-		if err := a.messenger.SendFileOffer(destination, chatID, msgID, filenames, totalSize, int32(len(files))); err != nil {
+		if err := a.messenger.SendFileOffer(destination, actualChatID, msgID, filenames, totalSize, int32(len(files))); err != nil {
 			return fmt.Errorf("failed to send file offer: %w", err)
 		}
 
@@ -547,7 +548,7 @@ func (a *App) SendImageMessage(chatID, text string, files []string, isRaw bool) 
 
 		msg := &core.Message{
 			ID:          msgID,
-			ChatID:      chatID,
+			ChatID:      actualChatID,
 			SenderID:    a.identity.Keys.PublicKeyBase64,
 			Content:     text,         // Может быть пустым
 			ContentType: "file_offer", // Специальный тип
@@ -604,7 +605,7 @@ func (a *App) SendImageMessage(chatID, text string, files []string, isRaw bool) 
 	}
 
 	// Normal (compressed) flow
-	if err := a.messenger.SendAttachmentMessage(destination, chatID, text, attachments); err != nil {
+	if err := a.messenger.SendAttachmentMessage(destination, actualChatID, text, attachments); err != nil {
 		return fmt.Errorf("failed to send message: %w", err)
 	}
 
@@ -638,7 +639,7 @@ func (a *App) SendImageMessage(chatID, text string, files []string, isRaw bool) 
 
 	msg := &core.Message{
 		ID:          msgID,
-		ChatID:      chatID,
+		ChatID:      actualChatID,
 		SenderID:    a.identity.Keys.PublicKeyBase64,
 		Content:     text,
 		ContentType: "mixed", // or text if text is present

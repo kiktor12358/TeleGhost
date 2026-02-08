@@ -30,7 +30,8 @@
     CopyImageToClipboard,
     GetImageThumbnail,
     AcceptFileTransfer,
-    DeclineFileTransfer
+    DeclineFileTransfer,
+    RequestProfileUpdate
   } from '../wailsjs/go/main/App.js';
   import logo from './assets/images/logo.png';
 
