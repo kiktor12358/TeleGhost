@@ -71,11 +71,12 @@ type ContactInfo struct {
 
 // MessageInfo сообщение для фронтенда
 type MessageInfo struct {
-	ID         string `json:"id"`
-	Content    string `json:"content"`
-	Timestamp  int64  `json:"timestamp"`
-	IsOutgoing bool   `json:"isOutgoing"`
-	Status     string `json:"status"`
+	ID          string                   `json:"id"`
+	Content     string                   `json:"content"`
+	Timestamp   int64                    `json:"timestamp"`
+	IsOutgoing  bool                     `json:"isOutgoing"`
+	Status      string                   `json:"status"`
+	Attachments []map[string]interface{} `json:"attachments"` // Added attachments
 }
 
 // UserInfo информация о текущем пользователе
@@ -419,6 +420,9 @@ func (a *App) connectToI2P() {
 	a.messenger.SetProfileRequestHandler(a.onProfileRequest)
 	a.messenger.SetFileOfferHandler(a.onFileOffer)
 	a.messenger.SetFileResponseHandler(a.onFileResponse)
+
+	// Set attachment saver to save incoming files
+	a.messenger.SetAttachmentSaver(a.saveAttachment)
 
 	// Запускаем мессенджер
 	if err := a.messenger.Start(a.ctx); err != nil {
@@ -1059,12 +1063,28 @@ func (a *App) GetMessages(contactID string, limit, offset int) ([]*MessageInfo, 
 			status = "failed"
 		}
 
+		// Map attachments
+		var atts []map[string]interface{}
+		if len(m.Attachments) > 0 {
+			atts = make([]map[string]interface{}, len(m.Attachments))
+			for j, att := range m.Attachments {
+				atts[j] = map[string]interface{}{
+					"id":         att.ID,
+					"filename":   att.Filename,
+					"mimeType":   att.MimeType,
+					"size":       att.Size,
+					"local_path": att.LocalPath,
+				}
+			}
+		}
+
 		result[i] = &MessageInfo{
-			ID:         m.ID,
-			Content:    m.Content,
-			Timestamp:  m.Timestamp,
-			IsOutgoing: m.IsOutgoing,
-			Status:     status,
+			ID:          m.ID,
+			Content:     m.Content,
+			Timestamp:   m.Timestamp,
+			IsOutgoing:  m.IsOutgoing,
+			Status:      status,
+			Attachments: atts,
 		}
 	}
 

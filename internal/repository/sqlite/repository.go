@@ -384,10 +384,12 @@ func (r *Repository) DeleteContact(ctx context.Context, id string) error {
 // SaveMessage сохраняет сообщение
 func (r *Repository) SaveMessage(ctx context.Context, msg *core.Message) error {
 	query := `
-		INSERT INTO messages (id, chat_id, sender_id, content, content_type, status,
+		INSERT INTO messages (id, chat_id, sender_id, content, content_type, status, 
 		                      is_outgoing, reply_to_id, timestamp, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
+			content = excluded.content,
+			content_type = excluded.content_type,
 			status = excluded.status,
 			updated_at = excluded.updated_at
 	`
@@ -408,8 +410,14 @@ func (r *Repository) SaveMessage(ctx context.Context, msg *core.Message) error {
 	}
 
 	// Сохраняем вложения
+	// Сначала удаляем старые, чтобы обновить список (например, при переходе от Offer к Real файлам)
+	_, err = r.db.ExecContext(ctx, "DELETE FROM message_attachments WHERE message_id = ?", msg.ID)
+	if err != nil {
+		return fmt.Errorf("failed to delete old attachments: %w", err)
+	}
+
 	if len(msg.Attachments) > 0 {
-		attQuery := `INSERT INTO message_attachments (id, message_id, filename, mime_type, size, local_path, is_compressed, width, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING`
+		attQuery := `INSERT INTO message_attachments (id, message_id, filename, mime_type, size, local_path, is_compressed, width, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 		for _, att := range msg.Attachments {
 			// Ensure MessageID is set
 			if att.MessageID == "" {
