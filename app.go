@@ -531,6 +531,7 @@ func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) e
 			MessageID:   msgID,
 			Timestamp:   now,
 		}
+		log.Printf("[App] Saved pending transfer for %s. Files: %d", msgID, len(files))
 		a.transferMu.Unlock()
 
 		// Считаем общий размер
@@ -602,6 +603,18 @@ func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) e
 			log.Printf("[App] Failed to save offer message: %v", err)
 		}
 
+		// Prepare attachments for event (placeholders)
+		attList := make([]map[string]interface{}, 0, len(coreAttachments))
+		for _, att := range coreAttachments {
+			attList = append(attList, map[string]interface{}{
+				"id":         att.ID,
+				"filename":   att.Filename,
+				"mimeType":   att.MimeType,
+				"size":       att.Size,
+				"local_path": att.LocalPath,
+			})
+		}
+
 		// Emit event update
 		runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
 			"id":          msg.ID,
@@ -611,6 +624,11 @@ func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) e
 			"timestamp":   msg.Timestamp,
 			"isOutgoing":  msg.IsOutgoing,
 			"contentType": "file_offer",
+			"fileCount":   len(files),
+			"totalSize":   totalSize,
+			"filenames":   filenames,
+			"attachments": attList,
+			"status":      "sent",
 		})
 
 		return nil
@@ -1617,8 +1635,8 @@ func (a *App) onFileResponse(senderPubKey, messageID, chatID string, accepted bo
 	// If accepted, we start sending. We can keep it or remove it if we have all info.
 	// We need the file paths to send.
 	if !exists {
+		log.Printf("[App] Transfer info not found for %s. Map keys: %v", messageID, getMapKeys(a.pendingTransfers))
 		a.transferMu.Unlock()
-		log.Printf("[App] Transfer info not found for %s", messageID[:8])
 		return
 	}
 	// Warning: we should not remove it yet if we need it for sending.
