@@ -31,7 +31,6 @@
     GetImageThumbnail,
     AcceptFileTransfer,
     DeclineFileTransfer,
-    DeclineFileTransfer,
     RequestProfileUpdate,
     OpenFile,
     ShowInFolder
