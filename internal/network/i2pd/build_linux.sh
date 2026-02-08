@@ -13,8 +13,8 @@ if [ ! -d "$I2PD_DIR/.git" ] || [ ! -f "$I2PD_DIR/build/CMakeLists.txt" ]; then
     rm -rf "$I2PD_DIR"
     git clone --depth 1 https://github.com/PurpleI2P/i2pd.git "$I2PD_DIR"
 else
-    echo "Repository exists, pulling latest..."
-    cd "$I2PD_DIR" && git pull && cd "$SCRIPT_DIR"
+    echo "Repository exists, skipping pull to preserve local patches..."
+    # cd "$I2PD_DIR" && git pull && cd "$SCRIPT_DIR"
 fi
 
 # Build libi2pd static library
@@ -24,11 +24,14 @@ rm -rf obj && mkdir -p obj && cd obj
 echo "Configuring for Linux..."
 cmake -DWITH_STATIC=ON \
       -DWITH_BINARY=OFF \
-      -DWITH_UPNP=OFF \
+      -DWITH_UPNP=ON \
       -DWITH_SAM=ON \
       -DCMAKE_BUILD_TYPE=Release \
       -DBOOST_STATIC=ON \
-      -DOPENSSL_USE_STATIC_LIBS=TRUE \
+      -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/libcrypto.so \
+      -DOPENSSL_SSL_LIBRARY=/usr/lib/libssl.so \
+      -DMINIUPNPC_LIBRARY=/usr/lib/libminiupnpc.so \
+      -DMINIUPNPC_INCLUDE_DIR=/usr/include/miniupnpc \
       ..
 
 make -j$(nproc) libi2pd libi2pdclient libi2pdlang

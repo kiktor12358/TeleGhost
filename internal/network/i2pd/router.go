@@ -22,7 +22,7 @@ package i2pd
 #cgo CXXFLAGS: -std=c++17 -I${SRCDIR}/i2pd/libi2pd -I${SRCDIR}/i2pd/libi2pd_client -I${SRCDIR}/i2pd/i18n -I${SRCDIR}/i2pd -I${SRCDIR}/i2pd/libi2pd_wrapper
 
 #cgo windows LDFLAGS: -L${SRCDIR} -Wl,--whole-archive -li2pdclient -li2pd -li2pdlang -Wl,--no-whole-archive -lssl -lcrypto -lz -lboost_filesystem-mt -lboost_program_options-mt -lboost_date_time-mt -lpthread -lws2_32 -lmswsock -liphlpapi -lcrypt32 -ladvapi32 -lshlwapi -luser32 -lgdi32 -lbcrypt -lstdc++ -lm
-#cgo linux LDFLAGS: -L${SRCDIR} -Wl,--whole-archive -li2pdclient -li2pd -li2pdlang -Wl,--no-whole-archive -lssl -lcrypto -lz -lboost_filesystem -lboost_program_options -lboost_date_time -lpthread -lstdc++ -lm
+#cgo linux LDFLAGS: -L${SRCDIR} -Wl,--whole-archive -li2pdclient -li2pd -li2pdlang -Wl,--no-whole-archive -lssl -lcrypto -lz -lboost_filesystem -lboost_program_options -lboost_date_time -lpthread -lstdc++ -lm -lminiupnpc
 
 #include <stdlib.h>
 

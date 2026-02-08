@@ -94,7 +94,7 @@ void i2pd_init(const char *datadir, int sam_enabled, int sam_port,
 
   // Enable UPnP for better connectivity behind NAT
   args_storage.push_back("--upnp.enabled");
-  args_storage.push_back("false");
+  args_storage.push_back("true");
 
   // Disable things we don't need to speed up
   args_storage.push_back("--http.enabled");
