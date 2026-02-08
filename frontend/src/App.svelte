@@ -275,10 +275,15 @@
         console.log('[App] New message received:', msg);
         // Проверяем совпадение по chatId или по senderId контакта
         if (selectedContact && (msg.chatId === selectedContact.chatId || msg.senderId === selectedContact.publicKey)) {
-          // Проверяем что сообщение ещё не добавлено
-          if (!messages.find(m => m.id === msg.id)) {
-            messages = [...messages, msg];
-            setTimeout(scrollToBottom, 50);
+          // Обновляем или добавляем сообщение
+          const existingIdx = messages.findIndex(m => m.id === msg.id);
+          if (existingIdx !== -1) {
+              const updatedMessages = [...messages];
+              updatedMessages[existingIdx] = msg;
+              messages = updatedMessages;
+          } else {
+              messages = [...messages, msg];
+              scrollToBottom();
           }
         }
         // Обновляем список контактов (для отображения последнего сообщения)
@@ -565,6 +570,8 @@
         } else {
             await SendText(selectedContact.id, text);
         }
+        // Успех - удаляем оптимистичное сообщение, так как должно прийти реальное событие
+        messages = messages.filter(m => m.id !== tempId);
     } catch (e) {
       showToast(e.toString(), 'error');
       // Mark failed
@@ -1465,15 +1472,28 @@
                 {#if msg.attachments && msg.attachments.length > 0}
                   <div class="message-images" style="grid-template-columns: {msg.attachments.length === 1 ? '1fr' : 'repeat(2, 1fr)'}">
                       {#each msg.attachments as att}
-                         <!-- svelte-ignore a11y-click-events-have-key-events -->
-                         <img 
-                             use:startLoadingImage={att.local_path} 
-                             alt="attachment" 
-                             class="msg-img" 
-                             data-path={att.local_path}
-                             style="height: {msg.attachments.length === 1 ? 'auto' : '120px'}" 
-                             on:click={(e) => previewImage = e.currentTarget.src}
-                         />
+                         {@const ext = att.filename ? att.filename.split('.').pop().toLowerCase() : (att.local_path ? att.local_path.split('.').pop().toLowerCase() : '')}
+                         {@const isImg = ['jpg','jpeg','png','webp','gif','bmp'].includes(ext) || (att.mimeType && att.mimeType.startsWith('image/'))}
+
+                         {#if isImg}
+                             <!-- svelte-ignore a11y-click-events-have-key-events -->
+                             <img 
+                                 use:startLoadingImage={att.local_path} 
+                                 alt="attachment" 
+                                 class="msg-img" 
+                                 data-path={att.local_path}
+                                 style="height: {msg.attachments.length === 1 ? 'auto' : '120px'}" 
+                                 on:click={(e) => previewImage = e.currentTarget.src}
+                             />
+                         {:else}
+                             <div class="file-attachment-card" on:click={() => copyImageToClipboard(att.local_path)} title="Нажмите чтобы скопировать путь">
+                                 <div class="file-icon">📄</div>
+                                 <div class="file-details">
+                                     <div class="file-name">{att.filename || 'File'}</div>
+                                     <div class="file-size">{att.size ? (att.size / 1024).toFixed(1) + ' KB' : ''}</div>
+                                 </div>
+                             </div>
+                         {/if}
                       {/each}
                   </div>
                 {/if}

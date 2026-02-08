@@ -666,6 +666,31 @@ func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) e
 		log.Printf("[App] Failed to save sent message: %v", err)
 	}
 
+	// Prepare attachments for event
+	attList := make([]map[string]interface{}, 0, len(msg.Attachments))
+	for _, att := range coreAttachments {
+		attList = append(attList, map[string]interface{}{
+			"id":         att.ID,
+			"filename":   att.Filename,
+			"mimeType":   att.MimeType,
+			"size":       att.Size,
+			"local_path": att.LocalPath,
+		})
+	}
+
+	// Emit event update
+	runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
+		"id":          msg.ID,
+		"chatId":      msg.ChatID,
+		"senderId":    msg.SenderID,
+		"content":     msg.Content,
+		"timestamp":   msg.Timestamp,
+		"isOutgoing":  msg.IsOutgoing,
+		"contentType": msg.ContentType,
+		"attachments": attList,
+		"status":      "sent",
+	})
+
 	return nil
 }
 
@@ -1636,10 +1661,15 @@ func (a *App) onFileResponse(senderPubKey, messageID, chatID string, accepted bo
 				continue
 			}
 
+			mimeType := mime.TypeByExtension(filepath.Ext(filePath))
+			if mimeType == "" {
+				mimeType = "application/octet-stream"
+			}
+
 			att := &pb.Attachment{
 				Id:           uuid.New().String(),
 				Filename:     filepath.Base(filePath),
-				MimeType:     "application/octet-stream",
+				MimeType:     mimeType,
 				Size:         int64(len(data)),
 				Data:         data,
 				IsCompressed: false,

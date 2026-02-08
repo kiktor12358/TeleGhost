@@ -157,4 +157,61 @@
     height: 2px;
     background: currentColor;
     border-radius: 2px;
-}.folder-item.add-folder-btn { background: transparent; border: 1px dashed var(--text-secondary); opacity: 0.6; } .folder-item.add-folder-btn:hover { background: rgba(255, 255, 255, 0.1); opacity: 1; border-color: var(--text-primary); }
+}
+
+.folder-item.add-folder-btn {
+    background: transparent;
+    border: 1px dashed var(--text-secondary);
+    opacity: 0.6;
+}
+
+.folder-item.add-folder-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+    border-color: var(--text-primary);
+}
+
+/* File Attachment Card */
+.file-attachment-card {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.file-attachment-card:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.file-icon {
+    font-size: 24px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.file-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.file-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-size {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
