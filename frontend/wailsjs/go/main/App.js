@@ -94,6 +94,10 @@ export function GetNetworkStatus() {
   return window['go']['main']['App']['GetNetworkStatus']();
 }
 
+export function GetRouterSettings() {
+  return window['go']['main']['App']['GetRouterSettings']();
+}
+
 export function Login(arg1) {
   return window['go']['main']['App']['Login'](arg1);
 }
@@ -108,6 +112,10 @@ export function RemoveChatFromFolder(arg1, arg2) {
 
 export function RequestProfileUpdate(arg1) {
   return window['go']['main']['App']['RequestProfileUpdate'](arg1);
+}
+
+export function SaveRouterSettings(arg1) {
+  return window['go']['main']['App']['SaveRouterSettings'](arg1);
 }
 
 export function SaveTempImage(arg1, arg2) {

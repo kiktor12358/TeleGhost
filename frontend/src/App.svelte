@@ -157,12 +157,44 @@
   let settingsCategories = [
     { id: 'profile', name: 'Аккаунт', icon: '👤' },
     { id: 'chats', name: 'Настройки чатов', icon: '💬' },
-    // { id: 'folders', name: 'Папки', icon: '📁' }, // Future
     { id: 'privacy', name: 'Конфиденциальность', icon: '🔒' },
-    { id: 'network', name: 'Сеть и I2P', icon: '🌐' },
+    { id: 'network', name: 'Настройки I2P/Сети', icon: '🌐' },
     { id: 'about', name: 'О программе', icon: 'ℹ️' }
   ];
   let activeSettingsTab = 'profile';
+
+  let routerSettings = {
+    tunnelLength: 3,
+    logToFile: false
+  };
+
+  async function loadRouterSettings() {
+    try {
+      // @ts-ignore
+      const settings = await window.go.main.App.GetRouterSettings();
+      if (settings) {
+        routerSettings = settings;
+      }
+    } catch (e) {
+      console.error("Failed to load router settings:", e);
+    }
+  }
+
+  async function saveRouterSettings() {
+    try {
+      // @ts-ignore
+      await window.go.main.App.SaveRouterSettings(routerSettings);
+      alert("Настройки роутера сохранены. Пожалуйста, перезапустите приложение для применения изменений.");
+    } catch (e) {
+      console.error("Failed to save router settings:", e);
+      alert("Ошибка при сохранении настроек: " + e);
+    }
+  }
+
+  // Load settings when opening network tab
+  $: if (showSettings && activeSettingsTab === 'network') {
+    loadRouterSettings();
+  }
 
   function startResize(e) {
     isResizing = true;
@@ -1432,6 +1464,31 @@
                  <div class="info-item" style="margin-top: 20px;">
                   <span class="info-label" style="color: var(--text-primary);">Статус сети:</span>
                   <span class="info-value" style="color: {getStatusColor(networkStatus)}">{getStatusText(networkStatus)}</span>
+                 </div>
+
+                 <h4 style="margin-top: 24px; color: var(--text-primary); border-top: 1px solid var(--border); padding-top: 20px;">Настройки роутера</h4>
+                 <div class="settings-section">
+                    <!-- Tunnel Length -->
+                    <div class="setting-item" style="margin-bottom: 20px;">
+                        <label class="form-label" style="color: var(--text-primary); display: block; margin-bottom: 8px;">Режим анонимности (длина туннелей)</label>
+                        <select bind:value={routerSettings.tunnelLength} class="input-field" style="width: 100%; padding: 10px; background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px;">
+                            <option value={1}>Fast (1 хоп) - Быстро, низкая анонимность</option>
+                            <option value={3}>Default (3 хопа) - Баланс (Рекомендуется)</option>
+                            <option value={5}>Invisibility (5 хопов) - Максимальная анонимность, медленно</option>
+                        </select>
+                    </div>
+
+                    <!-- Logging -->
+                    <div class="setting-item" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+                        <div>
+                            <span style="color: var(--text-primary); font-weight: 500;">Логирование в файл</span>
+                            <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-secondary);">Записывать логи роутера в i2pd.log</p>
+                        </div>
+                        <input type="checkbox" bind:checked={routerSettings.logToFile} style="transform: scale(1.5); cursor: pointer;" />
+                    </div>
+
+                    <button class="btn-primary" on:click={saveRouterSettings} style="width: 100%;">💾 Сохранить и применить</button>
+                    <p style="margin-top: 10px; font-size: 12px; color: var(--text-secondary); text-align: center;">Для вступления в силу изменений потребуется перезапуск приложения.</p>
                  </div>
               </div>
 

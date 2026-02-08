@@ -68,6 +68,20 @@ export namespace main {
 	        this.status = source["status"];
 	    }
 	}
+	export class RouterSettings {
+	    tunnelLength: number;
+	    logToFile: boolean;
+	
+	    static createFrom(source: any = {}) {
+	        return new RouterSettings(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tunnelLength = source["tunnelLength"];
+	        this.logToFile = source["logToFile"];
+	    }
+	}
 	export class UserInfo {
 	    id: string;
 	    nickname: string;

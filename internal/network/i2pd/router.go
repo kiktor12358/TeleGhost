@@ -29,7 +29,7 @@ package i2pd
 // C wrapper functions for C++ i2pd API
 // These are defined in i2pd_wrapper.cpp
 
-extern void i2pd_init(const char* datadir, int sam_enabled, int sam_port, int debug_mode);
+extern void i2pd_init(const char* datadir, int sam_enabled, int sam_port, int debug_mode, int tunnel_length, int log_to_file);
 extern void i2pd_start();
 extern void i2pd_stop();
 extern void i2pd_terminate();
@@ -54,12 +54,14 @@ import (
 
 // Router представляет встроенный i2pd роутер
 type Router struct {
-	dataDir    string
-	samPort    int
-	samEnabled bool
-	debug      bool
-	running    bool
-	mu         sync.RWMutex
+	dataDir      string
+	samPort      int
+	samEnabled   bool
+	debug        bool
+	tunnelLength int
+	logToFile    bool
+	running      bool
+	mu           sync.RWMutex
 }
 
 // Config конфигурация роутера
@@ -75,14 +77,22 @@ type Config struct {
 
 	// Debug включает подробное логирование i2pd
 	Debug bool
+
+	// TunnelLength - длина туннелей (1, 3, 5)
+	TunnelLength int
+
+	// LogToFile - писать ли логи в файл
+	LogToFile bool
 }
 
 // DefaultConfig возвращает конфигурацию по умолчанию
 func DefaultConfig() *Config {
 	return &Config{
-		DataDir:    ".teleghost/i2pd",
-		SAMEnabled: true,
-		SAMPort:    7656,
+		DataDir:      ".teleghost/i2pd",
+		SAMEnabled:   true,
+		SAMPort:      7656,
+		TunnelLength: 3,
+		LogToFile:    false,
 	}
 }
 
@@ -92,10 +102,12 @@ func NewRouter(config *Config) *Router {
 		config = DefaultConfig()
 	}
 	return &Router{
-		dataDir:    config.DataDir,
-		samPort:    config.SAMPort,
-		samEnabled: config.SAMEnabled,
-		debug:      config.Debug,
+		dataDir:      config.DataDir,
+		samPort:      config.SAMPort,
+		samEnabled:   config.SAMEnabled,
+		debug:        config.Debug,
+		tunnelLength: config.TunnelLength,
+		logToFile:    config.LogToFile,
 	}
 }
 
@@ -140,9 +152,14 @@ func (r *Router) Start(ctx context.Context) error {
 		debugMode = C.int(1)
 	}
 
-	log.Printf("[i2pd] Initializing with datadir=%s, SAM=%v, port=%d, debug=%v", r.dataDir, r.samEnabled, r.samPort, r.debug)
+	log.Printf("[i2pd] Initializing with datadir=%s, SAM=%v, port=%d, debug=%v, tunnels=%d, logfile=%v", r.dataDir, r.samEnabled, r.samPort, r.debug, r.tunnelLength, r.logToFile)
 
-	C.i2pd_init(dataDir, samEnabled, C.int(r.samPort), debugMode)
+	fileLog := C.int(0)
+	if r.logToFile {
+		fileLog = C.int(1)
+	}
+
+	C.i2pd_init(dataDir, samEnabled, C.int(r.samPort), debugMode, C.int(r.tunnelLength), fileLog)
 	C.i2pd_start()
 
 	r.running = true

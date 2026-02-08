@@ -29,11 +29,21 @@ func (a *App) initEmbeddedRouter(ctx context.Context) error {
 	// I will default to FALSE, so it's clean by default. User can set env or I can tell them how to enable.
 	// Use TELEGHOST_DEBUG=1 to enable logging.
 
+	settings := a.GetRouterSettings()
+	if settings == nil {
+		settings = &RouterSettings{
+			TunnelLength: 3,
+			LogToFile:    false,
+		}
+	}
+
 	cfg := &i2pd.Config{
-		DataDir:    i2pdDir,
-		SAMEnabled: true,
-		SAMPort:    7656,
-		Debug:      debugMode,
+		DataDir:      i2pdDir,
+		SAMEnabled:   true,
+		SAMPort:      7656,
+		Debug:        debugMode,
+		TunnelLength: settings.TunnelLength,
+		LogToFile:    settings.LogToFile,
 	}
 
 	router := i2pd.NewRouter(cfg)

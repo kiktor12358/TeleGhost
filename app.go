@@ -22,6 +22,7 @@ import (
 	"teleghost/internal/utils"
 
 	"encoding/base64"
+	"encoding/json"
 	pb "teleghost/internal/proto"
 
 	"github.com/go-i2p/i2pkeys"
@@ -64,6 +65,10 @@ type ContactInfo struct {
 	ChatID      string `json:"chatId"`
 }
 
+// remove duplicate here if it exists, or keep if it is the only one.
+// The lint said redeclared at line 68 and 117.
+// I will check lines.
+
 // MessageInfo сообщение для фронтенда
 type MessageInfo struct {
 	ID         string `json:"id"`
@@ -102,6 +107,14 @@ type App struct {
 
 	transferMu       sync.RWMutex
 	pendingTransfers map[string]*PendingTransfer // messageID -> transfer info
+
+	routerSettings *RouterSettings
+}
+
+// RouterSettings настройки роутера
+type RouterSettings struct {
+	TunnelLength int  `json:"tunnelLength"` // 1, 3, 5
+	LogToFile    bool `json:"logToFile"`
 }
 
 type PendingTransfer struct {
@@ -141,6 +154,9 @@ func (a *App) startup(ctx context.Context) {
 	os.MkdirAll(filepath.Join(a.dataDir, "users"), 0700)
 
 	// Репозиторий создаётся после логина в initUserRepository()
+
+	// Загружаем настройки роутера
+	a.loadRouterSettings()
 
 	// Инициализируем встроенный роутер (если есть)
 	if err := a.initEmbeddedRouter(ctx); err != nil {
@@ -1187,11 +1203,62 @@ func (a *App) DeleteMessageForAll(messageID string) error {
 		return fmt.Errorf("failed to delete message: %w", err)
 	}
 
-	// TODO: Отправить MESSAGE_DELETE пакет получателю через messenger
-	// Это будет реализовано в следующей итерации
-
-	log.Printf("[App] Message deleted for all: %s", messageID[:8])
 	return nil
+}
+
+// getRouterSettingsPath возвращает путь к файлу настроек роутера
+func (a *App) getRouterSettingsPath() string {
+	return filepath.Join(a.dataDir, "router_settings.json")
+}
+
+// loadRouterSettings загружает настройки роутера
+func (a *App) loadRouterSettings() {
+	path := a.getRouterSettingsPath()
+	DEFAULT_SETTINGS := &RouterSettings{
+		TunnelLength: 3,
+		LogToFile:    false,
+	}
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		a.routerSettings = DEFAULT_SETTINGS
+		return
+	}
+
+	var settings RouterSettings
+	if err := json.Unmarshal(data, &settings); err != nil {
+		log.Printf("[App] Failed to unmarshal router settings: %v", err)
+		a.routerSettings = DEFAULT_SETTINGS
+		return
+	}
+	a.routerSettings = &settings
+}
+
+// saveRouterSettings сохраняет настройки роутера
+func (a *App) saveRouterSettings() error {
+	path := a.getRouterSettingsPath()
+	data, err := json.MarshalIndent(a.routerSettings, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0644)
+}
+
+// GetRouterSettings возвращает текущие настройки роутера
+func (a *App) GetRouterSettings() *RouterSettings {
+	// Если настройки еще не загружены (например, при инициализации), загружаем их
+	if a.routerSettings == nil {
+		a.loadRouterSettings()
+	}
+	return a.routerSettings
+}
+
+// SaveRouterSettings сохраняет новые настройки
+func (a *App) SaveRouterSettings(settings RouterSettings) error {
+	a.routerSettings = &settings
+	// TODO: Возможно, нужно перезапустить роутер, если он запущен?
+	// Пока просто сохраняем. Пользователю скажем перезапустить приложение.
+	return a.saveRouterSettings()
 }
 
 // GetMessageByID возвращает сообщение по ID

@@ -37,7 +37,7 @@ extern "C" {
 
 // Initialize i2pd with configuration
 void i2pd_init(const char *datadir, int sam_enabled, int sam_port,
-               int debug_mode) {
+               int debug_mode, int tunnel_length, int log_to_file) {
   g_datadir = datadir ? datadir : ".i2pd";
 
   // Force set data and certs directories in the filesystem helper
@@ -84,9 +84,9 @@ void i2pd_init(const char *datadir, int sam_enabled, int sam_port,
   args_storage.push_back("--tunconf.outbound.quantity");
   args_storage.push_back("3");
   args_storage.push_back("--tunconf.inbound.length");
-  args_storage.push_back("2");
+  args_storage.push_back(std::to_string(tunnel_length));
   args_storage.push_back("--tunconf.outbound.length");
-  args_storage.push_back("2");
+  args_storage.push_back(std::to_string(tunnel_length));
 
   // Robust bootstrapping
   args_storage.push_back("--reseed.urls");
@@ -106,8 +106,15 @@ void i2pd_init(const char *datadir, int sam_enabled, int sam_port,
   args_storage.push_back("--ircproxy.enabled");
   args_storage.push_back("false");
 
-  // Logging configuration based on debug mode
-  if (debug_mode) {
+  // Logging configuration
+  if (log_to_file) {
+      args_storage.push_back("--log");
+      args_storage.push_back("file");
+      args_storage.push_back("--logfile");
+      args_storage.push_back("i2pd.log");
+      args_storage.push_back("--loglevel");
+      args_storage.push_back(debug_mode ? "debug" : "info");
+  } else if (debug_mode) {
     args_storage.push_back("--log");
     args_storage.push_back("stdout");
     args_storage.push_back("--loglevel");
@@ -115,8 +122,7 @@ void i2pd_init(const char *datadir, int sam_enabled, int sam_port,
   } else {
     // Minimal logging in release mode
     args_storage.push_back("--log");
-    args_storage.push_back(
-        "none"); // Or file if needed, but user asked to not write logs
+    args_storage.push_back("none");
     args_storage.push_back("--loglevel");
     args_storage.push_back("error");
   }

@@ -48,6 +48,8 @@ export function GetMyInfo():Promise<main.UserInfo>;
 
 export function GetNetworkStatus():Promise<string>;
 
+export function GetRouterSettings():Promise<main.RouterSettings>;
+
 export function Login(arg1:string):Promise<void>;
 
 export function QuitApp():Promise<void>;
@@ -55,6 +57,8 @@ export function QuitApp():Promise<void>;
 export function RemoveChatFromFolder(arg1:string,arg2:string):Promise<void>;
 
 export function RequestProfileUpdate(arg1:string):Promise<void>;
+
+export function SaveRouterSettings(arg1:main.RouterSettings):Promise<void>;
 
 export function SaveTempImage(arg1:string,arg2:string):Promise<string>;
 
