@@ -572,6 +572,12 @@
     if ((!newMessage.trim() && selectedFiles.length === 0) || !selectedContact) return;
     if (isSending) return;
     
+    // Client-side length check
+    if (newMessage.length > 4096) {
+        showToast(`Сообщение слишком длинное (${newMessage.length}/4096)`, 'error');
+        return;
+    }
+    
     isSending = true;
     const text = newMessage;
     const files = [...selectedFiles];
@@ -1690,14 +1696,23 @@
                 <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5a.5.5 0 0 1-1 0V5a1.5 1.5 0 0 0-3 0v12.5c0 1.38 1.12 2.5 2.5 2.5 1.38 0 2.5-1.12 2.5-2.5V6a.5.5 0 0 1 1 0z"/></svg>
             </button>
           
-          <textarea
-            class="message-input"
-            placeholder="Сообщение..."
-            bind:value={newMessage}
-            on:keypress={handleKeyPress}
-            on:paste={handlePaste}
-            rows="1"
-          ></textarea>
+          <div style="flex: 1; position: relative;">
+              <textarea
+                class="message-input"
+                placeholder="Сообщение..."
+                bind:value={newMessage}
+                on:keypress={handleKeyPress}
+                on:paste={handlePaste}
+                rows="1"
+                maxlength="4096"
+                style="width: 100%;"
+              ></textarea>
+              {#if newMessage.length > 3000}
+                 <div class="char-counter" style="position: absolute; bottom: 5px; right: 10px; font-size: 10px; color: {newMessage.length >= 4096 ? '#ff4757' : 'var(--text-secondary)'}; background: rgba(0,0,0,0.5); padding: 2px 4px; border-radius: 4px;">
+                     {newMessage.length}/4096
+                 </div>
+              {/if}
+          </div>
           <button class="btn-send" on:click={sendMessage} disabled={!newMessage.trim() && selectedFiles.length === 0}>
             <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
               <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>

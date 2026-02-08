@@ -639,6 +639,12 @@ func (s *Service) handleTextMessage(packet *pb.Packet, senderPubKey, remoteAddr 
 		return
 	}
 
+	// Message Length Limit Check
+	if len(textMsg.Content) > 4096 {
+		log.Printf("[Messenger] Rejected message from %s: content too long (%d > 4096)", senderPubKey[:16], len(textMsg.Content))
+		return
+	}
+
 	// Создаём core.Message для сохранения
 	msg := &core.Message{
 		ID:          textMsg.MessageId,
