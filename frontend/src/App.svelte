@@ -54,6 +54,7 @@
   let pinInput = '';
   let newProfileName = '';
   let newProfilePin = '';
+  let profilesLoaded = false;
   // ... (rest of the file) 
 
   // Mobile Store & State
@@ -455,17 +456,16 @@
 
 
   // === Profiles ===
-  async function loadProfiles() {
+   async function loadProfiles() {
     try {
       allProfiles = await ListProfiles() || [];
-      if (allProfiles.length === 0) {
-        authScreen = 'seed'; // No profiles, show seed login
-      } else {
-        authScreen = 'profiles';
-      }
+      // Don't auto-switch to seed anymore, let user choose on the profiles screen
+      authScreen = 'profiles';
+      profilesLoaded = true;
     } catch (e) {
       console.error('Failed to load profiles:', e);
       authScreen = 'seed';
+      profilesLoaded = true;
     }
   }
 
@@ -1374,7 +1374,12 @@
     </div>
     <h1 class="login-title">TeleGhost</h1>
     
-    {#if authScreen === 'profiles'}
+    {#if !profilesLoaded}
+      <div style="padding: 40px; text-align: center;">
+        <span class="spinner" style="width: 32px; height: 32px; border-width: 3px;"></span>
+        <p style="margin-top: 16px; color: var(--text-secondary); font-size: 14px;">Загрузка профилей...</p>
+      </div>
+    {:else if authScreen === 'profiles'}
       <!-- Profile Selection -->
       <p class="login-subtitle">Выберите аккаунт</p>
       <div class="profiles-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px;">
