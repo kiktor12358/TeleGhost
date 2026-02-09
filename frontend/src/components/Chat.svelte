@@ -1,0 +1,214 @@
+<script>
+    import { Icons } from '../Icons.js';
+    import { getInitials, formatTime, parseMarkdown } from '../utils.js';
+    import { fade } from 'svelte/transition';
+
+    export let selectedContact;
+    export let messages = [];
+    export let newMessage;
+    export let selectedFiles = [];
+    export let filePreviews = {};
+    export let editingMessageId = null;
+    export let editMessageContent = '';
+    export let isCompressed = false;
+    export let previewImage = null;
+
+    export let onSendMessage;
+    export let onKeyPress;
+    export let onPaste;
+    export let onSelectFiles;
+    export let onRemoveFile;
+    export let onShowMessageMenu;
+    export let onAcceptTransfer;
+    export let onDeclineTransfer;
+    export let onOpenContactProfile;
+    export let onSaveEditMessage;
+    export let onCancelEdit;
+    export let onOpenFile;
+    export let onPreviewImage;
+
+    let textarea;
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            onSendMessage();
+        }
+    }
+
+    // Direct image loading logic if possible, or pass it
+    export let startLoadingImage; 
+</script>
+
+<div class="chat-area animate-fade-in">
+    <div class="chat-header">
+        <div class="chat-contact-info" on:click={onOpenContactProfile} style="cursor: pointer;">
+            <div class="chat-avatar" style="background: rgba(255,255,255,0.05);">
+                {#if selectedContact.avatar}
+                    <img src={selectedContact.avatar} alt="av"/>
+                {:else}
+                    <img src="/icon.png" alt="av" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;" />
+                {/if}
+            </div>
+            <div>
+                <div class="chat-name">{selectedContact.nickname}</div>
+                <div class="chat-status">
+                    <span class="status-dot" style="background: {messages.some(m => !m.isOutgoing && m.senderId === selectedContact.publicKey && (Date.now() - m.timestamp < 300000)) ? '#4CAF50' : '#9E9E9E'};"></span>
+                    <span class="status-text">
+                        {messages.some(m => !m.isOutgoing && m.senderId === selectedContact.publicKey && (Date.now() - m.timestamp < 300000)) ? 'В сети' : 'Оффлайн'}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="messages-container">
+        {#each messages as msg (msg.id)}
+            <div class="message animate-message" class:outgoing={msg.isOutgoing}>
+                <div class="message-bubble" class:outgoing={msg.isOutgoing} on:contextmenu|preventDefault={(e) => onShowMessageMenu(e, msg)}>
+                    {#if msg.attachments && msg.attachments.length > 0}
+                        <div class="message-images" style="grid-template-columns: {msg.attachments.length === 1 ? '1fr' : 'repeat(2, 1fr)'}">
+                            {#each msg.attachments as att}
+                                {#if att.mimeType && att.mimeType.startsWith('image/')}
+                                    <img 
+                                        use:startLoadingImage={att.local_path} 
+                                        alt="attachment" 
+                                        class="msg-img" 
+                                        style="height: {msg.attachments.length === 1 ? 'auto' : '120px'}" 
+                                        on:click={() => onPreviewImage(att.local_path)}
+                                    />
+                                {:else}
+                                    <div class="file-attachment-card" on:click|stopPropagation={() => onOpenFile(att.local_path)}>
+                                        <div class="file-icon">📄</div>
+                                        <div class="file-info">
+                                            <div class="file-name">{att.filename || 'File'}</div>
+                                            <div class="file-size">{att.size ? (att.size / 1024).toFixed(1) + ' KB' : ''}</div>
+                                        </div>
+                                    </div>
+                                {/if}
+                            {/each}
+                        </div>
+                    {/if}
+
+                    {#if editingMessageId === msg.id}
+                        <div class="message-edit-container">
+                            <textarea class="message-edit-input" bind:value={editMessageContent} on:keydown={(e) => e.key === 'Escape' && onCancelEdit()}></textarea>
+                            <div class="message-edit-actions">
+                                <button class="btn-sm btn-primary" on:click={onSaveEditMessage}>✓</button>
+                                <button class="btn-sm btn-secondary" on:click={onCancelEdit}>✕</button>
+                            </div>
+                        </div>
+                    {:else if msg.contentType === 'file_offer'}
+                        <div class="file-offer-card">
+                            <div class="file-icon-large">📁</div>
+                            <div class="file-info">
+                                <div class="file-title">Файлов: {msg.fileCount}</div>
+                                <div class="file-size">{(msg.totalSize / (1024*1024)).toFixed(2)} MB</div>
+                            </div>
+                        </div>
+                        <div class="file-actions">
+                            {#if !msg.isOutgoing}
+                                <button class="btn-small btn-success" on:click|stopPropagation={() => onAcceptTransfer(msg)}>Принять</button>
+                                <button class="btn-small btn-danger" on:click|stopPropagation={() => onDeclineTransfer(msg)}>Отклонить</button>
+                            {/if}
+                        </div>
+                    {:else}
+                        <div class="message-content">{@html parseMarkdown(msg.content)}</div>
+                    {/if}
+
+                    <div class="message-meta">
+                        <span class="message-time">{formatTime(msg.timestamp)}</span>
+                        {#if msg.isOutgoing}
+                            <span class="message-status"><div class="icon-svg-sm" style="display:inline-block; width:12px; height:12px;">{@html msg.status === 'sending' ? Icons.Clock : Icons.Check}</div></span>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+        {/each}
+    </div>
+
+    <div class="input-area-wrapper">
+        {#if selectedFiles.length > 0}
+            <div class="attachment-preview">
+                {#each selectedFiles as file, i}
+                    <div class="preview-item">
+                        {#if filePreviews[file]}
+                            <img src={`data:image/png;base64,${filePreviews[file]}`} alt="preview" />
+                        {:else}
+                            <div class="file-icon-preview">📄</div>
+                        {/if}
+                        <button class="btn-remove-att" on:click={() => onRemoveFile(i)}>X</button>
+                    </div>
+                {/each}
+            </div>
+        {/if}
+        
+        <div class="input-area">
+            <button class="btn-icon" on:click={onSelectFiles} title="Прикрепить файл">
+                <div class="icon-svg">{@html Icons.Paperclip}</div>
+            </button>
+            <div style="flex: 1; position: relative;">
+                <textarea
+                    bind:this={textarea}
+                    class="message-input"
+                    placeholder="Сообщение..."
+                    bind:value={newMessage}
+                    on:keypress={handleKeyPress}
+                    on:paste={onPaste}
+                    rows="1"
+                ></textarea>
+            </div>
+            <button class="btn-send" on:click={onSendMessage} disabled={!newMessage.trim() && selectedFiles.length === 0}>
+                <div class="icon-svg">{@html Icons.Send}</div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary, #0c0c14); overflow: hidden; }
+    .chat-header { height: 64px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary, #1e1e2e); border-bottom: 1px solid var(--border); z-index: 10; }
+    .chat-contact-info { display: flex; align-items: center; gap: 12px; }
+    .chat-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; overflow: hidden; }
+    .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .chat-name { font-weight: 600; font-size: 16px; color: white; }
+    .chat-status { display: flex; align-items: center; gap: 6px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .status-text { font-size: 12px; color: var(--text-secondary); }
+
+    .messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+    .message { display: flex; margin-bottom: 2px; }
+    .message.outgoing { justify-content: flex-end; }
+    .message-bubble { 
+        max-width: 70%; padding: 8px 12px; border-radius: 18px; background: var(--bg-secondary, #1e1e2e); color: var(--text-primary); position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .message.outgoing .message-bubble { background: var(--accent, #6366f1); color: white; border-bottom-right-radius: 4px; }
+    .message:not(.outgoing) .message-bubble { border-bottom-left-radius: 4px; }
+
+    .message-images { display: grid; gap: 4px; margin-bottom: 6px; border-radius: 8px; overflow: hidden; }
+    .msg-img { width: 100%; object-fit: cover; cursor: pointer; background: rgba(0,0,0,0.2); }
+
+    .message-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; justify-content: flex-end; opacity: 0.7; font-size: 10px; }
+    .message-time { white-space: nowrap; }
+
+    .input-area-wrapper { padding: 10px 20px 20px; background: var(--bg-primary); position: sticky; bottom: 0; z-index: 50; }
+    .input-area { display: flex; align-items: center; gap: 10px; background: var(--bg-secondary); padding: 8px 12px; border-radius: 24px; }
+    .message-input { flex: 1; background: transparent; border: none; color: white; outline: none; resize: none; font-size: 14px; max-height: 120px; padding: 8px 0; }
+
+    .btn-icon { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+    .btn-icon:hover { background: rgba(255,255,255,0.1); color: white; }
+
+    .btn-send { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+    .btn-send:hover { transform: scale(1.05); }
+    .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .attachment-preview { display: flex; gap: 10px; padding: 10px; overflow-x: auto; background: var(--bg-secondary); border-radius: 12px; margin-bottom: 10px; }
+    .preview-item { position: relative; width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: rgba(0,0,0,0.2); }
+    .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .btn-remove-att { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; }
+
+    .icon-svg { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+    .icon-svg :global(svg) { width: 100%; height: 100%; }
+    .icon-svg-sm { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
+    .icon-svg-sm :global(svg) { width: 100%; height: 100%; }
+</style>

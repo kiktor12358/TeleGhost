@@ -30,6 +30,15 @@ const (
 	NetworkStatusError      NetworkStatus = "error"
 )
 
+// FolderInfo информация о папке с ID чатов
+type FolderInfo struct {
+	ID       string
+	Name     string
+	Icon     string
+	ChatIDs  []string
+	Position int
+}
+
 // ContactInfo информация о контакте для фронтенда
 type ContactInfo struct {
 	ID          string

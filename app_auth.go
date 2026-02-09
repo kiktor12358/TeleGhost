@@ -35,15 +35,25 @@ func (a *App) CreateProfile(name string, pin string, mnemonic string, userID str
 	// Fix: Sync profile to DB if this is our current user
 	if a.identity != nil && a.identity.Keys.UserID == userID {
 		if a.repo != nil {
-			// We might want to update the DB profile too
 			profile, _ := a.repo.GetMyProfile(a.ctx)
 			if profile != nil {
 				profile.Nickname = name
 				if avatarPath != "" {
-					// We need to handle avatar storage properly.
-					// For now, let's just update the nickname.
+					// Read avatar and convert to base64 for DB
+					avatarData, err := os.ReadFile(avatarPath)
+					if err == nil {
+						ext := filepath.Ext(avatarPath)
+						mimeType := "image/jpeg"
+						if ext == ".png" {
+							mimeType = "image/png"
+						} else if ext == ".webp" {
+							mimeType = "image/webp"
+						}
+						profile.Avatar = fmt.Sprintf("data:%s;base64,%s", mimeType, base64.StdEncoding.EncodeToString(avatarData))
+					}
 				}
 				a.repo.SaveUser(a.ctx, profile)
+				log.Printf("[App] Synced profile for %s (avatar set: %v)", name, profile.Avatar != "")
 			}
 		}
 	}

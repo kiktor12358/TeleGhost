@@ -13,6 +13,14 @@ import (
 	"github.com/go-i2p/i2pkeys"
 )
 
+// GetMyDestination возвращает I2P адрес для копирования
+func (a *App) GetMyDestination() string {
+	if a.router == nil {
+		return ""
+	}
+	return a.router.GetDestination()
+}
+
 // getRouterSettingsPath возвращает путь к файлу настроек роутера
 func (a *App) getRouterSettingsPath() string {
 	return filepath.Join(a.dataDir, "router_settings.json")
