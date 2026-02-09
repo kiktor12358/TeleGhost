@@ -14,6 +14,7 @@ import (
 	"teleghost/internal/network/media"
 	"teleghost/internal/network/profiles"
 	pb "teleghost/internal/proto"
+	"teleghost/internal/repository/sqlite"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"google.golang.org/protobuf/proto"
@@ -26,35 +27,47 @@ func (a *App) CreateProfile(name string, pin string, mnemonic string, userID str
 	if a.profileManager == nil {
 		return fmt.Errorf("profile manager not initialized")
 	}
+
+	// Fix: If userID is empty, use the current identity's ID or derive it
+	if userID == "" && a.identity != nil {
+		userID = a.identity.Keys.UserID
+	}
+
 	// For new profiles, existingID is empty
 	err := a.profileManager.CreateProfile(name, pin, mnemonic, userID, avatarPath, usePin, "")
 	if err != nil {
 		return err
 	}
 
-	// Fix: Sync profile to DB if this is our current user
-	if a.identity != nil && a.identity.Keys.UserID == userID {
-		if a.repo != nil {
-			profile, _ := a.repo.GetMyProfile(a.ctx)
-			if profile != nil {
-				profile.Nickname = name
-				if avatarPath != "" {
-					// Read avatar and convert to base64 for DB
-					avatarData, err := os.ReadFile(avatarPath)
-					if err == nil {
-						ext := filepath.Ext(avatarPath)
-						mimeType := "image/jpeg"
-						if ext == ".png" {
-							mimeType = "image/png"
-						} else if ext == ".webp" {
-							mimeType = "image/webp"
-						}
-						profile.Avatar = fmt.Sprintf("data:%s;base64,%s", mimeType, base64.StdEncoding.EncodeToString(avatarData))
+	// Fix: Sync profile to DB if this is our current user OR if we just created it
+	var targetRepo *sqlite.Repository = a.repo
+	if targetRepo == nil && userID != "" {
+		// During registration, repo might be initialized but identity is definitely there
+		if a.identity != nil && a.identity.Keys.UserID == userID {
+			// It should be initialized by now in CreateAccount
+		}
+	}
+
+	if a.identity != nil && a.identity.Keys.UserID == userID && a.repo != nil {
+		profile, _ := a.repo.GetMyProfile(a.ctx)
+		if profile != nil {
+			profile.Nickname = name
+			if avatarPath != "" {
+				// Read avatar and convert to base64 for DB
+				avatarData, err := os.ReadFile(avatarPath)
+				if err == nil {
+					ext := filepath.Ext(avatarPath)
+					mimeType := "image/jpeg"
+					if strings.ToLower(ext) == ".png" {
+						mimeType = "image/png"
+					} else if strings.ToLower(ext) == ".webp" {
+						mimeType = "image/webp"
 					}
+					profile.Avatar = fmt.Sprintf("data:%s;base64,%s", mimeType, base64.StdEncoding.EncodeToString(avatarData))
 				}
-				a.repo.SaveUser(a.ctx, profile)
-				log.Printf("[App] Synced profile for %s (avatar set: %v)", name, profile.Avatar != "")
 			}
+			a.repo.SaveUser(a.ctx, profile)
+			log.Printf("[App] Synced profile for %s (avatar set: %v)", name, profile.Avatar != "")
 		}
 	}
 

@@ -73,6 +73,15 @@ type UserInfo struct {
 	Mnemonic    string
 }
 
+// AppAboutInfo информация о приложении
+type AppAboutInfo struct {
+	AppVersion string `json:"app_version"`
+	I2PVersion string `json:"i2p_version"`
+	I2PPath    string `json:"i2p_path"`
+	Author     string `json:"author"`
+	License    string `json:"license"`
+}
+
 // App основная структура приложения
 type App struct {
 	ctx            context.Context

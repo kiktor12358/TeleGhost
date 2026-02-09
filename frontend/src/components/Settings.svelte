@@ -12,6 +12,7 @@
     export let selectedProfile;
     export let networkStatus;
     export let myDestination;
+    export let aboutInfo;
 
     export let onSaveProfile;
     export let onSaveRouterSettings;
@@ -23,6 +24,7 @@
     export let onOpenCategory;
     export let onClose;
     export let onShowSeed;
+    export let onCheckUpdates;
 
     let avatarFileInput;
 </script>
@@ -141,12 +143,59 @@
                         </div>
                     </div>
                 {:else if activeSettingsTab === 'about'}
-                    <div class="settings-section">
-                        <h3 class="title">О программе</h3>
-                        <div class="info-grid">
-                            <div class="info-row"><span class="label">Версия</span><span class="value">1.0.2-beta</span></div>
-                            <div class="info-row"><span class="label">Разработчик</span><span class="value">TeleGhost Team</span></div>
-                            <div class="info-row"><span class="label">Лицензия</span><span class="value">MIT / Open Source</span></div>
+                    <div class="settings-section animate-fade-in">
+                        <div class="about-branding">
+                            <div class="about-logo animate-float">
+                                <div class="icon-svg-lg">{@html Icons.Ghost}</div>
+                            </div>
+                            <h2 class="about-title">TeleGhost</h2>
+                            <p class="about-version">Version {aboutInfo.app_version || '1.0.2-beta'}</p>
+                        </div>
+
+                        <div class="info-list">
+                            <div class="info-item-fancy">
+                                <div class="info-icon">{@html Icons.User}</div>
+                                <div class="info-content">
+                                    <span class="info-label-fancy">Разработчик</span>
+                                    <span class="info-value-fancy">{aboutInfo.author || 'TeleGhost Team'}</span>
+                                </div>
+                            </div>
+
+                            <div class="info-item-fancy">
+                                <div class="info-icon">{@html Icons.File}</div>
+                                <div class="info-content">
+                                    <span class="info-label-fancy">Лицензия</span>
+                                    <span class="info-value-fancy">{aboutInfo.license || 'MIT / Open Source'}</span>
+                                </div>
+                            </div>
+
+                            <div class="info-item-fancy">
+                                <div class="info-icon">{@html Icons.Globe}</div>
+                                <div class="info-content">
+                                    <span class="info-label-fancy">I2P Версия</span>
+                                    <span class="info-value-fancy">{aboutInfo.i2p_version || '2.58.0'}</span>
+                                </div>
+                            </div>
+
+                            <div class="info-item-fancy">
+                                <div class="info-icon">{@html Icons.Folder}</div>
+                                <div class="info-content">
+                                    <span class="info-label-fancy">Путь I2P</span>
+                                    <span class="info-value-fancy" style="font-family: monospace; font-size: 11px; word-break: break-all;">{aboutInfo.i2p_path || '~/.teleghost/i2pd'}</span>
+                                </div>
+                            </div>
+
+                            <div class="update-action-row" on:click={onCheckUpdates}>
+                                <div class="info-icon accent">{@html Icons.Refresh}</div>
+                                <div class="info-content">
+                                    <span class="info-value-fancy accent">Проверить обновления</span>
+                                </div>
+                                <div class="chevron">{@html Icons.ChevronRight}</div>
+                            </div>
+                        </div>
+
+                        <div class="about-footer">
+                            <p>© 2024-2026 TeleGhost Project. All rights reserved.</p>
                         </div>
                     </div>
                 {/if}
@@ -238,4 +287,50 @@
     input:checked + .slider:before { transform: translateX(26px); }
     .slider.round { border-radius: 34px; }
     .slider.round:before { border-radius: 50%; }
+
+    /* Redesigned About Section */
+    .about-branding { text-align: center; margin-bottom: 40px; }
+    .about-logo { 
+        width: 100px; height: 100px; background: linear-gradient(135deg, #6366f1 0%, #a29bfe 100%); 
+        border-radius: 30px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 15px 35px rgba(99, 102, 241, 0.3); color: white;
+    }
+    .icon-svg-lg { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+    .icon-svg-lg :global(svg) { width: 100%; height: 100%; }
+    .about-title { font-size: 32px; font-weight: 800; margin-bottom: 8px; background: linear-gradient(90deg, #fff, #a29bfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .about-version { color: var(--text-secondary); font-size: 14px; font-weight: 500; opacity: 0.7; }
+
+    .info-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
+    .info-item-fancy { 
+        display: flex; align-items: center; gap: 16px; padding: 16px 20px; 
+        background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px;
+    }
+    .info-icon { 
+        width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,0.05);
+        display: flex; align-items: center; justify-content: center; color: var(--text-secondary);
+    }
+    .info-icon :global(svg) { width: 20px; height: 20px; }
+    .info-icon.accent { background: rgba(99, 102, 241, 0.1); color: var(--accent); }
+    
+    .info-content { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .info-label-fancy { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); font-weight: 700; }
+    .info-value-fancy { font-size: 15px; color: var(--text-primary); font-weight: 500; }
+    .info-value-fancy.accent { color: var(--accent); font-weight: 700; }
+
+    .update-action-row { 
+        display: flex; align-items: center; gap: 16px; padding: 16px 20px; 
+        background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.1); 
+        border-radius: 16px; cursor: pointer; transition: all 0.2s;
+    }
+    .update-action-row:hover { background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); transform: translateY(-2px); }
+    .chevron { color: var(--text-secondary); opacity: 0.5; }
+    .chevron :global(svg) { width: 18px; height: 18px; }
+
+    .about-footer { text-align: center; color: var(--text-secondary); font-size: 12px; opacity: 0.4; margin-top: auto; }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    .animate-float { animation: float 6s ease-in-out infinite; }
 </style>

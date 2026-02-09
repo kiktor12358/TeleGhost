@@ -69,6 +69,8 @@
   let isEditingFolder = false;
   let currentFolderData = { id: '', name: '', icon: '📁' };
   
+  let aboutInfo = { app_version: '', i2p_version: '', i2p_path: '', author: '', license: '' };
+  
   let showContactProfile = false;
   
   // Context Menus
@@ -132,6 +134,7 @@
       await loadContacts();
       screen = 'main';
       mobileView.set('list');
+      loadAboutInfo();
   }
 
   async function handleLogout() {
@@ -300,10 +303,26 @@
       onTogglePinUsage: () => { /* Toggle PIN logic */ },
       onChangePin: () => { /* Change PIN logic */ },
       onBackToMenu: () => { settingsView = 'menu'; },
-      onOpenCategory: (id) => { activeSettingsTab = id; settingsView = 'details'; },
+      onOpenCategory: (id) => { 
+          activeSettingsTab = id; 
+          settingsView = 'details'; 
+          if (id === 'about') loadAboutInfo();
+      },
       onClose: () => { showSettings = false; },
-      onShowSeed: () => { showSeedModal = true; }
+      onShowSeed: () => { showSeedModal = true; },
+      onCheckUpdates: async () => {
+          const res = await AppActions.CheckForUpdates();
+          showToast(res, 'success');
+      }
   };
+
+  async function loadAboutInfo() {
+      try {
+          aboutInfo = await AppActions.GetAppAboutInfo();
+      } catch (e) {
+          console.error("Failed to load about info", e);
+      }
+  }
 
   const modalHandlers = {
       onConfirm: () => { confirmAction(); showConfirmModal = false; },
@@ -376,6 +395,7 @@
                                       {id: 'about', name: 'О программе', icon: Icons.Info}
                                   ]}
                                   {activeSettingsTab} {settingsView} selectedProfile={null} {networkStatus} {myDestination}
+                                  {aboutInfo}
                                   {...settingsHandlers} />
                     {:else if selectedContact}
                         <Chat {selectedContact} {messages} {newMessage} {selectedFiles} {filePreviews} 

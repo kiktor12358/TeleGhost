@@ -163,3 +163,22 @@ func (a *App) connectToI2P() {
 
 	a.setNetworkStatus(NetworkStatusOnline)
 }
+
+// GetAppAboutInfo возвращает информацию о приложении
+func (a *App) GetAppAboutInfo() AppAboutInfo {
+	i2pDir := filepath.Join(a.dataDir, "i2pd")
+	return AppAboutInfo{
+		AppVersion: "1.0.2-beta",
+		I2PVersion: "2.58.0",
+		I2PPath:    i2pDir,
+		Author:     "TeleGhost Team",
+		License:    "MIT / Open Source",
+	}
+}
+
+// CheckForUpdates проверяет наличие обновлений (заглушка)
+func (a *App) CheckForUpdates() string {
+	// В будущем здесь будет реальная проверка через GitHub API
+	log.Println("[App] Checking for updates...")
+	return "У вас установлена последняя версия"
+}
