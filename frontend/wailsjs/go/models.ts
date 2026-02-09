@@ -1,15 +1,15 @@
 export namespace main {
 	
 	export class ContactInfo {
-	    id: string;
-	    nickname: string;
-	    publicKey: string;
-	    avatar: string;
-	    i2pAddress: string;
-	    lastMessage: string;
-	    lastSeen: string;
-	    isOnline: boolean;
-	    chatId: string;
+	    ID: string;
+	    Nickname: string;
+	    PublicKey: string;
+	    Avatar: string;
+	    I2PAddress: string;
+	    LastMessage: string;
+	    LastSeen: string;
+	    IsOnline: boolean;
+	    ChatID: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ContactInfo(source);
@@ -17,23 +17,23 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.id = source["id"];
-	        this.nickname = source["nickname"];
-	        this.publicKey = source["publicKey"];
-	        this.avatar = source["avatar"];
-	        this.i2pAddress = source["i2pAddress"];
-	        this.lastMessage = source["lastMessage"];
-	        this.lastSeen = source["lastSeen"];
-	        this.isOnline = source["isOnline"];
-	        this.chatId = source["chatId"];
+	        this.ID = source["ID"];
+	        this.Nickname = source["Nickname"];
+	        this.PublicKey = source["PublicKey"];
+	        this.Avatar = source["Avatar"];
+	        this.I2PAddress = source["I2PAddress"];
+	        this.LastMessage = source["LastMessage"];
+	        this.LastSeen = source["LastSeen"];
+	        this.IsOnline = source["IsOnline"];
+	        this.ChatID = source["ChatID"];
 	    }
 	}
 	export class FolderInfo {
-	    id: string;
-	    name: string;
-	    icon: string;
-	    chatIds: string[];
-	    position: number;
+	    ID: string;
+	    Name: string;
+	    Icon: string;
+	    ChatIDs: string[];
+	    Position: number;
 	
 	    static createFrom(source: any = {}) {
 	        return new FolderInfo(source);
@@ -41,20 +41,20 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.id = source["id"];
-	        this.name = source["name"];
-	        this.icon = source["icon"];
-	        this.chatIds = source["chatIds"];
-	        this.position = source["position"];
+	        this.ID = source["ID"];
+	        this.Name = source["Name"];
+	        this.Icon = source["Icon"];
+	        this.ChatIDs = source["ChatIDs"];
+	        this.Position = source["Position"];
 	    }
 	}
 	export class MessageInfo {
-	    id: string;
-	    content: string;
-	    timestamp: number;
-	    isOutgoing: boolean;
-	    status: string;
-	    attachments: any[];
+	    ID: string;
+	    Content: string;
+	    Timestamp: number;
+	    IsOutgoing: boolean;
+	    Status: string;
+	    Attachments: any[];
 	
 	    static createFrom(source: any = {}) {
 	        return new MessageInfo(source);
@@ -62,17 +62,17 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.id = source["id"];
-	        this.content = source["content"];
-	        this.timestamp = source["timestamp"];
-	        this.isOutgoing = source["isOutgoing"];
-	        this.status = source["status"];
-	        this.attachments = source["attachments"];
+	        this.ID = source["ID"];
+	        this.Content = source["Content"];
+	        this.Timestamp = source["Timestamp"];
+	        this.IsOutgoing = source["IsOutgoing"];
+	        this.Status = source["Status"];
+	        this.Attachments = source["Attachments"];
 	    }
 	}
 	export class RouterSettings {
-	    tunnelLength: number;
-	    logToFile: boolean;
+	    TunnelLength: number;
+	    LogToFile: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new RouterSettings(source);
@@ -80,17 +80,17 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.tunnelLength = source["tunnelLength"];
-	        this.logToFile = source["logToFile"];
+	        this.TunnelLength = source["TunnelLength"];
+	        this.LogToFile = source["LogToFile"];
 	    }
 	}
 	export class UserInfo {
-	    id: string;
-	    nickname: string;
-	    avatar: string;
-	    publicKey: string;
-	    destination: string;
-	    fingerprint: string;
+	    ID: string;
+	    Nickname: string;
+	    Avatar: string;
+	    PublicKey: string;
+	    Destination: string;
+	    Fingerprint: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new UserInfo(source);
@@ -98,12 +98,12 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.id = source["id"];
-	        this.nickname = source["nickname"];
-	        this.avatar = source["avatar"];
-	        this.publicKey = source["publicKey"];
-	        this.destination = source["destination"];
-	        this.fingerprint = source["fingerprint"];
+	        this.ID = source["ID"];
+	        this.Nickname = source["Nickname"];
+	        this.Avatar = source["Avatar"];
+	        this.PublicKey = source["PublicKey"];
+	        this.Destination = source["Destination"];
+	        this.Fingerprint = source["Fingerprint"];
 	    }
 	}
 
@@ -114,6 +114,9 @@ export namespace profiles {
 	export class ProfileMetadata {
 	    id: string;
 	    display_name: string;
+	    user_id: string;
+	    avatar_path: string;
+	    use_pin: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new ProfileMetadata(source);
@@ -123,6 +126,9 @@ export namespace profiles {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.id = source["id"];
 	        this.display_name = source["display_name"];
+	        this.user_id = source["user_id"];
+	        this.avatar_path = source["avatar_path"];
+	        this.use_pin = source["use_pin"];
 	    }
 	}
 

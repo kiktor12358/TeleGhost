@@ -19,21 +19,21 @@ func TestProfileManager(t *testing.T) {
 	mnemonic := "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
 
 	// 1. Test Weak PIN
-	err = pm.CreateProfile(name, "12345", mnemonic)
+	err = pm.CreateProfile(name, "12345", mnemonic, "user-id-123", "", true, "")
 	if err == nil || err.Error() != "ПИН-код слишком слабый" {
 		t.Errorf("Expected error for weak PIN, got: %v", err)
 	}
 
-	// 2. Test Create Profile
-	err = pm.CreateProfile(name, pin, mnemonic)
+	// Test CreateProfile
+	err = pm.CreateProfile("Test User", "123456", mnemonic, "user-id-123", "", true, "")
 	if err != nil {
-		t.Fatalf("Failed to create profile: %v", err)
+		t.Fatalf("CreateProfile failed: %v", err)
 	}
 
-	// 3. Test List Profiles
+	// Test ListProfiles
 	profiles, err := pm.ListProfiles()
 	if err != nil {
-		t.Fatalf("Failed to list profiles: %v", err)
+		t.Fatalf("ListProfiles failed: %v", err)
 	}
 	if len(profiles) != 1 {
 		t.Errorf("Expected 1 profile, got %d", len(profiles))

@@ -20,7 +20,7 @@ export function CreateAccount():Promise<string>;
 
 export function CreateFolder(arg1:string,arg2:string):Promise<string>;
 
-export function CreateProfile(arg1:string,arg2:string,arg3:string):Promise<void>;
+export function CreateProfile(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string,arg6:boolean):Promise<void>;
 
 export function DeclineFileTransfer(arg1:string):Promise<void>;
 
@@ -89,3 +89,5 @@ export function UnlockProfile(arg1:string,arg2:string):Promise<string>;
 export function UpdateFolder(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function UpdateMyProfile(arg1:string,arg2:string,arg3:string):Promise<void>;
+
+export function UpdateProfile(arg1:string,arg2:string,arg3:string,arg4:boolean,arg5:boolean,arg6:string,arg7:string):Promise<void>;

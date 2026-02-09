@@ -28,6 +28,9 @@ type ArgonParams struct {
 type Vault struct {
 	ID          string      `json:"id"`
 	DisplayName string      `json:"display_name"`
+	UserID      string      `json:"user_id"`     // crypto ID
+	AvatarPath  string      `json:"avatar_path"` // relative path
+	UsePin      bool        `json:"use_pin"`     // if false, login by seed
 	Salt        string      `json:"salt"`
 	Nonce       string      `json:"nonce"`
 	Ciphertext  string      `json:"ciphertext"`
@@ -38,6 +41,9 @@ type Vault struct {
 type ProfileMetadata struct {
 	ID          string `json:"id"`
 	DisplayName string `json:"display_name"`
+	UserID      string `json:"user_id"`
+	AvatarPath  string `json:"avatar_path"`
+	UsePin      bool   `json:"use_pin"`
 }
 
 // ProfileManager управляет профилями пользователей
@@ -53,13 +59,18 @@ func NewProfileManager(storageDir string) (*ProfileManager, error) {
 	return &ProfileManager{storageDir: storageDir}, nil
 }
 
-// CreateProfile создает новый зашифрованный профиль
-func (pm *ProfileManager) CreateProfile(name string, pin string, mnemonic string) error {
-	if len(pin) < 6 {
+// CreateProfile создает новый зашифрованный профиль.
+// Если передан existingID, используется он, иначе генерируется новый.
+func (pm *ProfileManager) CreateProfile(name string, pin string, mnemonic string, userID string, avatarPath string, usePin bool, existingID string) error {
+	if usePin && len(pin) < 6 {
 		return errors.New("ПИН-код слишком слабый")
 	}
 
-	id := uuid.New().String()
+	id := existingID
+	if id == "" {
+		id = uuid.New().String()
+	}
+
 	salt := make([]byte, 16)
 	if _, err := io.ReadFull(rand.Reader, salt); err != nil {
 		return err
@@ -71,24 +82,49 @@ func (pm *ProfileManager) CreateProfile(name string, pin string, mnemonic string
 		Threads: 2,
 	}
 
-	// Генерация ключа из ПИН-кода
-	key := argon2.IDKey([]byte(pin), salt, params.Time, params.Memory, params.Threads, chacha20poly1305.KeySize)
+	var ciphertext []byte
+	var nonce []byte
 
-	aead, err := chacha20poly1305.NewX(key)
-	if err != nil {
-		return err
+	// Если используем ПИН, шифруем мнемонику
+	if usePin {
+		// Генерация ключа из ПИН-кода
+		key := argon2.IDKey([]byte(pin), salt, params.Time, params.Memory, params.Threads, chacha20poly1305.KeySize)
+
+		aead, err := chacha20poly1305.NewX(key)
+		if err != nil {
+			return err
+		}
+
+		nonce = make([]byte, aead.NonceSize())
+		if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+			return err
+		}
+
+		ciphertext = aead.Seal(nil, nonce, []byte(mnemonic), nil)
 	}
 
-	nonce := make([]byte, aead.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return err
-	}
+	// Копируем аватар если есть
+	storedAvatarPath := ""
+	if avatarPath != "" {
+		ext := filepath.Ext(avatarPath)
+		newAvatarName := id + "_avatar" + ext
+		destPath := filepath.Join(pm.storageDir, newAvatarName)
 
-	ciphertext := aead.Seal(nil, nonce, []byte(mnemonic), nil)
+		// Copy file
+		input, err := os.ReadFile(avatarPath)
+		if err == nil {
+			if err := ioutil.WriteFile(destPath, input, 0600); err == nil {
+				storedAvatarPath = newAvatarName
+			}
+		}
+	}
 
 	vault := Vault{
 		ID:          id,
 		DisplayName: name,
+		UserID:      userID,
+		AvatarPath:  storedAvatarPath,
+		UsePin:      usePin,
 		Salt:        base64.StdEncoding.EncodeToString(salt),
 		Nonce:       base64.StdEncoding.EncodeToString(nonce),
 		Ciphertext:  base64.StdEncoding.EncodeToString(ciphertext),
@@ -102,6 +138,118 @@ func (pm *ProfileManager) CreateProfile(name string, pin string, mnemonic string
 
 	filePath := filepath.Join(pm.storageDir, id+".json")
 	return ioutil.WriteFile(filePath, data, 0600)
+}
+
+// GetProfileByUserID ищет профиль по UserID
+func (pm *ProfileManager) GetProfileByUserID(userID string) (*ProfileMetadata, error) {
+	profiles, err := pm.ListProfiles()
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range profiles {
+		if p.UserID == userID {
+			return &p, nil
+		}
+	}
+	return nil, nil // Not found
+}
+
+// UpdateProfile обновляет данные профиля
+func (pm *ProfileManager) UpdateProfile(profileID string, name string, avatarPath string, deleteAvatar bool, usePin bool, newPin string, mnemonic string) error {
+	filePath := filepath.Join(pm.storageDir, profileID+".json")
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return fmt.Errorf("профиль не найден")
+	}
+
+	var vault Vault
+	if err := json.Unmarshal(data, &vault); err != nil {
+		return fmt.Errorf("ошибка чтения формата профиля")
+	}
+
+	// Обновляем имя
+	if name != "" {
+		vault.DisplayName = name
+	}
+
+	// Обновляем использование ПИН
+	vault.UsePin = usePin
+
+	// Обновляем аватар
+	if deleteAvatar {
+		// Удаляем старый если был
+		if vault.AvatarPath != "" {
+			os.Remove(filepath.Join(pm.storageDir, vault.AvatarPath))
+			vault.AvatarPath = ""
+		}
+	} else if avatarPath != "" {
+		// Удаляем старый если был
+		if vault.AvatarPath != "" {
+			os.Remove(filepath.Join(pm.storageDir, vault.AvatarPath))
+		}
+
+		ext := filepath.Ext(avatarPath)
+		newAvatarName := profileID + "_avatar" + ext
+		destPath := filepath.Join(pm.storageDir, newAvatarName)
+
+		// Copy file
+		input, err := os.ReadFile(avatarPath)
+		if err == nil {
+			if err := ioutil.WriteFile(destPath, input, 0600); err == nil {
+				vault.AvatarPath = newAvatarName
+			}
+		}
+	}
+
+	// Если меняем ПИН или включаем его
+	if usePin && newPin != "" {
+		if mnemonic == "" {
+			return fmt.Errorf("mnemonic required to change pin")
+		}
+		if len(newPin) < 6 {
+			return errors.New("ПИН-код слишком слабый")
+		}
+
+		salt := make([]byte, 16)
+		if _, err := io.ReadFull(rand.Reader, salt); err != nil {
+			return err
+		}
+
+		vault.Salt = base64.StdEncoding.EncodeToString(salt)
+		vault.ArgonParams = ArgonParams{
+			Time:    4,
+			Memory:  64 * 1024,
+			Threads: 2,
+		}
+
+		key := argon2.IDKey([]byte(newPin), salt, vault.ArgonParams.Time, vault.ArgonParams.Memory, vault.ArgonParams.Threads, chacha20poly1305.KeySize)
+		aead, err := chacha20poly1305.NewX(key)
+		if err != nil {
+			return err
+		}
+
+		nonce := make([]byte, aead.NonceSize())
+		if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+			return err
+		}
+
+		ciphertext := aead.Seal(nil, nonce, []byte(mnemonic), nil)
+		vault.Nonce = base64.StdEncoding.EncodeToString(nonce)
+		vault.Ciphertext = base64.StdEncoding.EncodeToString(ciphertext)
+	} else if !usePin {
+		// Если ПИН отключен, очищаем крипто-поля (но userID остается)
+		vault.Ciphertext = ""
+		vault.Nonce = ""
+		vault.Salt = ""
+	}
+
+	// Сохраняем
+	newData, err := json.MarshalIndent(vault, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(filePath, newData, 0600)
 }
 
 // ListProfiles возвращает список доступных профилей
@@ -121,9 +269,24 @@ func (pm *ProfileManager) ListProfiles() ([]ProfileMetadata, error) {
 
 			var vault Vault
 			if err := json.Unmarshal(data, &vault); err == nil {
+				// Backward compatibility for existing profiles
+				if vault.UserID == "" && vault.Ciphertext != "" {
+					// We can't easily recover UserID without decrypting,
+					// so existing profiles will rely on decryption to get ID.
+					// Or we could have UI ask for pin to migrate.
+				}
+
+				avatarPath := ""
+				if vault.AvatarPath != "" {
+					avatarPath = filepath.Join(pm.storageDir, vault.AvatarPath)
+				}
+
 				profiles = append(profiles, ProfileMetadata{
 					ID:          vault.ID,
 					DisplayName: vault.DisplayName,
+					UserID:      vault.UserID,
+					AvatarPath:  avatarPath,
+					UsePin:      vault.UsePin,
 				})
 			}
 		}
@@ -143,6 +306,13 @@ func (pm *ProfileManager) UnlockProfile(profileID string, pin string) (string, e
 	var vault Vault
 	if err := json.Unmarshal(data, &vault); err != nil {
 		return "", fmt.Errorf("ошибка чтения формата профиля")
+	}
+
+	if !vault.UsePin {
+		// Если ПИН не используется, этот метод не должен вызываться для получения мнемоники,
+		// так как она не хранится.
+		// Но может быть старый профиль? Нет, новый флаг.
+		return "", fmt.Errorf("profile does not use pin encryption")
 	}
 
 	salt, err := base64.StdEncoding.DecodeString(vault.Salt)

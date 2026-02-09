@@ -34,8 +34,8 @@ export function CreateFolder(arg1, arg2) {
   return window['go']['main']['App']['CreateFolder'](arg1, arg2);
 }
 
-export function CreateProfile(arg1, arg2, arg3) {
-  return window['go']['main']['App']['CreateProfile'](arg1, arg2, arg3);
+export function CreateProfile(arg1, arg2, arg3, arg4, arg5, arg6) {
+  return window['go']['main']['App']['CreateProfile'](arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
 export function DeclineFileTransfer(arg1) {
@@ -172,4 +172,8 @@ export function UpdateFolder(arg1, arg2, arg3) {
 
 export function UpdateMyProfile(arg1, arg2, arg3) {
   return window['go']['main']['App']['UpdateMyProfile'](arg1, arg2, arg3);
+}
+
+export function UpdateProfile(arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
+  return window['go']['main']['App']['UpdateProfile'](arg1, arg2, arg3, arg4, arg5, arg6, arg7);
 }
