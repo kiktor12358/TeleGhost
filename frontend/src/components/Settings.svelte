@@ -22,6 +22,7 @@
     export let onBackToMenu;
     export let onOpenCategory;
     export let onClose;
+    export let onShowSeed;
 
     let avatarFileInput;
 </script>

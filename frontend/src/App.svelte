@@ -58,6 +58,9 @@
   let routerSettings = { tunnelLength: 1, logToFile: false };
 
   // Modals State
+  let showConfirmModal = false;
+  let confirmModalTitle = '';
+  let confirmModalText = '';
   let confirmAction = null;
   
   let showSeedModal = false;

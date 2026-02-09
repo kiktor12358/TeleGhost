@@ -91,6 +91,7 @@ export namespace main {
 	    PublicKey: string;
 	    Destination: string;
 	    Fingerprint: string;
+	    Mnemonic: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new UserInfo(source);
@@ -104,6 +105,7 @@ export namespace main {
 	        this.PublicKey = source["PublicKey"];
 	        this.Destination = source["Destination"];
 	        this.Fingerprint = source["Fingerprint"];
+	        this.Mnemonic = source["Mnemonic"];
 	    }
 	}
 

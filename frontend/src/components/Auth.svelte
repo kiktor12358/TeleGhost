@@ -9,7 +9,8 @@
         CreateProfile, 
         ListProfiles, 
         UnlockProfile,
-        GetFileBase64
+        GetFileBase64,
+        CopyToClipboard
     } from '../../wailsjs/go/main/App.js';
 
     export let logo;
@@ -58,7 +59,7 @@
             profilesLoaded = true;
             
             if (allProfiles.length === 0) {
-                authScreen = 'seed';
+                authScreen = 'profiles';
             }
         } catch (err) {
             showToast(err, 'error');
@@ -160,14 +161,9 @@
             );
             
             showMnemonicModal = true;
-            // Clear fields so it's fresh if user goes back
-            newProfileName = '';
-            newProfilePin = '';
-            newProfileAvatarPath = '';
-            newProfileAvatarPreview = '';
+            isLoading = false;
         } catch (err) {
             showToast(err, 'error');
-        } finally {
             isLoading = false;
         }
     }
@@ -183,6 +179,11 @@
 
     function confirmMnemonicSaved() {
         showMnemonicModal = false;
+        // Clear fields here after saved
+        newProfileName = '';
+        newProfilePin = '';
+        newProfileAvatarPath = '';
+        newProfileAvatarPreview = '';
         handleLoginAction(newMnemonic);
     }
 </script>
@@ -322,23 +323,11 @@
                 rows="3"
               ></textarea>
               
-              <button class="btn-primary-premium full-width" on:click={handleLogin} disabled={isLoading}>
+              <button class="btn-primary-premium full-width" on:click={handleLogin} disabled={isLoading} style="margin-bottom: 24px;">
                 {#if isLoading}<span class="spinner"></span>{:else}Войти в чат{/if}
               </button>
               
-              <div class="divider-text">
-                <div class="line"></div>
-                <span>ИЛИ</span>
-                <div class="line"></div>
-              </div>
-              
-              <button class="btn-glass full-width accent-text" on:click={startCreateProfile} disabled={isLoading}>
-                Создать новый аккаунт
-              </button>
-              
-              {#if allProfiles.length > 0}
-                <button class="btn-link" style="margin-top: 8px;" on:click={() => authScreen = 'profiles'}>← Назад к профилям</button>
-              {/if}
+              <button class="btn-text full-width" on:click={() => authScreen = 'profiles'}>← Назад к профилям</button>
             </div>
           </div>
         {/if}
@@ -368,7 +357,7 @@
       </div>
 
       <div class="mnemonic-actions">
-         <button class="btn-text" on:click={() => { /* Component can't directly call Wails CopyToClipboard from here? Actually it can if we import it. */ }}>
+         <button class="btn-text" on:click={() => { CopyToClipboard(newMnemonic); showToast('Скопировано в буфер обмена', 'success'); }}>
            📋 Скопировать всё
          </button>
       </div>
@@ -503,6 +492,34 @@
   .accent-text { color: var(--accent, #6366f1); border-color: rgba(99, 102, 241, 0.3); }
 
   .full-width { width: 100%; }
+
+  .modal-backdrop {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center; z-index: 10000;
+  }
+  .modal-content {
+    background: #1e1e2e; border-radius: 28px; padding: 32px;
+    width: 90%; max-width: 480px; border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+  }
+  .modal-header h2 { font-size: 24px; color: #fff; margin-bottom: 16px; text-align: center; }
+  .warning-text { 
+    background: rgba(255, 107, 107, 0.1); color: #ff6b6b; padding: 16px; 
+    border-radius: 12px; font-size: 13px; line-height: 1.5; margin-bottom: 24px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .mnemonic-grid { 
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;
+  }
+  .mnemonic-word {
+    background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px;
+    display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.05);
+  }
+  .word-index { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 700; width: 14px; }
+  .word-text { font-size: 13px; color: #fff; font-weight: 500; }
+  .mnemonic-actions { text-align: center; margin-bottom: 24px; }
+  .btn-text { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 14px; font-weight: 600; }
 
   .spinner {
     display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite;
