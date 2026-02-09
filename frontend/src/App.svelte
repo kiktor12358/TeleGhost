@@ -35,11 +35,77 @@
     OpenFile,
     ShowInFolder
   } from '../wailsjs/go/main/App.js';
+  import { writable } from 'svelte/store';
   import logo from './assets/images/logo.png';
 
   // Состояние
   let isLoading = false;
   let seedPhrase = '';
+  // ... (rest of the file) 
+
+  // Mobile Store & State
+  const mobileView = writable('list'); // 'list', 'chat', 'settings', 'search'
+  let isMobile = false;
+  let mobileSearchOpen = false;
+
+  function updateIsMobile() {
+      isMobile = window.innerWidth < 768;
+      if (!isMobile) {
+          // Reset when going to desktop
+          document.body.style.overflow = '';
+      }
+  }
+
+  onMount(() => {
+     updateIsMobile();
+     window.addEventListener('resize', updateIsMobile);
+     
+     // Handle system back button
+     window.onpopstate = () => {
+         if (isMobile) {
+             const current = $mobileView; // using auto-subscription in script? No, need get or subscribe
+             // Better: Subscribe to store or just check variable if we bind it.
+             // Helper for back logic:
+             if (activeView === 'chat') {
+                 goBack();
+             } else if (activeView === 'settings') {
+                 showSettings = false; // logic reuse
+                 mobileView.set('list');
+             }
+         }
+     };
+
+     return () => {
+         window.removeEventListener('resize', updateIsMobile);
+         window.onpopstate = null;
+     };
+  });
+
+  // Subscribe to mobileView
+  let activeView = 'list';
+  mobileView.subscribe(v => activeView = v);
+
+  function goBack() {
+      if (activeView === 'chat') {
+          selectedContact = null;
+          mobileView.set('list');
+          // Push state to support forward/back if needed, or just replace
+          // history.pushState({view: 'list'}, '');
+      } else if (activeView === 'settings') {
+          showSettings = false; 
+          mobileView.set('list');
+      } else if (activeView === 'search') {
+          mobileView.set('list');
+          mobileSearchOpen = false;
+      }
+  }
+
+  // Override existing toggleSettings for mobile
+  function toggleSettingsMobile() {
+       showSettings = true;
+       mobileView.set('settings');
+  }
+
   let networkStatus = 'offline';
   let myDestination = '';
   let wailsReady = false;
@@ -170,9 +236,14 @@
   function toggleSettings() {
       if (showSettings) {
           showSettings = false;
+          if (isMobile) mobileView.set('list');
       } else {
           showSettings = true;
           settingsView = 'menu';
+          if (isMobile) {
+              mobileView.set('settings');
+              history.pushState({view: 'settings'}, '');
+          }
       }
   }
 
@@ -436,15 +507,30 @@
             selectedContact = contact;
             await loadMessages();
         }
+        // If mobile, switch to chat view
+        if (isMobile) mobileView.set('chat');
         return;
     }
 
     if (selectedContact && selectedContact.id === contact.id) {
-        selectedContact = null;
+        // Toggle off? On mobile we might not want to toggle off so easily essentially,
+        // but let's keep desktop behavior.
+        // On mobile, clicking again shouldn't close it probably?
+        if (!isMobile) {
+             selectedContact = null;
+        } else {
+             mobileView.set('chat');
+        }
         return;
     }
     selectedContact = contact;
     await loadMessages();
+    
+    if (isMobile) {
+        mobileView.set('chat');
+        // Add history entry so back button works
+        history.pushState({view: 'chat'}, '');
+    }
   }
 
   function handleContextMenu(e, contact) {
@@ -1320,7 +1406,9 @@
 
 {:else}
 <!-- Main Screen -->
-<div class="main-screen">
+<div class="main-screen" class:mobile-layout={isMobile}>
+  {#if !isMobile}
+  <!-- DESKTOP LAYOUT -->
   <!-- Sidebar -->
   <!-- Folders Rail -->
   <div class="folders-rail">
@@ -1780,6 +1868,225 @@
       </div>
     {/if}
   </div>
+  {/if}
+
+  {#if isMobile}
+  <!-- MOBILE LAYOUT -->
+  <div class="mobile-container">
+      <!-- Mobile Header -->
+      {#if $mobileView !== 'chat'}
+      <div class="mobile-header">
+          <button class="btn-icon" on:click={toggleSettingsMobile}>
+              <div class="hamburger-icon"><span></span><span></span><span></span></div>
+          </button>
+          <div class="mobile-title">
+              {#if $mobileView === 'settings'}
+                  Настройки
+              {:else if $mobileView === 'search'}
+                  <input type="text" bind:value={searchQuery} placeholder="Поиск..." class="mobile-search-input" autoFocus />
+              {:else}
+                  TeleGhost
+              {/if}
+          </div>
+          {#if $mobileView !== 'settings'}
+              <button class="btn-icon" on:click={() => {
+                  if ($mobileView === 'search') {
+                      mobileView.set('list');
+                      searchQuery = '';
+                  } else {
+                      mobileView.set('search');
+                  }
+              }}>
+                  {#if $mobileView === 'search'}✕{:else}🔍{/if}
+              </button>
+          {/if}
+      </div>
+
+      <!-- Mobile Tabs -->
+      {#if $mobileView === 'list'}
+      <div class="mobile-tabs">
+          <div class="mobile-tab" class:active={activeFolderId === 'all'} on:click={() => activeFolderId = 'all'}>Все</div>
+          {#each folders.sort((a, b) => a.position - b.position) as folder}
+             <div class="mobile-tab" class:active={activeFolderId === folder.id} on:click={() => activeFolderId = folder.id}>{folder.name}</div>
+          {/each}
+          <div class="mobile-tab icon-tab" on:click={() => { showCreateFolder = true; isEditingFolder = false; editingFolderId = null; newFolderName = ''; }}>➕</div>
+      </div>
+      {/if}
+      {/if}
+
+      <!-- Mobile Content -->
+      <div class="mobile-content">
+          {#if $mobileView === 'list' || $mobileView === 'search'}
+              <div class="mobile-contacts-list">
+                  {#each filteredContacts as contact}
+                      <div class="contact-item mobile-contact-item" on:click={() => selectContact(contact)}>
+                        <div class="contact-avatar mobile-avatar" style="background: linear-gradient(135deg, hsl({contact.id.charCodeAt(0) * 10}, 70%, 50%), hsl({contact.id.charCodeAt(1) * 10}, 70%, 40%))">
+                          {#if contact.avatar}<img src={contact.avatar} alt="av"/>{:else}{getInitials(contact.nickname)}{/if}
+                        </div>
+                        <div class="contact-info">
+                          <div class="contact-header-row">
+                              <div class="contact-name">{contact.nickname}</div>
+                              <div class="contact-time">{contact.lastMessageTimestamp ? formatTime(contact.lastMessageTimestamp) : ''}</div>
+                          </div>
+                          <div class="contact-last">{contact.lastMessage || 'Нет сообщений'}</div>
+                        </div>
+                      </div>
+                  {/each}
+                  {#if filteredContacts.length === 0}
+                      <div class="no-contacts"><p>Нет контактов</p></div>
+                  {/if}
+              </div>
+
+              <button class="fab-btn" on:click={() => showAddContact = true}>✏️</button>
+              
+              {#if showAddContact}
+                  <div class="modal-backdrop animate-fade-in" on:click|self={() => showAddContact = false}>
+                       <div class="modal-content animate-slide-down">
+                           <h3>Новый чат</h3>
+                           <input type="text" placeholder="Имя" bind:value={addContactName} class="input-field" style="margin-bottom: 8px;" />
+                           <textarea placeholder="I2P Адрес" bind:value={addContactAddress} class="input-field" rows="3" style="margin-bottom: 8px;"></textarea>
+                           <div style="display:flex; gap: 8px;">
+                               <button class="btn-secondary" on:click={() => showAddContact = false}>Отмена</button>
+                               <button class="btn-primary" on:click={handleAddContactManual}>Добавить</button>
+                           </div>
+                           <button class="btn-text" style="margin-top: 10px; width: 100%;" on:click={handleAddContactFromClipboard}>Вставить из буфера</button>
+                       </div>
+                  </div>
+              {/if}
+
+          {:else if $mobileView === 'chat'}
+               <div class="mobile-chat-container">
+                   <div class="mobile-chat-header">
+                       <button class="btn-icon" on:click={goBack}>⬅️</button>
+                       <div class="mobile-chat-info" on:click={openContactProfile}>
+                           {#if selectedContact}
+                               <div class="chat-avatar-small" style="background: linear-gradient(135deg, hsl({selectedContact.id.charCodeAt(0) * 10}, 70%, 50%), hsl({selectedContact.id.charCodeAt(1) * 10}, 70%, 40%))">
+                                   {#if selectedContact.avatar}<img src={selectedContact.avatar} alt="av"/>{:else}{getInitials(selectedContact.nickname)}{/if}
+                               </div>
+                               <div class="chat-text-info">
+                                   <div class="chat-name">{selectedContact.nickname}</div>
+                                   <div class="chat-status-text">
+                                       {messages.some(m => !m.isOutgoing && m.senderId === selectedContact.publicKey && (Date.now() - new Date(m.timestamp).getTime() < 300000)) ? 'В сети' : 'Оффлайн'}
+                                   </div>
+                               </div>
+                           {/if}
+                       </div>
+                   </div>
+                   
+                   <div class="messages-container mobile-messages">
+                      {#each messages as msg (msg.id)}
+                        <div class="message animate-message" class:outgoing={msg.isOutgoing}>
+                          <div class="message-bubble" class:outgoing={msg.isOutgoing} on:contextmenu={(e) => showMessageMenu(e, msg)}>
+                            {#if msg.attachments && msg.attachments.length > 0}
+                              <div class="message-images" style="grid-template-columns: {msg.attachments.length === 1 ? '1fr' : 'repeat(2, 1fr)'}">
+                                  {#each msg.attachments as att}
+                                     {@const ext = att.filename ? att.filename.split('.').pop().toLowerCase() : (att.local_path ? att.local_path.split('.').pop().toLowerCase() : '')}
+                                     {@const isImg = ['jpg','jpeg','png','webp','gif','bmp'].includes(ext) || (att.mimeType && att.mimeType.startsWith('image/'))}
+                                     {#if isImg}
+                                         <!-- svelte-ignore a11y-click-events-have-key-events -->
+                                         <img use:startLoadingImage={att.local_path} alt="att" class="msg-img" data-path={att.local_path} style="height: {msg.attachments.length === 1 ? 'auto' : '120px'}" on:click={(e) => previewImage = e.currentTarget.src} />
+                                     {:else}
+                                         <div class="file-attachment-card" on:click={() => openFile(att.local_path)} title="Open">
+                                             <div class="file-icon">📄</div>
+                                             <div class="file-details"><div class="file-name">{att.filename||'File'}</div></div>
+                                         </div>
+                                     {/if}
+                                  {/each}
+                              </div>
+                            {/if}
+                            {#if editingMessageId === msg.id}
+                               <div class="message-edit-container">
+                                 <textarea class="message-edit-input" bind:value={editMessageContent}></textarea>
+                                 <div class="message-edit-actions"><button class="btn-sm btn-primary" on:click={saveEditMessage}>✓</button><button class="btn-sm btn-secondary" on:click={cancelEdit}>✕</button></div>
+                               </div>
+                            {:else}
+                               {#if msg.contentType === 'file_offer'}
+                                  <div class="file-offer-card">
+                                      <div class="file-icon-large">📁</div>
+                                      <div class="file-info"><div class="file-title">Files: {msg.fileCount}</div></div>
+                                  </div>
+                                  <div class="file-actions" style="margin-top: 10px; display: flex; gap: 8px;">
+                                      {#if !msg.isOutgoing}
+                                          <button class="btn-small btn-success" on:click={() => acceptTransfer(msg)}>✅</button>
+                                      {/if}
+                                  </div>
+                               {:else}
+                                  <div class="message-content">{@html parseMarkdown(msg.content)}</div>
+                               {/if}
+                            {/if}
+                            <div class="message-meta">
+                              <span class="message-time">{formatTime(msg.timestamp)}</span>
+                              {#if msg.isOutgoing}<span class="message-status">{msg.status === 'sending' ? '🕐' : '✓'}</span>{/if}
+                            </div>
+                          </div>
+                        </div>
+                      {/each}
+                   </div>
+                   
+                   <div class="input-area-wrapper mobile-input-area">
+                       {#if selectedFiles.length > 0}
+                        <div class="attachment-preview">
+                           {#each selectedFiles as file, i}
+                               <div class="preview-item">
+                                   <div class="file-icon-preview">📄</div>
+                                   <button class="btn-remove-att" on:click={() => removeFile(i)}>X</button>
+                               </div>
+                           {/each}
+                        </div>
+                       {/if}
+                       <div class="input-area">
+                           <button class="btn-icon" on:click={handleSelectFiles}>📎</button>
+                           <textarea class="message-input" placeholder="Сообщение" bind:value={newMessage} rows="1" style="max-height: 100px;"></textarea>
+                           <button class="btn-send" on:click={sendMessage}>➤</button>
+                       </div>
+                   </div>
+               </div>
+
+          {:else if $mobileView === 'settings'}
+               <div class="mobile-settings-container">
+                   <div class="settings-header">
+                       <button class="btn-icon" on:click={goBack}>⬅️</button>
+                       <h2>Настройки</h2>
+                   </div>
+                   {#if settingsView === 'menu'}
+                       <div class="settings-menu">
+                          {#each settingsCategories as cat}
+                            <div class="settings-menu-item" on:click={() => openSettingsCategory(cat.id)} style="padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px;">
+                               <span>{cat.icon}</span> <span style="flex:1">{cat.name}</span> <span>➜</span>
+                            </div>
+                          {/each}
+                       </div>
+                   {:else}
+                       <div class="settings-details">
+                           <button class="btn-text" on:click={backToSettingsMenu} style="padding: 10px;">⬅️ Назад</button>
+                           {#if activeSettingsTab === 'profile'}
+                               <div class="settings-section">
+                                   <div style="text-align: center; margin: 20px;">
+                                       <div class="profile-avatar-large" style="width:100px;height:100px;margin:0 auto;border-radius:50%;background:#ccc;overflow:hidden;">
+                                           {#if profileAvatar}<img src={profileAvatar} alt="av" style="width:100%;height:100%;object-fit:cover;"/>{:else}👤{/if}
+                                       </div>
+                                       <button class="btn-small" on:click={() => avatarFileInput.click()} style="margin-top:10px;">Изменить фото</button>
+                                       <input type="file" bind:this={avatarFileInput} on:change={handleAvatarChange} accept="image/*" style="display: none;" />
+                                   </div>
+                                   <input type="text" class="input-field" bind:value={profileNickname} placeholder="Никнейм" />
+                                   <button class="btn-primary" style="margin-top: 10px;" on:click={saveProfile}>Сохранить</button>
+                               </div>
+                           {:else if activeSettingsTab === 'network'}
+                               <div class="settings-section">
+                                   <p>I2P Destination:</p>
+                                   <code style="word-break:break-all; font-size: 10px;">{myDestination}</code>
+                                   <button class="btn-small" on:click={copyDestination}>Копировать</button>
+                               </div>
+                           {:else}
+                               <div class="settings-section"><p>Раздел в разработке</p></div>
+                           {/if}
+                       </div>
+                   {/if}
+               </div>
+          {/if}
+      </div>
+  </div>
+  {/if}
 </div>
 {/if}
 
@@ -2863,6 +3170,182 @@
       font-style: italic;
       display: inline-block;
   }
+
+  /* === Mobile Layout Styles === */
+  .main-screen.mobile-layout {
+      flex-direction: column;
+  }
+
+  .mobile-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg-primary);
+  }
+
+  .mobile-header {
+      height: 56px;
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+  }
+
+  .mobile-title {
+      flex: 1;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex; align-items: center;
+  }
+  
+  .mobile-search-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 16px;
+      outline: none;
+  }
+
+  .hamburger-icon {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 20px;
+  }
+  .hamburger-icon span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background: var(--text-primary);
+      border-radius: 2px;
+  }
+
+  .mobile-tabs {
+      background: var(--bg-secondary);
+      display: flex;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      scrollbar-width: none; /* Firefox */
+  }
+  .mobile-tabs::-webkit-scrollbar { display: none; }
+
+  .mobile-tab {
+      padding: 12px 16px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+  }
+  
+  .mobile-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+  }
+  
+  .mobile-tab.icon-tab {
+      padding: 12px 12px;
+      font-size: 16px;
+  }
+
+  .mobile-content {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+  }
+
+  .mobile-contacts-list {
+      flex: 1;
+      overflow-y: auto;
+  }
+
+  .mobile-contact-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  
+  .mobile-avatar {
+      width: 55px; height: 55px; font-size: 20px;
+  }
+  
+  .contact-header-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+  }
+  
+  .contact-time {
+      font-size: 11px; color: var(--text-secondary); opacity: 0.7;
+  }
+
+  .fab-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-size: 24px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      z-index: 100;
+      transition: transform 0.2s;
+  }
+  .fab-btn:active { transform: scale(0.95); }
+
+  /* Chat View Mobile */
+  .mobile-chat-container {
+      display: flex; flex-direction: column; height: 100%;
+  }
+  
+  .mobile-chat-header {
+      height: 56px;
+      background: var(--bg-secondary);
+      display: flex; align-items: center; padding: 0 8px; gap: 8px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+  }
+  
+  .mobile-chat-info {
+      flex: 1; display: flex; align-items: center; gap: 10px; cursor: pointer;
+  }
+  
+  .chat-avatar-small {
+      width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;
+  }
+  .chat-avatar-small img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  
+  .chat-text-info { display: flex; flex-direction: column; justify-content: center; }
+  .chat-text-info .chat-name { font-size: 15px; margin: 0; line-height: 1.2; }
+  .chat-status-text { font-size: 11px; color: var(--text-secondary); }
+
+  .mobile-messages {
+      padding: 10px;
+  }
+
+  .mobile-input-area {
+      background: var(--bg-secondary);
+  }
+
+  /* Settings Mobile */
+  .mobile-settings-container {
+      display: flex; flex-direction: column; height: 100%; background: var(--bg-primary);
+  }
+  .settings-menu-item { background: var(--bg-secondary); margin-bottom: 1px; }
+  .settings-details { flex: 1; overflow-y: auto; padding: 10px; }
 </style>
 
 <svelte:window on:paste={handlePaste} />
