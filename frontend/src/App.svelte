@@ -33,7 +33,10 @@
     DeclineFileTransfer,
     RequestProfileUpdate,
     OpenFile,
-    ShowInFolder
+    ShowInFolder,
+    CreateProfile,
+    ListProfiles,
+    UnlockProfile
   } from '../wailsjs/go/main/App.js';
   import { writable } from 'svelte/store';
   import { Icons } from './Icons.js'; 
@@ -42,6 +45,14 @@
   // Состояние
   let isLoading = false;
   let seedPhrase = '';
+  
+  // Profile Management State
+  let authScreen = 'profiles'; // profiles | pin | seed | create
+  let allProfiles = [];
+  let selectedProfile = null;
+  let pinInput = '';
+  let newProfileName = '';
+  let newProfilePin = '';
   // ... (rest of the file) 
 
   // Mobile Store & State
@@ -393,6 +404,9 @@
     await waitForWails();
     if (!wailsReady) return;
 
+    // Load profiles on start
+    await loadProfiles();
+
     try {
       EventsOn('network_status', (status) => {
         networkStatus = status;
@@ -431,6 +445,70 @@
       console.error('Init error:', e);
     }
   });
+
+  // === Profiles ===
+  async function loadProfiles() {
+    try {
+      allProfiles = await ListProfiles() || [];
+      if (allProfiles.length === 0) {
+        authScreen = 'seed'; // No profiles, show seed login
+      } else {
+        authScreen = 'profiles';
+      }
+    } catch (e) {
+      console.error('Failed to load profiles:', e);
+      authScreen = 'seed';
+    }
+  }
+
+  async function selectProfileForLogin(p) {
+    selectedProfile = p;
+    pinInput = '';
+    authScreen = 'pin';
+  }
+
+  async function handleUnlock() {
+    if (!pinInput || !selectedProfile) return;
+    isLoading = true;
+    try {
+      const mnemonic = await UnlockProfile(selectedProfile.id, pinInput);
+      if (mnemonic) {
+        seedPhrase = mnemonic;
+        await handleLogin();
+      }
+    } catch (e) {
+      showToast('Ошибка: ' + e, 'error');
+    }
+    isLoading = false;
+  }
+
+  async function startCreateProfile() {
+    newProfileName = '';
+    newProfilePin = '';
+    authScreen = 'create';
+  }
+
+  async function handleFinishCreateProfile() {
+    if (!newProfileName.trim() || newProfilePin.length < 6) {
+      showToast('Имя обязательно, ПИН минимум 6 цифр', 'error');
+      return;
+    }
+    
+    isLoading = true;
+    try {
+      // 1. Generate account/mnemonic
+      const mnemonic = await CreateAccount();
+      if (mnemonic) {
+        // 2. Wrap in encrypted profile
+        await CreateProfile(newProfileName, newProfilePin, mnemonic);
+        newMnemonic = mnemonic;
+        showMnemonicModal = true;
+      }
+    } catch (e) {
+      showToast('Ошибка: ' + e, 'error');
+    }
+    isLoading = false;
+  }
 
   // === Auth ===
   async function handleLogin() {
@@ -1283,40 +1361,97 @@
 </div>
 {/if}
 
-<!-- Login Screen -->
+<!-- Login/Profile Selection Screen -->
 {#if screen === 'login'}
 <div class="login-screen">
-  <div class="login-container animate-fade-in">
+  <div class="login-container animate-fade-in" style="max-width: {authScreen === 'profiles' ? '500px' : '420px'};">
     <div class="login-logo animate-float">
       <img src={logo} alt="TeleGhost" class="logo-img" />
     </div>
     <h1 class="login-title">TeleGhost</h1>
-    <p class="login-subtitle">Анонимный мессенджер на I2P</p>
     
-    <div class="login-form">
-      <textarea
-        class="seed-input"
-        placeholder="Введите seed-фразу (12 слов)"
-        bind:value={seedPhrase}
-        rows="3"
-      ></textarea>
+    {#if authScreen === 'profiles'}
+      <!-- Profile Selection -->
+      <p class="login-subtitle">Выберите аккаунт</p>
+      <div class="profiles-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        {#each allProfiles as p}
+          <div class="profile-card animate-card" on:click={() => selectProfileForLogin(p)} style="background: var(--bg-tertiary); padding: 20px; border-radius: 16px; cursor: pointer; border: 1px solid var(--border); transition: all 0.2s;">
+            <div class="profile-avatar" style="width: 60px; height: 60px; margin: 0 auto 12px; background: linear-gradient(135deg, hsl({p.id.charCodeAt(0) * 10}, 70%, 50%), hsl({p.id.charCodeAt(1) * 10}, 70%, 40%)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+              {getInitials(p.name)}
+            </div>
+            <div class="profile-name" style="font-weight: 600; font-size: 14px; text-align: center; color: white;">{p.name}</div>
+          </div>
+        {/each}
+        
+        <!-- Add Profile Button -->
+        <div class="profile-card add-profile-card" on:click={startCreateProfile} style="background: rgba(108, 92, 231, 0.1); padding: 20px; border-radius: 16px; cursor: pointer; border: 2px dashed var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.8;">
+          <div style="font-size: 24px; color: var(--accent); margin-bottom: 8px;">+</div>
+          <div style="font-size: 12px; font-weight: 500; color: var(--accent);">Создать</div>
+        </div>
+      </div>
       
-      <button class="btn-primary animate-pulse-hover" on:click={handleLogin} disabled={isLoading}>
-        {#if isLoading}
-          <span class="spinner"></span>
-        {:else}
-          Войти
-        {/if}
-      </button>
-      
-      <div class="divider"><span>или</span></div>
-      
-      <button class="btn-secondary" on:click={handleCreateAccount} disabled={isLoading}>
-        Создать аккаунт
-      </button>
-    </div>
+      <div class="divider" style="margin-bottom: 16px;"><span>или</span></div>
+      <button class="btn-text" on:click={() => authScreen = 'seed'}>Войти по seed-фразе</button>
 
-    <p class="login-footer">🔒 Все данные хранятся локально</p>
+    {:else if authScreen === 'pin'}
+      <!-- PIN Entry -->
+      <p class="login-subtitle">Введите ПИН для <b>{selectedProfile?.name}</b></p>
+      <div class="login-form">
+        <input 
+          type="password" 
+          class="input-field" 
+          placeholder="ПИН-код" 
+          bind:value={pinInput} 
+          style="text-align: center; font-size: 24px; letter-spacing: 8px;"
+          on:keydown={(e) => e.key === 'Enter' && handleUnlock()}
+          autoFocus 
+        />
+        <button class="btn-primary" on:click={handleUnlock} disabled={isLoading || pinInput.length < 1}>
+          {#if isLoading}<span class="spinner"></span>{:else}Разблокировать {/if}
+        </button>
+        <button class="btn-text" on:click={() => authScreen = 'profiles'}>← Назад к списку</button>
+      </div>
+
+    {:else if authScreen === 'create'}
+      <!-- Create Profile -->
+      <p class="login-subtitle">Создание нового профиля</p>
+      <div class="login-form">
+        <input type="text" class="input-field" placeholder="Имя (для списка)" bind:value={newProfileName} maxLength="20" />
+        <input type="password" class="input-field" placeholder="ПИН-код (мин. 6 цифр)" bind:value={newProfilePin} />
+        <button class="btn-primary" on:click={handleFinishCreateProfile} disabled={isLoading}>
+          {#if isLoading}<span class="spinner"></span>{:else}Создать профиль{/if}
+        </button>
+        <button class="btn-text" on:click={() => authScreen = allProfiles.length > 0 ? 'profiles' : 'seed'}>Отмена</button>
+      </div>
+
+    {:else if authScreen === 'seed'}
+      <!-- Classic Seed Login -->
+      <p class="login-subtitle">Анонимный мессенджер на I2P</p>
+      <div class="login-form">
+        <textarea
+          class="seed-input"
+          placeholder="Введите seed-фразу (12 слов)"
+          bind:value={seedPhrase}
+          rows="3"
+        ></textarea>
+        
+        <button class="btn-primary animate-pulse-hover" on:click={handleLogin} disabled={isLoading}>
+          {#if isLoading}<span class="spinner"></span>{:else}Войти{/if}
+        </button>
+        
+        <div class="divider"><span>или</span></div>
+        
+        <button class="btn-secondary" on:click={startCreateProfile} disabled={isLoading}>
+          Создать новый аккаунт
+        </button>
+        
+        {#if allProfiles.length > 0}
+          <button class="btn-text" style="margin-top: 8px;" on:click={() => authScreen = 'profiles'}>← К списку профилей</button>
+        {/if}
+      </div>
+    {/if}
+
+    <p class="login-footer">🔒 Все данные хранятся локально в зашифрованных профилях</p>
   </div>
 </div>
 
