@@ -55,6 +55,11 @@
   let pinInput = '';
   let newProfileName = '';
   let newProfilePin = '';
+  let newProfileUsePin = true;
+  let newProfileAvatarPath = '';
+  // Temporary avatar preview for creation
+  let newProfileAvatarPreview = ''; 
+
   let profilesLoaded = false;
   // ... (rest of the file) 
 
@@ -105,15 +110,27 @@
 
     // 5. Check session and load profiles
     try {
-      // First, check if we are already logged in (e.g. dev reload)
+      // Always load profiles first to have them ready
+      await loadProfiles();
+
       const info = await GetMyInfo();
       if (info) {
         console.log('[App] Session active, jumping to main screen');
         screen = 'main';
+        
+        // Find selected profile
+        selectedProfile = allProfiles.find(p => p.user_id === info.id);
+        if (selectedProfile) {
+            console.log("Matched profile:", selectedProfile.name);
+             if (profileAvatars[selectedProfile.id]) {
+                 profileAvatar = "data:image/jpeg;base64," + profileAvatars[selectedProfile.id];
+             }
+        }
+        
         await loadInitialData();
       } else {
-        console.log('[App] No session, loading profiles');
-        await loadProfiles();
+        console.log('[App] No session, waiting for login');
+        // authScreen defaults to profiles
       }
 
       // 6. Global listeners
@@ -457,15 +474,32 @@
 
 
   // === Profiles ===
+  let profileAvatars = {}; // id -> base64
+
    async function loadProfiles() {
     try {
       allProfiles = await ListProfiles() || [];
+      
+      // Load avatars
+      const newAvatars = {};
+      for (const p of allProfiles) {
+          if (p.avatar_path) {
+              try {
+                  const b64 = await GetFileBase64(p.avatar_path);
+                  newAvatars[p.id] = b64;
+              } catch (e) {
+                  console.error("Failed to load avatar for", p.id, e);
+              }
+          }
+      }
+      profileAvatars = newAvatars;
+
       // Don't auto-switch to seed anymore, let user choose on the profiles screen
       authScreen = 'profiles';
       profilesLoaded = true;
     } catch (e) {
       console.error('Failed to load profiles:', e);
-      authScreen = 'seed';
+      authScreen = 'profiles'; // Default to profiles even if empty
       profilesLoaded = true;
     }
   }
@@ -473,7 +507,17 @@
   async function selectProfileForLogin(p) {
     selectedProfile = p;
     pinInput = '';
-    authScreen = 'pin';
+    
+    if (p.use_pin) {
+        authScreen = 'pin';
+    } else {
+        // Seed only mode.
+        // We reuse the 'seed' authScreen or create a new 'seed_login' for clarity
+        // Let's use 'seed' but maybe pre-set something?
+        // Actually, we want to ask for seed phrase.
+        seedPhrase = ''; 
+        authScreen = 'seed';
+    }
   }
 
   async function handleUnlock() {
@@ -494,30 +538,64 @@
   async function startCreateProfile() {
     newProfileName = '';
     newProfilePin = '';
+    newProfileUsePin = true;
+    newProfileAvatarPath = '';
+    newProfileAvatarPreview = '';
     authScreen = 'create';
+  }
+  
+  // Handle adding avatar in create screen
+  async function handleNewProfileAvatar(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    try {
+        const base64 = await resizeImage(file, 200, 200);
+        newProfileAvatarPreview = base64;
+        
+        // Save to temp file
+        // @ts-ignore
+        const path = await window.go.main.App.SaveTempImage(base64, "avatar_temp.jpg");
+        newProfileAvatarPath = path;
+    } catch (err) {
+        console.error(err);
+        showToast('Ошибка обработки аватара', 'error');
+    }
   }
 
   async function handleFinishCreateProfile() {
-    if (!newProfileName.trim() || newProfilePin.length < 6) {
-      showToast('Имя обязательно, ПИН минимум 6 цифр', 'error');
+    if (!newProfileName.trim()) {
+      showToast('Имя обязательно', 'error');
       return;
+    }
+    if (newProfileUsePin && newProfilePin.length < 6) {
+        showToast('ПИН минимум 6 цифр', 'error');
+        return;
     }
     
     isLoading = true;
     try {
       // 1. Generate account/mnemonic
       const mnemonic = await CreateAccount();
+      
       if (mnemonic) {
+        // We need UserID. We can get it from GetMyInfo() because CreateAccount logs us in!
+        const info = await GetMyInfo();
+        const userID = info.id;
+        
         // 2. Wrap in encrypted profile
-        await CreateProfile(newProfileName, newProfilePin, mnemonic);
+        await CreateProfile(newProfileName, newProfilePin, mnemonic, userID, newProfileAvatarPath, newProfileUsePin);
+        
         await loadProfiles();
         newMnemonic = mnemonic;
         showMnemonicModal = true;
       }
     } catch (e) {
-      showToast('Ошибка: ' + e, 'error');
+      console.error(e);
+      showToast('Ошибка создания профиля: ' + e, 'error');
+    } finally {
+      isLoading = false;
     }
-    isLoading = false;
   }
 
   // === Auth ===
@@ -529,6 +607,19 @@
     isLoading = true;
     try {
       await Login(seedPhrase);
+      
+      // Verify verification
+      if (selectedProfile && !selectedProfile.use_pin) {
+          // If we logged in via seed for a specific profile, check ID
+          const info = await GetMyInfo();
+          if (info.id !== selectedProfile.user_id) {
+              // Mismatch!
+              console.warn("Logged in user ID mismatch", info.id, selectedProfile.user_id);
+              // Maybe simple toast
+              showToast("Внимание: введенная seed-фраза не соответствует выбранному профилю", "warning");
+          }
+      }
+      
       screen = 'main';
       await loadInitialData();
     } catch (e) {
@@ -844,10 +935,110 @@
   async function saveProfile() {
     try {
       await UpdateMyProfile(profileNickname, profileBio, profileAvatar);
+      
+      // Also update local profile name/avatar if matched
+      if (selectedProfile) {
+          let newAvatarPath = "";
+          if (profileAvatar && profileAvatar.startsWith('data:image')) {
+              try {
+                  // Save base64 to temp file so backend can copy it to profiles dir
+                  // @ts-ignore
+                  const path = await window.go.main.App.SaveTempImage(profileAvatar, "avatar_update.jpg");
+                  newAvatarPath = path;
+              } catch (err) {
+                  console.error("Failed to save temp avatar:", err);
+              }
+          }
+
+          await window.go.main.App.UpdateProfile(
+              selectedProfile.id, 
+              profileNickname, 
+              newAvatarPath, 
+              false, // deleteAvatar (we don't have UI to delete yet, only replace)
+              selectedProfile.use_pin,
+              "",
+              ""
+          );
+          
+          // Refresh profiles list and avatars
+          await loadProfiles();
+      }
+      
       showToast('Профиль сохранён', 'success');
     } catch (e) {
       showToast(e.toString(), 'error');
     }
+  }
+
+  // === Local Profile Security Settings ===
+  let newPinCode = '';
+  let showChangePin = false;
+  
+  async function togglePinUsage() {
+      if (!selectedProfile) return;
+      const willUse = !selectedProfile.use_pin;
+      
+      // If enabling PIN, we need a PIN code.
+      // If disabling PIN, we don't need a PIN code, but we need the mnemonic to store it? No, if disabling, we CLEAR ciphertext.
+      // Wait, if we disable PIN, we are "Seed Only". The seed is NOT stored.
+      // So we just clear the fields. But `UpdateProfile` needs mnemonic to CONFIRM? 
+      // No, `UpdateProfile` logic: `if !usePin { vault.Ciphertext = "" ... }`. It doesn't use mnemonic argument in this branch.
+      // BUT if we ENABLE PIN, we need the mnemonic to encrypt it!
+      
+      if (willUse) {
+          // Enabling PIN. We need the seed phrase to encrypt.
+          // We have `seedPhrase` in memory from login.
+          if (!seedPhrase) {
+              showToast("Ошибка: seed-фраза не найдена в памяти. Перезайдите.", "error");
+              return;
+          }
+          // We need to ask for a PIN.
+          const code = prompt("Установите новый ПИН-код (минимум 6 цифр):");
+          if (!code || code.length < 6) {
+              showToast("ПИН слишком короткий или отменен", "error");
+              return;
+          }
+          
+          try {
+              await UpdateProfile(selectedProfile.id, selectedProfile.display_name, "", false, true, code, seedPhrase);
+              selectedProfile.use_pin = true;
+              showToast("Вход по ПИН-коду включен", "success");
+          } catch(e) {
+              showToast("Ошибка: " + e, "error");
+          }
+      } else {
+          // Disabling PIN.
+          if (!confirm("Вы уверены? Это удалит зашифрованный ключ с устройства. Вам придется вводить seed-фразу при каждом входе.")) return;
+          
+          try {
+              await UpdateProfile(selectedProfile.id, selectedProfile.display_name, "", false, false, "", "");
+              selectedProfile.use_pin = false;
+              showToast("Вход по ПИН-коду отключен", "info");
+          } catch(e) {
+              showToast("Ошибка: " + e, "error");
+          }
+      }
+  }
+
+  async function changePin() {
+      if (!selectedProfile || !selectedProfile.use_pin) return;
+      if (!seedPhrase) {
+          showToast("Ошибка: seed-фраза не найдена. Перезайдите.", "error");
+          return;
+      }
+      
+      const code = prompt("Введите новый ПИН-код (минимум 6 цифр):");
+      if (!code || code.length < 6) {
+          showToast("ПИН слишком короткий", "error");
+          return;
+      }
+      
+      try {
+          await UpdateProfile(selectedProfile.id, selectedProfile.display_name, "", false, true, code, seedPhrase);
+          showToast("ПИН-код успешно изменен", "success");
+      } catch(e) {
+          showToast("Ошибка: " + e, "error");
+      }
   }
 
   function copyDestination() {
@@ -1394,10 +1585,17 @@
               <div class="profile-item animate-card" 
                    on:click={() => selectProfileForLogin(p)}
                    style="background: rgba(255,255,255,0.05); padding: 24px 16px; border-radius: 20px; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;">
-                <div class="profile-avatar" style="width: 64px; height: 64px; margin: 0 auto 16px; background: linear-gradient(135deg, hsl({p.id.charCodeAt(0) * 15}, 70%, 60%), hsl({p.id.charCodeAt(1) * 15}, 80%, 40%)); border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transform: rotate(-5deg);">
-                  {getInitials(p.name)}
+                <div class="profile-avatar" style="width: 64px; height: 64px; margin: 0 auto 16px; background: linear-gradient(135deg, hsl({(p.id || 'default').charCodeAt(0) * 15}, 70%, 60%), hsl({(p.id || 'default').charCodeAt(1) * 15}, 80%, 40%)); border-radius: 22px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transform: rotate(-5deg); overflow: hidden;">
+                  {#if p.id && profileAvatars[p.id]}
+                    <img src={"data:image/jpeg;base64," + profileAvatars[p.id]} alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" />
+                  {:else}
+                    {getInitials(p.display_name || 'User')}
+                  {/if}
                 </div>
-                <div class="profile-name" style="font-weight: 600; font-size: 15px; text-align: center; color: #fff;">{p.name}</div>
+                <div class="profile-name" style="font-weight: 600; font-size: 15px; text-align: center; color: #fff;">{p.display_name || 'Неизвестный'}</div>
+                {#if !p.id}
+                    <div style="font-size: 10px; color: rgba(255,255,255,0.5); text-align: center;">Legacy</div>
+                {/if}
                 <div class="hover-overlay" style="position: absolute; inset: 0; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05)); opacity: 0; transition: opacity 0.3s;"></div>
               </div>
             {/each}
@@ -1422,7 +1620,14 @@
 
         {:else if authScreen === 'pin'}
           <div in:fly={{y: 20, duration: 400}}>
-            <p class="login-subtitle" style="margin-bottom: 24px;">Введите ПИН для <b>{selectedProfile?.name}</b></p>
+            <div class="profile-avatar-large" style="width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 50%; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.3); background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; font-size: 32px; color: white;">
+                {#if selectedProfile && profileAvatars[selectedProfile.id]}
+                    <img src={"data:image/jpeg;base64," + profileAvatars[selectedProfile.id]} alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;" />
+                {:else}
+                    {getInitials(selectedProfile?.display_name)}
+                {/if}
+            </div>
+            <p class="login-subtitle" style="margin-bottom: 24px;">Введите ПИН для <b>{selectedProfile?.display_name}</b></p>
             <div class="pin-entry-box">
               <input 
                 type="password" 
@@ -1446,18 +1651,45 @@
         {:else if authScreen === 'create'}
           <div in:fly={{y: 20, duration: 400}}>
             <p class="login-subtitle" style="margin-bottom: 24px;">Новый профиль</p>
+            
+            <div class="create-avatar-upload" style="display: flex; justify-content: center; margin-bottom: 20px;">
+                <div style="width: 90px; height: 90px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; overflow: hidden; border: 2px dashed rgba(255,255,255,0.2);" on:click={() => document.getElementById('newProfileAvatarInput').click()}>
+                    {#if newProfileAvatarPreview}
+                        <img src={newProfileAvatarPreview} alt="Preview" style="width: 100%; height: 100%; object-fit: cover;" />
+                    {:else}
+                        <div class="icon-svg" style="opacity: 0.5;">{@html Icons.Camera}</div>
+                    {/if}
+                    <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;" class="hover-show">
+                        <span style="font-size: 12px; color: white;">Изменить</span>
+                    </div>
+                </div>
+                <input type="file" id="newProfileAvatarInput" accept="image/*" style="display: none;" on:change={handleNewProfileAvatar} />
+            </div>
+
             <div class="create-form" style="display: flex; flex-direction: column; gap: 16px;">
               <input type="text" class="input-premium-small" placeholder="Имя профиля" bind:value={newProfileName} maxLength="20"
                      style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 14px 18px; border-radius: 14px; outline: none;" />
-              <input type="password" class="input-premium-small" placeholder="ПИН-код (цифры)" bind:value={newProfilePin}
-                     style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 14px 18px; border-radius: 14px; outline: none;" />
-              <p style="font-size: 11px; color: var(--text-secondary); text-align: left; padding: 0 4px;">ПИН-код используется для шифрования данных вашего кошелька локально.</p>
+              
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px;">
+                  <input type="checkbox" bind:checked={newProfileUsePin} style="width: 18px; height: 18px; accent-color: var(--accent);" />
+                  <span style="font-size: 14px; color: var(--text-primary);">Использовать ПИН-код для входа</span>
+              </label>
+
+              {#if newProfileUsePin}
+                <div in:slide={{duration: 200}}>
+                    <input type="password" class="input-premium-small" placeholder="ПИН-код (минимум 6 цифр)" bind:value={newProfilePin}
+                         style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 14px 18px; border-radius: 14px; outline: none; width: 100%;" />
+                    <p style="font-size: 11px; color: var(--text-secondary); text-align: left; padding: 4px; margin-top: 4px;">ПИН-код шифрует ваш ключ локально. Без него вход возможен только по seed-фразе.</p>
+                </div>
+              {:else}
+                <p style="font-size: 11px; color: var(--warning, #ffcc00); text-align: left; padding: 4px;">Внимание: При каждом входе вам придется вводить 12 слов seed-фразы вручную.</p>
+              {/if}
               
               <button class="btn-primary-premium" on:click={handleFinishCreateProfile} disabled={isLoading}
                       style="width: 100%; padding: 16px; border-radius: 16px; background: var(--accent); color: white; border: none; font-weight: 700; cursor: pointer; margin-top: 8px;">
                 {#if isLoading}<span class="spinner"></span>{:else}Создать профиль{/if}
               </button>
-              <button class="btn-link" on:click={() => authScreen = allProfiles.length > 0 ? 'profiles' : 'seed'}>Отмена</button>
+              <button class="btn-link" on:click={() => authScreen = 'profiles'}>Отмена</button>
             </div>
           </div>
 
@@ -1730,6 +1962,7 @@
                             <textarea bind:value={profileBio} class="input-field" rows="3" placeholder="Расскажите о себе..."></textarea>
                           </label>
                           <button class="btn-primary" style="margin-top: 32px; width: 100%;" on:click={saveProfile}>💾 Сохранить изменения</button>
+                          <button class="btn-secondary" style="margin-top: 12px; width: 100%; border-color: #f44336; color: #f44336;" on:click={handleLogout}>🚪 Выйти из аккаунта</button>
                         </div>
                       </div>
 
@@ -1744,13 +1977,34 @@
                       </div>
 
                    {:else if activeSettingsTab === 'privacy'}
-                      <!-- Privacy Content -->
-                      <div class="settings-section">
-                         <div class="info-box" style="background: rgba(255, 100, 100, 0.1); padding: 24px; border-radius: 12px; border: 1px solid rgba(255, 100, 100, 0.3);">
-                            <h4 style="color: #ff6b6b; margin: 0 0 12px; font-size: 18px;">🔐 Секретный ключ (Seed phrase)</h4>
-                            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Ваш ключ хранится только на этом устройстве. Если вы потеряете его, доступ к аккаунту будет утерян навсегда.</p>
-                            <button class="btn-secondary" style="width: 100%;" on:click={() => showToast('Функция показа ключа в разработке', 'warning')}>Показать ключ</button>
+                       <!-- Privacy Content -->
+                       <div class="settings-section">
+                          <div class="info-box" style="background: rgba(255, 100, 100, 0.1); padding: 24px; border-radius: 12px; border: 1px solid rgba(255, 100, 100, 0.3); margin-bottom: 24px;">
+                             <h4 style="color: #ff6b6b; margin: 0 0 12px; font-size: 18px;">🔐 Секретный ключ (Seed phrase)</h4>
+                             <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Ваш ключ хранится только на этом устройстве. Если вы потеряете его, доступ к аккаунту будет утерян навсегда.</p>
+                             <button class="btn-secondary" style="width: 100%;" on:click={() => showToast('Функция показа ключа в разработке', 'warning')}>Показать ключ</button>
+                          </div>
+
+                        {#if selectedProfile}
+                         <div class="setting-item" style="background: var(--bg-secondary); padding: 20px; border-radius: 12px;">
+                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                 <div>
+                                     <h4 style="color: var(--text-primary); margin: 0 0 4px;">Быстрый вход по ПИН-коду</h4>
+                                     <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">
+                                         {selectedProfile.use_pin ? 'Включено. Ключ зашифрован локально.' : 'Выключено. Требуется ввод seed-фразы.'}
+                                     </p>
+                                 </div>
+                                 <label class="switch">
+                                    <input type="checkbox" checked={selectedProfile.use_pin} on:change={togglePinUsage}>
+                                    <span class="slider round"></span>
+                                 </label>
+                             </div>
+
+                             {#if selectedProfile.use_pin}
+                                 <button class="btn-secondary" style="width: 100%; margin-top: 12px;" on:click={changePin}>Сменить ПИН-код</button>
+                             {/if}
                          </div>
+                        {/if}
                       </div>
 
                    {:else if activeSettingsTab === 'network'}
@@ -1796,7 +2050,7 @@
                       <!-- About Content -->
                       <h3 style="margin-bottom: 24px; font-size: 24px; color: var(--text-primary);">О программе</h3>
                       <div class="info-grid">
-                        <div class="info-item"><span class="info-label">Версия</span><span class="info-value">1.1.0-beta</span></div>
+                        <div class="info-item"><span class="info-label">Версия</span><span class="info-value">1.0.2-beta</span></div>
                         <div class="info-item"><span class="info-label">Разработчик</span><span class="info-value">TeleGhost Team</span></div>
                         <div class="info-item"><span class="info-label">Лицензия</span><span class="info-value">MIT / Open Source</span></div>
                       </div>
@@ -2243,11 +2497,32 @@
                                 {:else if activeSettingsTab === 'privacy'}
                                    <!-- Privacy Content -->
                                    <div class="settings-section">
-                                      <div class="info-box" style="background: rgba(255, 100, 100, 0.1); padding: 24px; border-radius: 12px; border: 1px solid rgba(255, 100, 100, 0.3);">
+                                      <div class="info-box" style="background: rgba(255, 100, 100, 0.1); padding: 24px; border-radius: 12px; border: 1px solid rgba(255, 100, 100, 0.3); margin-bottom: 24px;">
                                          <h4 style="color: #ff6b6b; margin: 0 0 12px; font-size: 18px;">🔐 Секретный ключ (Seed phrase)</h4>
                                          <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Ваш ключ хранится только на этом устройстве. Если вы потеряете его, доступ к аккаунту будет утерян навсегда.</p>
                                          <button class="btn-secondary" style="width: 100%;" on:click={() => showToast('Функция показа ключа в разработке', 'warning')}>Показать ключ</button>
                                       </div>
+
+                                    {#if selectedProfile}
+                                     <div class="setting-item" style="background: var(--bg-secondary); padding: 20px; border-radius: 12px;">
+                                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                                             <div>
+                                                 <h4 style="color: var(--text-primary); margin: 0 0 4px;">Быстрый вход по ПИН-коду</h4>
+                                                 <p style="margin: 0; font-size: 13px; color: var(--text-secondary);">
+                                                     {selectedProfile.use_pin ? 'Включено. Ключ зашифрован локально.' : 'Выключено. Требуется ввод seed-фразы.'}
+                                                 </p>
+                                             </div>
+                                             <label class="switch">
+                                                <input type="checkbox" checked={selectedProfile.use_pin} on:change={togglePinUsage}>
+                                                <span class="slider round"></span>
+                                             </label>
+                                         </div>
+
+                                         {#if selectedProfile.use_pin}
+                                             <button class="btn-secondary" style="width: 100%; margin-top: 12px;" on:click={changePin}>Сменить ПИН-код</button>
+                                         {/if}
+                                     </div>
+                                    {/if}
                                    </div>
 
                                 {:else if activeSettingsTab === 'network'}
@@ -2293,7 +2568,7 @@
                                    <!-- About Content -->
                                    <h3 style="margin-bottom: 24px; font-size: 24px; color: var(--text-primary);">О программе</h3>
                                    <div class="info-grid">
-                                     <div class="info-item"><span class="info-label">Версия</span><span class="info-value">1.1.0-beta</span></div>
+                                     <div class="info-item"><span class="info-label">Версия</span><span class="info-value">1.0.2-beta</span></div>
                                      <div class="info-item"><span class="info-label">Разработчик</span><span class="info-value">TeleGhost Team</span></div>
                                      <div class="info-item"><span class="info-label">Лицензия</span><span class="info-value">MIT / Open Source</span></div>
                                    </div>
@@ -2415,15 +2690,22 @@
     margin: 20px;
     text-align: center;
     z-index: 10;
+    max-height: 85vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: none; /* Hide scrollbar for cleaner look */
   }
+  .login-container::-webkit-scrollbar { display: none; }
 
-  .login-logo { margin-bottom: 32px; }
+  .login-logo { margin-bottom: 32px; flex-shrink: 0; }
   .logo-img { width: 100px; height: 100px; border-radius: 50%; }
 
   .login-title {
     font-size: 32px;
     font-weight: 800;
     color: white;
+    flex-shrink: 0;
   }
 
   .login-form { display: flex; flex-direction: column; gap: 16px; }
@@ -2462,6 +2744,8 @@
     max-width: 500px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     border: 1px solid var(--border);
+    max-height: 90vh;
+    overflow-y: auto;
   }
 
   .modal-header h2 {
@@ -2526,7 +2810,7 @@
 
   .seed-input::placeholder, .input-field::placeholder { color: var(--text-secondary); }
 
-  .btn-primary, .btn-secondary {
+  .btn-primary, .btn-secondary, .btn-link {
     width: 100%;
     padding: 16px;
     border: none;
@@ -2556,6 +2840,67 @@
   }
 
   .btn-secondary:hover { background: rgba(108, 92, 231, 0.1); }
+  
+  .btn-link {
+      background: transparent;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 14px;
+  }
+  .btn-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+
+  /* Toggle Switch */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+  }
+
+  .switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-input);
+    transition: .4s;
+    border-radius: 34px;
+    border: 1px solid var(--border);
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 3px;
+    background-color: var(--text-secondary);
+    transition: .4s;
+    border-radius: 50%;
+  }
+
+  input:checked + .slider {
+    background-color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  input:focus + .slider {
+    box-shadow: 0 0 1px var(--accent);
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(20px);
+    background-color: white;
+  }
 
   .btn-danger {
     padding: 16px;
