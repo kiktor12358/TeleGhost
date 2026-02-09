@@ -319,6 +319,7 @@ func (a *App) UnlockProfile(profileID string, pin string) (string, error) {
 
 // Login авторизация по seed-фразе
 func (a *App) Login(seedPhrase string) error {
+	log.Printf("[DEBUG] Login called from somewhere")
 	seedPhrase = strings.TrimSpace(seedPhrase)
 
 	// Валидируем мнемонику
@@ -382,6 +383,7 @@ func (a *App) Login(seedPhrase string) error {
 
 // CreateAccount создаёт новый аккаунт
 func (a *App) CreateAccount() (string, error) {
+	log.Printf("[DEBUG] CreateAccount called")
 	id, err := identity.GenerateNewIdentity()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate identity: %w", err)
@@ -425,6 +427,24 @@ func (a *App) CreateAccount() (string, error) {
 
 	log.Printf("[App] Created new account: %s", id.Keys.UserID)
 	return id.Mnemonic, nil
+}
+
+// Logout завершает сессию текущего пользователя
+func (a *App) Logout() {
+	log.Printf("[App] Logging out user")
+	a.identity = nil
+	if a.repo != nil {
+		a.repo.Close()
+		a.repo = nil
+	}
+	if a.messenger != nil {
+		a.messenger.Stop()
+		a.messenger = nil
+	}
+	if a.router != nil {
+		a.router.Stop()
+		a.router = nil
+	}
 }
 
 // connectToI2P подключение к I2P сети
@@ -1008,6 +1028,7 @@ func (a *App) GetMyDestination() string {
 
 // GetMyInfo возвращает информацию о текущем пользователе
 func (a *App) GetMyInfo() *UserInfo {
+	log.Printf("[DEBUG] GetMyInfo called (identity set: %v)", a.identity != nil)
 	if a.identity == nil {
 		return nil
 	}

@@ -36,7 +36,8 @@
     ShowInFolder,
     CreateProfile,
     ListProfiles,
-    UnlockProfile
+    UnlockProfile,
+    Logout
   } from '../wailsjs/go/main/App.js';
   import { writable } from 'svelte/store';
   import { Icons } from './Icons.js'; 
@@ -68,30 +69,92 @@
       }
   }
 
-  onMount(() => {
-     updateIsMobile();
-     window.addEventListener('resize', updateIsMobile);
-     
-     // Handle system back button
-     window.onpopstate = () => {
-         if (isMobile) {
-             const current = $mobileView; // using auto-subscription in script? No, need get or subscribe
-             // Better: Subscribe to store or just check variable if we bind it.
-             // Helper for back logic:
-             if (activeView === 'chat') {
-                 goBack();
-             } else if (activeView === 'settings') {
-                 showSettings = false; // logic reuse
-                 mobileView.set('list');
-             }
-         }
-     };
+  onMount(async () => {
+    // 1. Initial UI setup
+    updateIsMobile();
+    window.addEventListener('resize', updateIsMobile);
+    
+    // 2. Handle system back button for mobile
+    window.onpopstate = () => {
+        if (isMobile) {
+            if (activeView === 'chat') {
+                goBack();
+            } else if (activeView === 'settings') {
+                showSettings = false;
+                mobileView.set('list');
+            }
+        }
+    };
 
-     return () => {
-         window.removeEventListener('resize', updateIsMobile);
-         window.onpopstate = null;
-     };
+    // 3. Close context menus on click elsewhere
+    const clickHandler = () => {
+      contextMenu.show = false;
+      messageContextMenu.show = false;
+      if (editingMessageId) {
+        editingMessageId = null;
+        editMessageContent = '';
+      }
+    };
+    document.addEventListener('click', clickHandler);
+
+    // 4. Wails initialization
+    await waitForWails();
+    if (!wailsReady) return;
+
+    // 5. Check session and load profiles
+    try {
+      // First, check if we are already logged in (e.g. dev reload)
+      const info = await GetMyInfo();
+      if (info) {
+        console.log('[App] Session active, jumping to main screen');
+        screen = 'main';
+        await loadInitialData();
+      } else {
+        console.log('[App] No session, loading profiles');
+        await loadProfiles();
+      }
+
+      // 6. Global listeners
+      EventsOn('network_status', (status) => { networkStatus = status; });
+      EventsOn('new_message', handleIncomingMessage);
+      EventsOn('new_contact', (data) => {
+        showToast(`Новый контакт: ${data.nickname}`, 'success', 5000);
+        loadContacts();
+      });
+      
+      const status = await GetNetworkStatus();
+      if (status) networkStatus = status;
+
+      // Folders also need initial load
+      await loadFolders();
+    } catch (e) {
+      console.error('Init error:', e);
+    }
+
+    // 7. Cleanup
+    return () => {
+      window.removeEventListener('resize', updateIsMobile);
+      document.removeEventListener('click', clickHandler);
+      window.onpopstate = null;
+    };
   });
+
+  // Helper for message handling (to keep onMount clean)
+  function handleIncomingMessage(msg) {
+    console.log('[App] New message received:', msg);
+    if (selectedContact && (msg.chatId === selectedContact.chatId || msg.senderId === selectedContact.publicKey)) {
+      const existingIdx = messages.findIndex(m => m.id === msg.id);
+      if (existingIdx !== -1) {
+          const updatedMessages = [...messages];
+          updatedMessages[existingIdx] = msg;
+          messages = updatedMessages;
+      } else {
+          messages = [...messages, msg];
+          scrollToBottom();
+      }
+    }
+    loadContacts();
+  }
 
   // Subscribe to mobileView
   let activeView = 'list';
@@ -390,61 +453,6 @@
     return false;
   }
 
-  onMount(async () => {
-    // Close context menus on click elsewhere
-    document.addEventListener('click', () => {
-      contextMenu.show = false;
-      messageContextMenu.show = false;
-      if (editingMessageId) {
-        editingMessageId = null;
-        editMessageContent = '';
-      }
-    });
-
-    await waitForWails();
-    if (!wailsReady) return;
-
-    // Load profiles on start
-    await loadProfiles();
-
-    try {
-      EventsOn('network_status', (status) => {
-        networkStatus = status;
-      });
-
-      EventsOn('new_message', (msg) => {
-        console.log('[App] New message received:', msg);
-        if(selectedContact) console.log('[App] Selected:', selectedContact.chatId, 'MsgChat:', msg.chatId, 'Sender:', msg.senderId);
-
-        // Проверяем совпадение по chatId или по senderId контакта
-        if (selectedContact && (msg.chatId === selectedContact.chatId || msg.senderId === selectedContact.publicKey)) {
-          // Обновляем или добавляем сообщение
-          const existingIdx = messages.findIndex(m => m.id === msg.id);
-          if (existingIdx !== -1) {
-              const updatedMessages = [...messages];
-              updatedMessages[existingIdx] = msg;
-              messages = updatedMessages;
-          } else {
-              messages = [...messages, msg];
-              scrollToBottom();
-          }
-        }
-        // Обновляем список контактов (для отображения последнего сообщения)
-        loadContacts();
-      });
-
-      // Обработка входящего запроса дружбы (handshake)
-      EventsOn('new_contact', (data) => {
-        showToast(`Новый контакт: ${data.nickname}`, 'success', 5000);
-        loadContacts();
-      });
-
-      const status = await GetNetworkStatus();
-      if (status) networkStatus = status;
-    } catch (e) {
-      console.error('Init error:', e);
-    }
-  });
 
   // === Profiles ===
   async function loadProfiles() {
@@ -501,6 +509,7 @@
       if (mnemonic) {
         // 2. Wrap in encrypted profile
         await CreateProfile(newProfileName, newProfilePin, mnemonic);
+        await loadProfiles();
         newMnemonic = mnemonic;
         showMnemonicModal = true;
       }
@@ -531,21 +540,23 @@
   let showMnemonicModal = false;
   let newMnemonic = '';
 
-  async function handleCreateAccount() {
-    if (!wailsReady) await waitForWails();
-    if (!wailsReady) { showToast('Приложение не готово', 'error'); return; }
-    
-    isLoading = true;
-    try {
-      const mnemonic = await CreateAccount();
-      if (mnemonic) {
-        newMnemonic = mnemonic;
-        showMnemonicModal = true;
-      }
-    } catch (e) {
-      showToast('Ошибка: ' + e, 'error');
-    }
-    isLoading = false;
+
+  async function handleLogout() {
+    openConfirmModal(
+        "Выйти из аккаунта?",
+        "Все ключи будут удалены из памяти. Вам потребуется ПИН-код или seed-фраза для входа.",
+        async () => {
+             try {
+                await Logout();
+                screen = 'login';
+                await loadProfiles();
+                showSettings = false;
+                showToast('Вы вышли из аккаунта', 'info');
+            } catch(e) {
+                showToast('Ошибка выхода: ' + e, 'error');
+            }
+        }
+    );
   }
 
   function confirmMnemonicSaved() {
@@ -1163,13 +1174,6 @@
     }
   }
   
-  // Call loadFolders when component mounts (or when Wails is ready)
-  onMount(() => {
-    // Initial attempt
-    setTimeout(loadFolders, 1000); 
-    // Also listen for connection
-    EventsOn('wails:ready', loadFolders);
-  });
 
   // Also add helper to add chat to folder (context menu)
   async function addChatToFolder(folderId, contactId) {
@@ -2180,8 +2184,9 @@
                                        <label class="form-label" style="margin-top: 24px; color: var(--text-primary);">О себе
                                          <textarea bind:value={profileBio} class="input-field" rows="3" placeholder="Расскажите о себе..."></textarea>
                                        </label>
-                                       <button class="btn-primary" style="margin-top: 32px; width: 100%;" on:click={saveProfile}>💾 Сохранить изменения</button>
-                                     </div>
+                                        <button class="btn-primary" style="margin-top: 32px; width: 100%;" on:click={saveProfile}>💾 Сохранить изменения</button>
+                                        <button class="btn-secondary" style="margin-top: 12px; width: 100%; border-color: #f44336; color: #f44336;" on:click={handleLogout}>🚪 Выйти из аккаунта</button>
+                                      </div>
                                    </div>
 
                                 {:else if activeSettingsTab === 'chats'}
