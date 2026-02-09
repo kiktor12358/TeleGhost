@@ -44,8 +44,6 @@ export function GetImageThumbnail(arg1:string,arg2:number,arg3:number):Promise<s
 
 export function GetMediaHandler():Promise<http.Handler>;
 
-export function GetMessageByID(arg1:string):Promise<main.MessageInfo>;
-
 export function GetMessages(arg1:string,arg2:number,arg3:number):Promise<Array<main.MessageInfo>>;
 
 export function GetMyDestination():Promise<string>;

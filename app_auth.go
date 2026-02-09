@@ -220,6 +220,7 @@ func (a *App) GetMyInfo() *UserInfo {
 		PublicKey:   a.identity.Keys.PublicKeyBase64,
 		Destination: a.GetMyDestination(),
 		Fingerprint: a.identity.Keys.Fingerprint(),
+		Mnemonic:    a.identity.Mnemonic,
 	}
 }
 

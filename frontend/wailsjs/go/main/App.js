@@ -82,10 +82,6 @@ export function GetMediaHandler() {
   return window['go']['main']['App']['GetMediaHandler']();
 }
 
-export function GetMessageByID(arg1) {
-  return window['go']['main']['App']['GetMessageByID'](arg1);
-}
-
 export function GetMessages(arg1, arg2, arg3) {
   return window['go']['main']['App']['GetMessages'](arg1, arg2, arg3);
 }

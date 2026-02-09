@@ -191,7 +191,7 @@
     .message-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; justify-content: flex-end; opacity: 0.7; font-size: 10px; }
     .message-time { white-space: nowrap; }
 
-    .input-area-wrapper { padding: 10px 20px 20px; background: var(--bg-primary); position: sticky; bottom: 0; z-index: 50; }
+    .input-area-wrapper { padding: 10px 20px calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--bg-primary); position: sticky; bottom: 0; z-index: 50; }
     .input-area { display: flex; align-items: center; gap: 10px; background: var(--bg-secondary); padding: 8px 12px; border-radius: 24px; }
     .message-input { flex: 1; background: transparent; border: none; color: white; outline: none; resize: none; font-size: 14px; max-height: 120px; padding: 8px 0; }
 

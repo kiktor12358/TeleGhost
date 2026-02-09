@@ -160,11 +160,25 @@
             );
             
             showMnemonicModal = true;
+            // Clear fields so it's fresh if user goes back
+            newProfileName = '';
+            newProfilePin = '';
+            newProfileAvatarPath = '';
+            newProfileAvatarPreview = '';
         } catch (err) {
             showToast(err, 'error');
         } finally {
             isLoading = false;
         }
+    }
+
+    function cancelCreate() {
+        authScreen = 'profiles';
+        // Clear fields on cancel too
+        newProfileName = '';
+        newProfilePin = '';
+        newProfileAvatarPath = '';
+        newProfileAvatarPreview = '';
     }
 
     function confirmMnemonicSaved() {
@@ -179,7 +193,7 @@
        style="max-width: {authScreen === 'profiles' ? '540px' : '440px'}; padding: 40px; border-radius: 28px;">
     
     <div class="login-logo animate-float" style="margin-bottom: 32px;">
-      <img src={logo} alt="TeleGhost" style="width: 80px; height: 80px; filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));" />
+      <img src="/icon.png" alt="TeleGhost" class="rounded-full" style="width: 80px; height: 80px; filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4)); object-fit: cover;" />
     </div>
     
     <h1 class="login-title" style="font-size: 32px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; background: linear-gradient(to right, #fff, #a29bfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">TeleGhost</h1>
@@ -293,7 +307,7 @@
               <button class="btn-primary-premium full-width" on:click={handleFinishCreateProfile} disabled={isLoading}>
                 {#if isLoading}<span class="spinner"></span>{:else}Создать профиль{/if}
               </button>
-              <button class="btn-link" on:click={() => authScreen = 'profiles'}>Отмена</button>
+              <button class="btn-glass full-width" on:click={cancelCreate} style="margin-top: 8px; opacity: 0.6;">Отмена</button>
             </div>
           </div>
 
@@ -393,8 +407,9 @@
   .login-container::-webkit-scrollbar { display: none; }
 
   .profiles-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 20px;
     margin-bottom: 32px;
   }
@@ -415,14 +430,13 @@
     width: 64px;
     height: 64px;
     margin: 0 auto 16px;
-    border-radius: 22px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 28px;
     color: white;
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    transform: rotate(-5deg);
     overflow: hidden;
   }
   .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }

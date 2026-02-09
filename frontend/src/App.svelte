@@ -35,6 +35,8 @@
   let activeFolderId = 'all';
   let folders = [];
   let showAddContact = false;
+  let addContactName = '';
+  let addContactAddress = '';
   
   // Chat State
   let messages = [];
@@ -56,10 +58,9 @@
   let routerSettings = { tunnelLength: 1, logToFile: false };
 
   // Modals State
-  let showConfirmModal = false;
-  let confirmModalTitle = '';
-  let confirmModalText = '';
   let confirmAction = null;
+  
+  let showSeedModal = false;
   
   let showFolderModal = false;
   let isEditingFolder = false;
@@ -297,7 +298,8 @@
       onChangePin: () => { /* Change PIN logic */ },
       onBackToMenu: () => { settingsView = 'menu'; },
       onOpenCategory: (id) => { activeSettingsTab = id; settingsView = 'details'; },
-      onClose: () => { showSettings = false; }
+      onClose: () => { showSettings = false; },
+      onShowSeed: () => { showSeedModal = true; }
   };
 
   const modalHandlers = {
@@ -313,7 +315,27 @@
           loadContacts();
       },
       onCancelFolder: () => { showFolderModal = false; },
-      onCloseContactProfile: () => { showContactProfile = false; }
+      onCloseContactProfile: () => { showContactProfile = false; },
+      onAddContact: async () => {
+          if (!addContactName || !addContactAddress) {
+              showToast("Заполните все поля", "error");
+              return;
+          }
+          try {
+              await AppActions.AddContact(addContactName, addContactAddress);
+              showAddContact = false;
+              addContactName = '';
+              addContactAddress = '';
+              loadContacts();
+              showToast("Контакт добавлен", "success");
+          } catch (e) { showToast(e, "error"); }
+      },
+      onCancelAddContact: () => { 
+          showAddContact = false;
+          addContactName = '';
+          addContactAddress = '';
+      },
+      onCloseSeed: () => { showSeedModal = false; }
   };
 </script>
 
@@ -358,7 +380,7 @@
                               {...chatHandlers} />
                     {:else}
                         <div class="no-chat">
-                            <img src={logo} alt="Logo" style="width: 120px; opacity: 0.5;" />
+                            <img src="/icon.png" alt="Logo" class="rounded-full" style="width: 120px; opacity: 0.5;" />
                             <h2>TeleGhost</h2>
                             <p>Выберите чат для начала общения</p>
                         </div>
@@ -371,6 +393,8 @@
     <Modals {showConfirmModal} {confirmModalTitle} {confirmModalText} 
             {showFolderModal} {isEditingFolder} folderName={currentFolderData.name} folderIcon={currentFolderData.icon}
             showContactProfile={showContactProfile} contact={selectedContact}
+            {showAddContact} {addContactName} {addContactAddress}
+            {showSeedModal} mnemonic={currentUserInfo?.Mnemonic || ''}
             {...modalHandlers} />
 
     {#if previewImage}

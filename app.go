@@ -70,6 +70,7 @@ type UserInfo struct {
 	PublicKey   string
 	Destination string
 	Fingerprint string
+	Mnemonic    string
 }
 
 // App основная структура приложения

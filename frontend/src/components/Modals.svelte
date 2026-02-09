@@ -21,11 +21,19 @@
     export let contact = null;
     export let onCloseContactProfile;
 
-    // Add Chat to Folder Modal
-    export let showAddToFolder = false;
-    export let folders = [];
-    export let onAddToFolder;
     export let onCancelAddToFolder;
+    
+    // Add/Search Contact Modal
+    export let showAddContact = false;
+    export let onAddContact;
+    export let onCancelAddContact;
+    export let addContactName = '';
+    export let addContactAddress = '';
+
+    // Show Seed Modal
+    export let showSeedModal = false;
+    export let mnemonic = '';
+    export let onCloseSeed;
 
 </script>
 
@@ -40,7 +48,7 @@
             <p style="color: var(--text-secondary); margin-bottom: 20px;">{confirmModalText}</p>
         </div>
         <div class="modal-footer">
-            <button class="btn-small btn-secondary" on:click={onCancelConfirm}>Отмена</button>
+            <button class="btn-small btn-glass" on:click={onCancelConfirm}>Отмена</button>
             <button class="btn-small btn-primary" on:click={onConfirm}>OK</button>
         </div>
     </div>
@@ -63,7 +71,7 @@
             </label>
         </div>
         <div class="modal-footer">
-            <button class="btn-small btn-secondary" on:click={onCancelFolder}>Отмена</button>
+            <button class="btn-small btn-glass" on:click={onCancelFolder}>Отмена</button>
             <button class="btn-small btn-primary" on:click={onSaveFolder}>Сохранить</button>
         </div>
     </div>
@@ -97,6 +105,67 @@
 </div>
 {/if}
 
+<!-- Add Contact Modal -->
+{#if showAddContact}
+<div class="modal-backdrop animate-fade-in" on:click|self={onCancelAddContact}>
+    <div class="modal-content animate-slide-down" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3>Добавить контакт</h3>
+            <button class="btn-icon" on:click={onCancelAddContact}><div class="icon-svg">{@html Icons.X}</div></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Никнейм
+                    <input type="text" bind:value={addContactName} class="input-field" placeholder="Напр: Иван" />
+                </label>
+            </div>
+            <div class="form-group" style="margin-top: 16px;">
+                <label class="form-label">I2P Адрес (Full Destination)
+                    <textarea bind:value={addContactAddress} class="input-field" rows="4" placeholder="Введите полный I2P адрес..."></textarea>
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-small btn-glass" on:click={onCancelAddContact}>Отмена</button>
+            <button class="btn-small btn-primary" on:click={onAddContact}>Добавить</button>
+        </div>
+    </div>
+</div>
+{/if}
+
+<!-- Show Seed Modal -->
+{#if showSeedModal}
+<div class="modal-backdrop animate-fade-in" on:click|self={onCloseSeed}>
+    <div class="modal-content animate-slide-down" style="max-width: 450px; background: #1a1a2e; border: 1px solid rgba(255, 100, 100, 0.2);">
+        <div class="modal-header">
+            <h3 style="color: #ff6b6b;">🔐 Ваш секретный ключ</h3>
+            <button class="btn-icon" on:click={onCloseSeed}><div class="icon-svg">{@html Icons.X}</div></button>
+        </div>
+        <div class="modal-body">
+            <p class="warning-text" style="color: #ff6b6b; font-size: 13px; margin-bottom: 20px; background: rgba(255,100,100,0.1); padding: 12px; border-radius: 8px;">
+                ⚠️ Никогда не передавайте эти слова третьим лицам! Тот, у кого есть фраза, имеет ПОЛНЫЙ доступ к вашему аккаунту.
+            </p>
+            
+            <div class="mnemonic-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;">
+                {#each mnemonic.split(' ') as word, i}
+                    <div class="mnemonic-word" style="background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                        <span class="word-index" style="font-size: 10px; opacity: 0.5;">{i+1}</span>
+                        <span class="word-text" style="font-size: 13px; font-weight: 500;">{word}</span>
+                    </div>
+                {/each}
+            </div>
+            
+            <button class="btn-glass full-width" on:click={() => { navigator.clipboard.writeText(mnemonic); }} style="padding: 12px;">
+                📋 Скопировать всё
+            </button>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-primary full-width" on:click={onCloseSeed}>Я всё сохранил(а)</button>
+        </div>
+    </div>
+</div>
+{/if}
+
 <style>
     .modal-backdrop { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(5px); display:flex; align-items:center; justify-content:center; z-index: 1000; }
     .modal-content { background: var(--bg-secondary); border-radius: 16px; padding: 24px; width: 90%; max-width: 500px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid var(--border); }
@@ -107,11 +176,14 @@
     .input-field { width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px; color: white; outline: none; }
     
     .modal-footer { display: flex; gap: 12px; margin-top: 24px; }
-    .btn-small { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; }
+    .btn-small { padding: 10px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-small:hover { opacity: 0.9; transform: translateY(-1px); }
     .btn-primary { background: var(--accent); color: white; flex: 1; }
-    .btn-secondary { background: rgba(255,255,255,0.05); color: white; border: 1px solid var(--border); }
+    .btn-glass { background: rgba(255,255,255,0.05); color: #a0a0ba; border: 1px solid rgba(255,255,255,0.1); }
+    .btn-glass:hover { background: rgba(255,255,255,0.1); color: white; }
     
     .full-width { width: 100%; }
     .icon-svg { width: 24px; height: 24px; }
-    .btn-icon { background: transparent; border: none; color: white; cursor: pointer; }
+    .btn-icon { border: none; color: white; cursor: pointer; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0;}
+    .btn-icon:hover { background: rgba(255,255,255,0.1); }
 </style>

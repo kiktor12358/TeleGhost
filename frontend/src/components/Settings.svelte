@@ -86,7 +86,7 @@
                          <div class="info-box danger">
                             <h4>🔐 Секретный ключ (Seed phrase)</h4>
                             <p>Ваш ключ хранится только на этом устройстве. Если вы потеряете его, доступ к аккаунту будет утерян навсегда.</p>
-                            <button class="btn-secondary" on:click={() => {/* Show seed modal */}}>Показать ключ</button>
+                            <button class="btn-secondary clickable-accent" on:click={onShowSeed} style="cursor: pointer; font-weight: 700;">Показать ключ</button>
                          </div>
 
                          {#if selectedProfile}
@@ -136,7 +136,7 @@
                                 </div>
                                 <input type="checkbox" bind:checked={routerSettings.logToFile} />
                             </div>
-                            <button class="btn-primary full-width" on:click={onSaveRouterSettings}>💾 Сохранить и применить</button>
+                            <button class="btn-primary full-width" on:click={onSaveRouterSettings} style="margin-top: 10px;">💾 Сохранить и применить</button>
                         </div>
                     </div>
                 {:else if activeSettingsTab === 'about'}
@@ -156,8 +156,11 @@
 
 <style>
     .settings-panel { flex: 1; display: flex; flex-direction: column; height: 100%; background: var(--bg-primary); }
-    .settings-header { padding: 24px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-    .settings-header h2 { font-size: 24px; font-weight: 700; margin: 0; color: white; }
+    .settings-header { padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); height: 80px; }
+    .settings-header h2 { font-size: 24px; font-weight: 700; margin: 0; color: white; display: flex; align-items: center; }
+    
+    .btn-icon { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; border-radius: 12px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; padding: 0; }
+    .btn-icon:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
     
     .settings-view-menu { width: 100%; max-width: 600px; margin: 0 auto; flex: 1; display: flex; flex-direction: column; }
     .settings-menu { padding: 20px; }
@@ -177,10 +180,33 @@
     .avatar-edit-btn { position: absolute; bottom: 0; right: 0; background: var(--accent); border: 4px solid var(--bg-primary); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; }
 
     .profile-fields { max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
-    .input-field { width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; color: white; outline: none; }
+    .input-field { 
+        width: 100%; 
+        padding: 12px 16px; 
+        background: #1a1a2e; 
+        border: 1px solid rgba(255,255,255,0.1); 
+        border-radius: 12px; 
+        color: white; 
+        outline: none; 
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+    .input-field:focus { border-color: var(--accent); }
     
-    .btn-primary { background: var(--accent); color: white; padding: 14px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
-    .btn-secondary { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 12px; border-radius: 12px; cursor: pointer; }
+    select.input-field {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+        padding-right: 40px;
+    }
+    select.input-field option { background: #1a1a2e; color: white; padding: 10px; }
+    
+    .btn-primary { background: var(--accent); color: white; padding: 14px 24px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-secondary { background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); color: #fff; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-secondary:hover { background: rgba(99, 102, 241, 0.2); border-color: var(--accent); }
     .logout-btn { border-color: #f44336; color: #f44336; margin-top: 12px; }
 
     .info-box { padding: 24px; border-radius: 12px; margin-bottom: 24px; }
