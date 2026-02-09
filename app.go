@@ -443,11 +443,18 @@ func (a *App) connectToI2P() {
 		log.Printf("[App] Warning: failed to store I2P keys to tmp: %v", err)
 	}
 
-	// Обновляем I2P адрес в профиле
+	// Обновляем I2P адрес и ключи в профиле
 	if a.repo != nil && a.identity != nil {
 		existingUser, _ := a.repo.GetMyProfile(a.ctx)
 		if existingUser != nil {
 			existingUser.I2PAddress = destination
+
+			// Также сохраняем сами ключи в БД (репозиторий их зашифрует)
+			rawKeys, err := os.ReadFile(tmpPath)
+			if err == nil {
+				existingUser.I2PKeys = rawKeys
+			}
+
 			a.repo.SaveUser(a.ctx, existingUser)
 		}
 	}
