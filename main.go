@@ -39,7 +39,8 @@ func main() {
 		MinWidth:  800,
 		MinHeight: 600,
 		AssetServer: &assetserver.Options{
-			Assets: assets,
+			Assets:  assets,
+			Handler: app.GetMediaHandler(),
 		},
 		BackgroundColour: &options.RGBA{R: 23, G: 33, B: 43, A: 1},
 		OnStartup:        app.startup,

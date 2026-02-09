@@ -74,6 +74,10 @@ export function GetImageThumbnail(arg1, arg2, arg3) {
   return window['go']['main']['App']['GetImageThumbnail'](arg1, arg2, arg3);
 }
 
+export function GetMediaHandler() {
+  return window['go']['main']['App']['GetMediaHandler']();
+}
+
 export function GetMessageByID(arg1) {
   return window['go']['main']['App']['GetMessageByID'](arg1);
 }

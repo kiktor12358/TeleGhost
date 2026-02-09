@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"mime"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,7 +18,9 @@ import (
 
 	"teleghost/internal/core"
 	"teleghost/internal/core/identity"
+	"teleghost/internal/network/media"
 	"teleghost/internal/network/messenger"
+	"teleghost/internal/network/profiles"
 	"teleghost/internal/network/router"
 	"teleghost/internal/repository/sqlite"
 	"teleghost/internal/utils"
@@ -97,6 +100,8 @@ type App struct {
 	repo           *sqlite.Repository
 	router         *router.SAMRouter
 	messenger      *messenger.Service
+	mediaCrypt     *media.MediaCrypt
+	profileManager *profiles.ProfileManager
 	status         NetworkStatus
 	dataDir        string
 	embeddedRouter interface {
@@ -168,6 +173,15 @@ func (a *App) startup(ctx context.Context) {
 	// Запускаем трей
 	if a.trayManager != nil {
 		a.trayManager.Start()
+	}
+
+	// Инициализируем менеджер профилей
+	profilesDir := filepath.Join(a.dataDir, "profiles")
+	pm, err := profiles.NewProfileManager(profilesDir)
+	if err == nil {
+		a.profileManager = pm
+	} else {
+		log.Printf("[App] Failed to init profile manager: %v", err)
 	}
 
 	log.Printf("[App] Started. Data dir: %s", a.dataDir)
@@ -260,6 +274,47 @@ func (a *App) QuitApp() {
 	runtime.Quit(a.ctx)
 }
 
+// GetMediaHandler возвращает обработчик для зашифрованных медиафайлов
+func (a *App) GetMediaHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if a.mediaCrypt == nil || a.identity == nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Папка с медиа для текущего пользователя
+		mediaDir := filepath.Join(a.dataDir, "users", a.identity.Keys.UserID, "media")
+		handler := a.mediaCrypt.NewMediaHandler(mediaDir)
+		handler.ServeHTTP(w, r)
+	})
+}
+
+// === Profile Management ===
+
+// CreateProfile создает новый зашифрованный профиль
+func (a *App) CreateProfile(name string, pin string, mnemonic string) error {
+	if a.profileManager == nil {
+		return fmt.Errorf("profile manager not initialized")
+	}
+	return a.profileManager.CreateProfile(name, pin, mnemonic)
+}
+
+// ListProfiles возвращает список доступных профилей
+func (a *App) ListProfiles() ([]profiles.ProfileMetadata, error) {
+	if a.profileManager == nil {
+		return nil, fmt.Errorf("profile manager not initialized")
+	}
+	return a.profileManager.ListProfiles()
+}
+
+// UnlockProfile проверяет ПИН и возвращает мнемонику
+func (a *App) UnlockProfile(profileID string, pin string) (string, error) {
+	if a.profileManager == nil {
+		return "", fmt.Errorf("profile manager not initialized")
+	}
+	return a.profileManager.UnlockProfile(profileID, pin)
+}
+
 // === Методы для фронтенда ===
 
 // Login авторизация по seed-фразе
@@ -285,6 +340,17 @@ func (a *App) Login(seedPhrase string) error {
 	// Инициализируем репозиторий для этого пользователя
 	if err := a.initUserRepository(keys.UserID); err != nil {
 		return fmt.Errorf("failed to init user repository: %w", err)
+	}
+
+	// Инициализируем медиа-криптограф
+	mc, err := media.NewMediaCrypt(keys.EncryptionKey)
+	if err == nil {
+		a.mediaCrypt = mc
+		// Мигрируем файлы если нужно
+		mediaDir := filepath.Join(a.dataDir, "users", keys.UserID, "media")
+		go mc.MigrateDirectory(mediaDir)
+	} else {
+		log.Printf("[App] Failed to init media crypt: %v", err)
 	}
 
 	// Проверяем существующий профиль или создаём новый
@@ -326,6 +392,17 @@ func (a *App) CreateAccount() (string, error) {
 	// Инициализируем репозиторий для нового пользователя
 	if err := a.initUserRepository(id.Keys.UserID); err != nil {
 		return "", fmt.Errorf("failed to init user repository: %w", err)
+	}
+
+	// Инициализируем медиа-криптограф
+	mc, err := media.NewMediaCrypt(id.Keys.EncryptionKey)
+	if err == nil {
+		a.mediaCrypt = mc
+		// Для нового пользователя миграция не нужна, но инициализируем папку
+		mediaDir := filepath.Join(a.dataDir, "users", id.Keys.UserID, "media")
+		os.MkdirAll(mediaDir, 0700)
+	} else {
+		log.Printf("[App] Failed to init media crypt: %v", err)
 	}
 
 	// Сохраняем профиль

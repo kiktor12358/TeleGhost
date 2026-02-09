@@ -107,6 +107,45 @@ func (m *MediaCrypt) NewMediaHandler(storageDir string) http.Handler {
 	})
 }
 
+// MigrateDirectory сканирует директорию и зашифровывает все файлы, которые еще не зашифрованы
+func (m *MediaCrypt) MigrateDirectory(dir string) error {
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() {
+			return err
+		}
+
+		// Читаем файл
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil // Пропускаем проблемные файлы
+		}
+
+		aead, err := chacha20poly1305.NewX(m.key)
+		if err != nil {
+			return err
+		}
+
+		// Проверяем, зашифрован ли уже файл
+		nonceSize := aead.NonceSize()
+		isEncrypted := false
+		if len(data) >= nonceSize {
+			nonce := data[:nonceSize]
+			ciphertext := data[nonceSize:]
+			_, errDec := aead.Open(nil, nonce, ciphertext, nil)
+			if errDec == nil {
+				isEncrypted = true
+			}
+		}
+
+		if !isEncrypted {
+			fmt.Printf("[MediaCrypt] Migrating to encrypted: %s\n", path)
+			return m.SaveEncrypted(path, data)
+		}
+
+		return nil
+	})
+}
+
 func logError(msg string) {
 	// В реальном приложении здесь может быть логгер
 	fmt.Printf("[MediaCrypt] %s\n", msg)
