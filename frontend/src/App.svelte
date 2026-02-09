@@ -165,6 +165,26 @@
     { id: 'about', name: 'О программе', icon: 'ℹ️' }
   ];
   let activeSettingsTab = 'profile';
+  let settingsView = 'menu'; // 'menu' | 'details'
+
+  function toggleSettings() {
+      if (showSettings) {
+          showSettings = false;
+      } else {
+          showSettings = true;
+          settingsView = 'menu';
+      }
+  }
+
+  function openSettingsCategory(id) {
+      activeSettingsTab = id;
+      settingsView = 'details';
+      if (id === 'network') loadRouterSettings();
+  }
+
+  function backToSettingsMenu() {
+      settingsView = 'menu';
+  }
 
   let routerSettings = {
     tunnelLength: 1,
@@ -410,8 +430,20 @@
 
   // === Contacts ===
   async function selectContact(contact) {
+    if (showSettings) {
+        showSettings = false;
+        if (selectedContact && selectedContact.id !== contact.id) {
+            selectedContact = contact;
+            await loadMessages();
+        }
+        return;
+    }
+
+    if (selectedContact && selectedContact.id === contact.id) {
+        selectedContact = null;
+        return;
+    }
     selectedContact = contact;
-    showSettings = false;
     await loadMessages();
   }
 
@@ -1292,7 +1324,9 @@
   <!-- Sidebar -->
   <!-- Folders Rail -->
   <div class="folders-rail">
-    <div class="rail-button" on:click={() => showSettings = true}>
+
+
+    <div class="rail-button" class:active={showSettings} on:click={toggleSettings}>
       <div class="hamburger-icon">
         <span></span><span></span><span></span>
       </div>
@@ -1302,7 +1336,7 @@
       {#each uiFolders as folder}
         <div 
           class="folder-item" 
-          class:active={activeFolderId === folder.id && folder.id !== 'add'} 
+          class:active={!showSettings && activeFolderId === folder.id && folder.id !== 'add'} 
           on:click={() => {
             if (folder.id === 'add') {
                showCreateFolder = true;
@@ -1311,6 +1345,7 @@
                newFolderName = '';
                newFolderIcon = '📁';
             } else {
+               showSettings = false; // Close settings when selecting a folder
                activeFolderId = folder.id;
             }
           }}
@@ -1328,10 +1363,6 @@
           {/if}
         </div>
       {/each}
-    </div>
-
-    <div class="rail-button bottom" on:click={() => showSettings = true} title="Настройки">
-      <div class="settings-icon">⚙️</div>
     </div>
   </div>
 
@@ -1420,130 +1451,147 @@
   <div class="content-area">
     {#if showSettings}
       <!-- Settings Panel -->
-      <div class="settings-panel animate-fade-in" style="flex-direction: row; padding: 0;">
+      <div class="settings-panel animate-fade-in" style="flex-direction: column; padding: 0;">
         
-        <!-- Left Menu -->
-        <div class="settings-sidebar" style="width: 250px; min-width: 250px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column;">
-           <div class="settings-sidebar-header" style="padding: 24px; display: flex; align-items: center; gap: 10px;">
-              <button class="btn-icon" on:click={() => showSettings = false} title="Назад" style="background: transparent;">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-              </button>
-              <h2 style="font-size: 20px; font-weight: 600; margin: 0; color: white !important;">Настройки</h2>
-           </div>
+        {#if settingsView === 'menu'}
+            <!-- Settings Menu View -->
+            <div class="settings-view-menu" style="width: 100%; max-width: 600px; margin: 0 auto; height: 100%; display: flex; flex-direction: column;">
+               
+               <!-- Settings Header -->
+               <div class="settings-header" style="padding: 24px 40px; display: flex; align-items: center; justify-content: space-between;">
+                  <h2 style="font-size: 28px; font-weight: 700; margin: 0; color: white !important;">Настройки</h2>
+                  
+                  <button class="btn-icon" on:click={() => showSettings = false} title="Закрыть" style="background: rgba(255,255,255,0.05); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                  </button>
+               </div>
 
-           <div class="settings-menu" style="display: flex; flex-direction: column; padding: 0 10px; gap: 4px;">
-              {#each settingsCategories as cat}
-                <div 
-                   class="settings-menu-item" 
-                   class:active={activeSettingsTab === cat.id}
-                   on:click={() => activeSettingsTab = cat.id}
-                   style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 8px; cursor: pointer; color: {activeSettingsTab === cat.id ? 'white' : 'var(--text-secondary)'}; background: {activeSettingsTab === cat.id ? 'var(--accent)' : 'transparent'}; transition: all 0.2s;"
-                >
-                   <span class="icon" style="font-size: 18px;">{cat.icon}</span>
-                   <span class="name" style="font-weight: 500;">{cat.name}</span>
-                </div>
-              {/each}
-           </div>
-        </div>
-
-        <!-- Right Content -->
-        <div class="settings-content-area" style="flex: 1; padding: 40px; overflow-y: auto; color: var(--text-primary);">
-           {#if activeSettingsTab === 'profile'}
-              <!-- Profile Content -->
-              <h3 style="margin-bottom: 24px; font-size: 24px; color: var(--text-primary);">Аккаунт</h3>
-              <div class="settings-section">
-                <!-- Avatar -->
-                <div class="profile-avatar-large" style="width: 120px; height: 120px; position: relative;">
-                    {#if profileAvatar}
-                      <img src={profileAvatar} alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.3);" />
-                    {:else}
-                      <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #6c5ce7, #a29bfe); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-                        {getInitials(profileNickname)}
-                      </div>
-                    {/if}
-                    <button class="avatar-edit-btn animate-pop" style="position: absolute; bottom: 0; right: 0; background: var(--accent); border: 4px solid var(--bg-primary); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" on:click={() => avatarFileInput.click()}>📷</button>
-                    <input type="file" bind:this={avatarFileInput} on:change={handleAvatarChange} accept="image/*" style="display: none;" />
-                </div>
-                
-                <div class="profile-fields" style="margin-top: 24px; max-width: 400px;">
-                  <label class="form-label" style="color: var(--text-primary);">Никнейм
-                    <input type="text" bind:value={profileNickname} class="input-field" placeholder="Ваш никнейм" />
-                  </label>
-                  <label class="form-label" style="margin-top: 16px; color: var(--text-primary);">О себе
-                    <textarea bind:value={profileBio} class="input-field" rows="3" placeholder="Расскажите о себе..."></textarea>
-                  </label>
-                  <button class="btn-primary" style="margin-top: 24px;" on:click={saveProfile}>💾 Сохранить изменения</button>
-                </div>
-              </div>
-
-           {:else if activeSettingsTab === 'chats'}
-              <h3 style="margin-bottom: 24px; font-size: 24px; color: var(--text-primary);">Настройки чатов</h3>
-              <div class="settings-section">
-                 <p class="hint" style="color: var(--text-secondary);">Здесь будут настройки темы, шрифта и фона чата.</p>
-                 <div class="mock-setting" style="margin-top: 20px; opacity: 0.5;">
-                    <label style="color: var(--text-primary);">Размер шрифта</label>
-                    <input type="range" min="12" max="20" value="14" disabled />
-                 </div>
-              </div>
-
-           {:else if activeSettingsTab === 'privacy'}
-              <h3 style="margin-bottom: 24px; font-size: 24px; color: var(--text-primary);">Конфиденциальность</h3>
-              <div class="settings-section">
-                 <div class="info-box" style="background: rgba(255, 100, 100, 0.1); padding: 16px; border-radius: 8px; border: 1px solid rgba(255, 100, 100, 0.3);">
-                    <h4 style="color: #ff6b6b; margin: 0 0 8px;">🔐 Секретный ключ (Seed phrase)</h4>
-                    <p style="font-size: 13px; color: var(--text-secondary);">Ваш ключ хранится только на этом устройстве. Если вы потеряете его, доступ к аккаунту будет утерян навсегда.</p>
-                    <button class="btn-secondary" style="margin-top: 10px;" on:click={() => showToast('Функция показа ключа в разработке', 'warning')}>Показать ключ</button>
-                 </div>
-              </div>
-
-           {:else if activeSettingsTab === 'network'}
-              <h3 style="margin-bottom: 24px; font-size: 24px; color: var(--text-primary);">Сеть и I2P</h3>
-              <div class="settings-section">
-                 <label class="form-label" style="color: var(--text-primary);">Ваш I2P адрес (Destination)</label>
-                 <div class="destination-box">
-                   <code class="destination-code">{myDestination ? myDestination.slice(0, 50) + '...' : 'Загрузка...'}</code>
-                   <button class="btn-icon-small" on:click={copyDestination}>📋</button>
-                 </div>
-                 <div class="info-item" style="margin-top: 20px;">
-                  <span class="info-label" style="color: var(--text-primary);">Статус сети:</span>
-                  <span class="info-value" style="color: {getStatusColor(networkStatus)}">{getStatusText(networkStatus)}</span>
-                 </div>
-
-                 <h4 style="margin-top: 24px; color: var(--text-primary); border-top: 1px solid var(--border); padding-top: 20px;">Настройки роутера</h4>
-                 <div class="settings-section">
-                    <!-- Tunnel Length -->
-                    <div class="setting-item" style="margin-bottom: 20px;">
-                        <label class="form-label" style="color: var(--text-primary); display: block; margin-bottom: 8px;">Режим анонимности (длина туннелей)</label>
-                        <select bind:value={routerSettings.tunnelLength} class="input-field settings-select">
-                            <option value={1}>Fast (1 хоп) - Максимальная скорость, низкая анонимность</option>
-                            <option value={2}>Normal (2 хопа) - Баланс (Рекомендуется)</option>
-                            <option value={4}>Invisible (4 хопа) - Высокая анонимность, медленно</option>
-                        </select>
+               <div class="settings-menu" style="padding: 0 24px; margin-top: 20px;">
+                  {#each settingsCategories as cat}
+                    <div 
+                       class="settings-menu-item" 
+                       on:click={() => openSettingsCategory(cat.id)}
+                       style="padding: 12px 16px; margin-bottom: 8px; background: var(--bg-secondary); border-radius: 18px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: transform 0.2s, background 0.2s;"
+                    >
+                       <span class="icon" style="font-size: 20px;">{cat.icon}</span>
+                       <span class="name" style="font-weight: 500; font-size: 15px; flex: 1; color: var(--text-primary);">{cat.name}</span>
+                       <span class="arrow" style="opacity: 0.3; font-size: 14px;">➜</span>
                     </div>
+                  {/each}
+               </div>
+            </div>
 
-                    <!-- Logging -->
-                    <div class="setting-item" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
-                        <div>
-                            <span style="color: var(--text-primary); font-weight: 500;">Логирование в файл</span>
-                            <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-secondary);">Записывать логи роутера в i2pd.log</p>
+        {:else}
+            <!-- Settings Details View -->
+            <div class="settings-view-details" style="width: 100%; height: 100%; display: flex; flex-direction: column; animation: slideInRight 0.3s ease-out;">
+                <div class="settings-header" style="padding: 16px 24px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--border); background: var(--bg-secondary);">
+                  <button class="btn-icon" on:click={backToSettingsMenu} title="Назад" style="background: transparent;">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                  </button>
+                  <h2 style="font-size: 20px; font-weight: 600; margin: 0; color: white !important;">
+                    {settingsCategories.find(c => c.id === activeSettingsTab)?.name}
+                  </h2>
+               </div>
+
+               <div class="settings-content-area" style="flex: 1; padding: 40px; overflow-y: auto; max-width: 800px; margin: 0 auto; width: 100%;">
+                   {#if activeSettingsTab === 'profile'}
+                      <!-- Profile Content -->
+                      <div class="settings-section">
+                        <!-- Avatar -->
+                        <div class="profile-avatar-large" style="width: 120px; height: 120px; position: relative; margin: 0 auto;">
+                            {#if profileAvatar}
+                              <img src={profileAvatar} alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.3);" />
+                            {:else}
+                              <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #6c5ce7, #a29bfe); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 48px; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+                                {getInitials(profileNickname)}
+                              </div>
+                            {/if}
+                            <button class="avatar-edit-btn animate-pop" style="position: absolute; bottom: 0; right: 0; background: var(--accent); border: 4px solid var(--bg-primary); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" on:click={() => avatarFileInput.click()}>📷</button>
+                            <input type="file" bind:this={avatarFileInput} on:change={handleAvatarChange} accept="image/*" style="display: none;" />
                         </div>
-                        <input type="checkbox" bind:checked={routerSettings.logToFile} style="transform: scale(1.5); cursor: pointer;" />
-                    </div>
+                        
+                        <div class="profile-fields" style="margin-top: 32px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                          <label class="form-label" style="color: var(--text-primary);">Никнейм
+                            <input type="text" bind:value={profileNickname} class="input-field" placeholder="Ваш никнейм" />
+                          </label>
+                          <label class="form-label" style="margin-top: 24px; color: var(--text-primary);">О себе
+                            <textarea bind:value={profileBio} class="input-field" rows="3" placeholder="Расскажите о себе..."></textarea>
+                          </label>
+                          <button class="btn-primary" style="margin-top: 32px; width: 100%;" on:click={saveProfile}>💾 Сохранить изменения</button>
+                        </div>
+                      </div>
 
-                    <button class="btn-primary" on:click={saveRouterSettings} style="width: 100%;">💾 Сохранить и применить</button>
-                    <p style="margin-top: 10px; font-size: 12px; color: var(--text-secondary); text-align: center;">Для вступления в силу изменений потребуется перезапуск приложения.</p>
-                 </div>
-              </div>
+                   {:else if activeSettingsTab === 'chats'}
+                      <!-- Chats Content -->
+                      <div class="settings-section">
+                         <p class="hint" style="color: var(--text-secondary);">Здесь будут настройки темы, шрифта и фона чата.</p>
+                         <div class="mock-setting" style="margin-top: 20px; opacity: 0.5;">
+                            <label style="color: var(--text-primary);">Размер шрифта</label>
+                            <input type="range" min="12" max="20" value="14" disabled />
+                         </div>
+                      </div>
 
-           {:else if activeSettingsTab === 'about'}
-              <h3 style="margin-bottom: 24px; font-size: 24px; color: var(--text-primary);">О программе</h3>
-              <div class="info-grid">
-                <div class="info-item"><span class="info-label">Версия</span><span class="info-value">1.1.0-beta</span></div>
-                <div class="info-item"><span class="info-label">Разработчик</span><span class="info-value">TeleGhost Team</span></div>
-                <div class="info-item"><span class="info-label">Лицензия</span><span class="info-value">MIT / Open Source</span></div>
-              </div>
-           {/if}
-        </div>
+                   {:else if activeSettingsTab === 'privacy'}
+                      <!-- Privacy Content -->
+                      <div class="settings-section">
+                         <div class="info-box" style="background: rgba(255, 100, 100, 0.1); padding: 24px; border-radius: 12px; border: 1px solid rgba(255, 100, 100, 0.3);">
+                            <h4 style="color: #ff6b6b; margin: 0 0 12px; font-size: 18px;">🔐 Секретный ключ (Seed phrase)</h4>
+                            <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">Ваш ключ хранится только на этом устройстве. Если вы потеряете его, доступ к аккаунту будет утерян навсегда.</p>
+                            <button class="btn-secondary" style="width: 100%;" on:click={() => showToast('Функция показа ключа в разработке', 'warning')}>Показать ключ</button>
+                         </div>
+                      </div>
+
+                   {:else if activeSettingsTab === 'network'}
+                      <!-- Network Content -->
+                      <div class="settings-section">
+                         <label class="form-label" style="color: var(--text-primary);">Ваш I2P адрес (Destination)</label>
+                         <div class="destination-box">
+                           <code class="destination-code">{myDestination ? myDestination.slice(0, 50) + '...' : 'Загрузка...'}</code>
+                           <button class="btn-icon-small" on:click={copyDestination}>📋</button>
+                         </div>
+                         <div class="info-item" style="margin-top: 20px;">
+                          <span class="info-label" style="color: var(--text-primary);">Статус сети:</span>
+                          <span class="info-value" style="color: {getStatusColor(networkStatus)}">{getStatusText(networkStatus)}</span>
+                         </div>
+
+                         <h4 style="margin-top: 32px; color: var(--text-primary); border-top: 1px solid var(--border); padding-top: 24px; font-size: 18px;">Настройки роутера</h4>
+                         <div class="settings-section">
+                            <!-- Tunnel Length -->
+                            <div class="setting-item" style="margin-bottom: 24px;">
+                                <label class="form-label" style="color: var(--text-primary); display: block; margin-bottom: 12px;">Режим анонимности (длина туннелей)</label>
+                                <select bind:value={routerSettings.tunnelLength} class="input-field settings-select">
+                                    <option value={1}>Fast (1 хоп) - Максимальная скорость, низкая анонимность</option>
+                                    <option value={2}>Normal (2 хопа) - Баланс (Рекомендуется)</option>
+                                    <option value={4}>Invisible (4 хопа) - Высокая анонимность, медленно</option>
+                                </select>
+                            </div>
+
+                            <!-- Logging -->
+                            <div class="setting-item" style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary); padding: 16px; border-radius: 12px;">
+                                <div>
+                                    <span style="color: var(--text-primary); font-weight: 500;">Логирование в файл</span>
+                                    <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-secondary);">Записывать логи роутера в i2pd.log</p>
+                                </div>
+                                <input type="checkbox" bind:checked={routerSettings.logToFile} style="transform: scale(1.5); cursor: pointer;" />
+                            </div>
+
+                            <button class="btn-primary" on:click={saveRouterSettings} style="width: 100%;">💾 Сохранить и применить</button>
+                            <p style="margin-top: 12px; font-size: 13px; color: var(--text-secondary); text-align: center;">Для вступления в силу изменений потребуется перезапуск приложения.</p>
+                         </div>
+                      </div>
+
+                   {:else if activeSettingsTab === 'about'}
+                      <!-- About Content -->
+                      <h3 style="margin-bottom: 24px; font-size: 24px; color: var(--text-primary);">О программе</h3>
+                      <div class="info-grid">
+                        <div class="info-item"><span class="info-label">Версия</span><span class="info-value">1.1.0-beta</span></div>
+                        <div class="info-item"><span class="info-label">Разработчик</span><span class="info-value">TeleGhost Team</span></div>
+                        <div class="info-item"><span class="info-label">Лицензия</span><span class="info-value">MIT / Open Source</span></div>
+                      </div>
+                   {/if}
+               </div>
+            </div>
+        {/if}
       </div>
 
     {:else if selectedContact}
