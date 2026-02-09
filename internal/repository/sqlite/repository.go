@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"time"
 
 	"teleghost/internal/core"
@@ -151,9 +152,103 @@ func (r *Repository) Migrate(ctx context.Context) error {
 	return nil
 }
 
+// MigrateEncryption переводит старые открытые данные в зашифрованный вид
+func (r *Repository) MigrateEncryption(ctx context.Context) error {
+	if r.keys == nil {
+		return nil
+	}
+
+	// 1. Профили пользователей
+	user, err := r.GetMyProfile(ctx)
+	if err == nil && user != nil {
+		// Проверяем, зашифрован ли уже приватный ключ
+		var rawPriv []byte
+		_ = r.db.QueryRowContext(ctx, "SELECT private_key FROM users LIMIT 1").Scan(&rawPriv)
+
+		_, errDec := r.keys.Decrypt(rawPriv)
+		if errDec != nil {
+			// Ошибка дешифровки -> данные были открыты. Сохраняем (SaveUser зашифрует их)
+			log.Println("[Repo] Migrating user profile to encrypted format...")
+			_ = r.SaveUser(ctx, user)
+		}
+	}
+
+	// 2. Контакты
+	contacts, err := r.ListContacts(ctx)
+	if err == nil && len(contacts) > 0 {
+		// Проверяем первый контакт (если его ник не зашифрован, мигрируем все)
+		var rawNickname string
+		_ = r.db.QueryRowContext(ctx, "SELECT nickname FROM contacts LIMIT 1").Scan(&rawNickname)
+
+		if rawNickname != "" && r.decryptString(rawNickname) == rawNickname {
+			// Дешифровка вернула ту же строку -> она не была зашифрована
+			log.Printf("[Repo] Migrating %d contacts to encrypted format...", len(contacts))
+			for _, c := range contacts {
+				_ = r.SaveContact(ctx, c)
+			}
+		}
+	}
+
+	// 3. Сообщения
+	// Чтобы не перебирать тысячи сообщений каждый раз, проверяем последнее
+	var rawContent string
+	err = r.db.QueryRowContext(ctx, "SELECT content FROM messages ORDER BY timestamp DESC LIMIT 1").Scan(&rawContent)
+	if err == nil && rawContent != "" {
+		if r.decryptString(rawContent) == rawContent {
+			// Не зашифровано. Мигрируем ВСЕ сообщения (это может быть долго)
+			log.Println("[Repo] Migrating ALL messages to encrypted format. This may take a while...")
+
+			// Самый простой (хоть и не самый быстрый) способ миграции - вычитать всё и сохранить
+			// Но лучше в цикле по чатам
+			rows, err := r.db.QueryContext(ctx, "SELECT id, chat_id, sender_id, content, content_type, status, is_outgoing, reply_to_id, timestamp, created_at, updated_at FROM messages")
+			if err == nil {
+				defer rows.Close()
+				for rows.Next() {
+					msg, err := r.scanMessage(rows)
+					if err == nil {
+						// Обогащаем вложениями (они тоже могут быть не зашифрованы)
+						_ = r.enrichMessagesWithAttachments(ctx, []*core.Message{msg})
+						_ = r.SaveMessage(ctx, msg)
+					}
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 // Close закрывает соединение с БД
 func (r *Repository) Close() error {
 	return r.db.Close()
+}
+
+// === Encryption Helpers ===
+
+func (r *Repository) encryptString(s string) string {
+	if r.keys == nil || s == "" {
+		return s
+	}
+	enc, err := r.keys.Encrypt([]byte(s))
+	if err != nil {
+		return s
+	}
+	return base64.StdEncoding.EncodeToString(enc)
+}
+
+func (r *Repository) decryptString(s string) string {
+	if r.keys == nil || s == "" {
+		return s
+	}
+	decoded, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return s // Probably not base64/encrypted
+	}
+	dec, err := r.keys.Decrypt(decoded)
+	if err != nil {
+		return s // Probably not encrypted
+	}
+	return string(dec)
 }
 
 // === User Methods ===
@@ -290,9 +385,13 @@ func (r *Repository) SaveContact(ctx context.Context, contact *core.Contact) err
 	}
 	contact.UpdatedAt = now
 
+	nickname := r.encryptString(contact.Nickname)
+	bio := r.encryptString(contact.Bio)
+	address := r.encryptString(contact.I2PAddress)
+
 	_, err := r.db.ExecContext(ctx, query,
-		contact.ID, contact.PublicKey, contact.Nickname, contact.Bio, contact.Avatar,
-		contact.I2PAddress, contact.ChatID, contact.IsBlocked, contact.IsVerified,
+		contact.ID, contact.PublicKey, nickname, bio, contact.Avatar,
+		address, contact.ChatID, contact.IsBlocked, contact.IsVerified,
 		contact.LastSeen, contact.AddedAt, contact.UpdatedAt,
 	)
 
@@ -303,6 +402,26 @@ func (r *Repository) SaveContact(ctx context.Context, contact *core.Contact) err
 	return nil
 }
 
+func (r *Repository) scanContact(row interface {
+	Scan(dest ...interface{}) error
+}) (*core.Contact, error) {
+	contact := &core.Contact{}
+	err := row.Scan(
+		&contact.ID, &contact.PublicKey, &contact.Nickname, &contact.Bio, &contact.Avatar,
+		&contact.I2PAddress, &contact.ChatID, &contact.IsBlocked, &contact.IsVerified,
+		&contact.LastSeen, &contact.AddedAt, &contact.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	contact.Nickname = r.decryptString(contact.Nickname)
+	contact.Bio = r.decryptString(contact.Bio)
+	contact.I2PAddress = r.decryptString(contact.I2PAddress)
+
+	return contact, nil
+}
+
 // GetContact возвращает контакт по ID
 func (r *Repository) GetContact(ctx context.Context, id string) (*core.Contact, error) {
 	query := `
@@ -311,13 +430,7 @@ func (r *Repository) GetContact(ctx context.Context, id string) (*core.Contact, 
 		FROM contacts WHERE id = ?
 	`
 
-	contact := &core.Contact{}
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&contact.ID, &contact.PublicKey, &contact.Nickname, &contact.Bio, &contact.Avatar,
-		&contact.I2PAddress, &contact.ChatID, &contact.IsBlocked, &contact.IsVerified,
-		&contact.LastSeen, &contact.AddedAt, &contact.UpdatedAt,
-	)
-
+	contact, err := r.scanContact(r.db.QueryRowContext(ctx, query, id))
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -336,13 +449,7 @@ func (r *Repository) GetContactByPublicKey(ctx context.Context, publicKey string
 		FROM contacts WHERE public_key = ?
 	`
 
-	contact := &core.Contact{}
-	err := r.db.QueryRowContext(ctx, query, publicKey).Scan(
-		&contact.ID, &contact.PublicKey, &contact.Nickname, &contact.Bio, &contact.Avatar,
-		&contact.I2PAddress, &contact.ChatID, &contact.IsBlocked, &contact.IsVerified,
-		&contact.LastSeen, &contact.AddedAt, &contact.UpdatedAt,
-	)
-
+	contact, err := r.scanContact(r.db.QueryRowContext(ctx, query, publicKey))
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -355,27 +462,22 @@ func (r *Repository) GetContactByPublicKey(ctx context.Context, publicKey string
 
 // GetContactByAddress возвращает контакт по его I2P адресу
 func (r *Repository) GetContactByAddress(ctx context.Context, address string) (*core.Contact, error) {
-	query := `
-		SELECT id, public_key, nickname, bio, avatar, i2p_address, chat_id,
-		       is_blocked, is_verified, last_seen, added_at, updated_at
-		FROM contacts WHERE i2p_address = ?
-	`
+	// Примечание: так как адреса в БД зашифрованы, прямой поиск по адресу (WHERE i2p_address = ?)
+	// больше не работает эффективно. Нам нужно либо хранить хэш адреса, либо
+	// перебирать все контакты. Пока перебираем (контактов обычно не тысячи).
 
-	contact := &core.Contact{}
-	err := r.db.QueryRowContext(ctx, query, address).Scan(
-		&contact.ID, &contact.PublicKey, &contact.Nickname, &contact.Bio, &contact.Avatar,
-		&contact.I2PAddress, &contact.ChatID, &contact.IsBlocked, &contact.IsVerified,
-		&contact.LastSeen, &contact.AddedAt, &contact.UpdatedAt,
-	)
-
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
+	contacts, err := r.ListContacts(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get contact by address: %w", err)
+		return nil, err
 	}
 
-	return contact, nil
+	for _, c := range contacts {
+		if c.I2PAddress == address {
+			return c, nil
+		}
+	}
+
+	return nil, nil
 }
 
 // ListContacts возвращает список всех контактов
@@ -395,12 +497,7 @@ func (r *Repository) ListContacts(ctx context.Context) ([]*core.Contact, error) 
 
 	var contacts []*core.Contact
 	for rows.Next() {
-		contact := &core.Contact{}
-		err := rows.Scan(
-			&contact.ID, &contact.PublicKey, &contact.Nickname, &contact.Bio, &contact.Avatar,
-			&contact.I2PAddress, &contact.ChatID, &contact.IsBlocked, &contact.IsVerified,
-			&contact.LastSeen, &contact.AddedAt, &contact.UpdatedAt,
-		)
+		contact, err := r.scanContact(rows)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan contact: %w", err)
 		}
@@ -613,11 +710,7 @@ func (r *Repository) GetChatHistory(ctx context.Context, chatID string, limit, o
 
 	var messages []*core.Message
 	for rows.Next() {
-		msg := &core.Message{}
-		err := rows.Scan(
-			&msg.ID, &msg.ChatID, &msg.SenderID, &msg.Content, &msg.ContentType, &msg.Status,
-			&msg.IsOutgoing, &msg.ReplyToID, &msg.Timestamp, &msg.CreatedAt, &msg.UpdatedAt,
-		)
+		msg, err := r.scanMessage(rows)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan message: %w", err)
 		}
