@@ -4,21 +4,24 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	"time"
 
 	"teleghost/internal/core"
+	"teleghost/internal/core/identity"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 // Repository — SQLite реализация репозитория
 type Repository struct {
-	db *sql.DB
+	db   *sql.DB
+	keys *identity.Keys
 }
 
 // New создаёт новый SQLite репозиторий
-func New(dbPath string) (*Repository, error) {
+func New(dbPath string, keys *identity.Keys) (*Repository, error) {
 	db, err := sql.Open("sqlite3", dbPath+"?_journal_mode=WAL&_foreign_keys=on")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
@@ -34,7 +37,10 @@ func New(dbPath string) (*Repository, error) {
 	db.SetMaxIdleConns(1)
 	db.SetConnMaxLifetime(time.Hour)
 
-	repo := &Repository{db: db}
+	repo := &Repository{
+		db:   db,
+		keys: keys,
+	}
 
 	return repo, nil
 }
@@ -174,6 +180,21 @@ func (r *Repository) GetMyProfile(ctx context.Context) (*core.User, error) {
 		return nil, fmt.Errorf("failed to get profile: %w", err)
 	}
 
+	// Дешифруем чувствительные данные
+	if r.keys != nil {
+		if decryptedPriv, err := r.keys.Decrypt(user.PrivateKey); err == nil {
+			user.PrivateKey = decryptedPriv
+		}
+		if decryptedMnemonic, err := r.keys.Decrypt([]byte(user.Mnemonic)); err == nil {
+			user.Mnemonic = string(decryptedMnemonic)
+		}
+		if len(user.I2PKeys) > 0 {
+			if decryptedI2P, err := r.keys.Decrypt(user.I2PKeys); err == nil {
+				user.I2PKeys = decryptedI2P
+			}
+		}
+	}
+
 	return user, nil
 }
 
@@ -197,9 +218,28 @@ func (r *Repository) SaveUser(ctx context.Context, user *core.User) error {
 	}
 	user.UpdatedAt = now
 
+	// Шифруем чувствительные данные перед сохранением
+	privKey := user.PrivateKey
+	mnemonic := []byte(user.Mnemonic)
+	i2pKeys := user.I2PKeys
+
+	if r.keys != nil {
+		if encPriv, err := r.keys.Encrypt(privKey); err == nil {
+			privKey = encPriv
+		}
+		if encMnemonic, err := r.keys.Encrypt(mnemonic); err == nil {
+			mnemonic = encMnemonic
+		}
+		if len(i2pKeys) > 0 {
+			if encI2P, err := r.keys.Encrypt(i2pKeys); err == nil {
+				i2pKeys = encI2P
+			}
+		}
+	}
+
 	_, err := r.db.ExecContext(ctx, query,
-		user.ID, user.PublicKey, user.PrivateKey, user.Mnemonic,
-		user.Nickname, user.Bio, user.Avatar, user.I2PAddress, user.I2PKeys,
+		user.ID, user.PublicKey, privKey, mnemonic,
+		user.Nickname, user.Bio, user.Avatar, user.I2PAddress, i2pKeys,
 		user.CreatedAt, user.UpdatedAt,
 	)
 
@@ -400,8 +440,16 @@ func (r *Repository) SaveMessage(ctx context.Context, msg *core.Message) error {
 	}
 	msg.UpdatedAt = now
 
+	// Шифруем контент сообщения
+	content := msg.Content
+	if r.keys != nil && content != "" {
+		if encContent, err := r.keys.Encrypt([]byte(content)); err == nil {
+			content = base64.StdEncoding.EncodeToString(encContent)
+		}
+	}
+
 	_, err := r.db.ExecContext(ctx, query,
-		msg.ID, msg.ChatID, msg.SenderID, msg.Content, msg.ContentType, msg.Status,
+		msg.ID, msg.ChatID, msg.SenderID, content, msg.ContentType, msg.Status,
 		msg.IsOutgoing, msg.ReplyToID, msg.Timestamp, msg.CreatedAt, msg.UpdatedAt,
 	)
 
@@ -423,7 +471,15 @@ func (r *Repository) SaveMessage(ctx context.Context, msg *core.Message) error {
 			if att.MessageID == "" {
 				att.MessageID = msg.ID
 			}
-			_, err := r.db.ExecContext(ctx, attQuery, att.ID, att.MessageID, att.Filename, att.MimeType, att.Size, att.LocalPath, att.IsCompressed, att.Width, att.Height)
+
+			localPath := att.LocalPath
+			if r.keys != nil && localPath != "" {
+				if encPath, err := r.keys.Encrypt([]byte(localPath)); err == nil {
+					localPath = base64.StdEncoding.EncodeToString(encPath)
+				}
+			}
+
+			_, err := r.db.ExecContext(ctx, attQuery, att.ID, att.MessageID, att.Filename, att.MimeType, att.Size, localPath, att.IsCompressed, att.Width, att.Height)
 			if err != nil {
 				return fmt.Errorf("failed to save attachment %s: %w", att.ID, err)
 			}
@@ -464,7 +520,20 @@ func (r *Repository) scanMessage(row interface {
 		&msg.ID, &msg.ChatID, &msg.SenderID, &msg.Content, &msg.ContentType, &msg.Status,
 		&msg.IsOutgoing, &msg.ReplyToID, &msg.Timestamp, &msg.CreatedAt, &msg.UpdatedAt,
 	)
-	return msg, err
+	if err != nil {
+		return nil, err
+	}
+
+	// Дешифруем контент
+	if r.keys != nil && msg.Content != "" {
+		if decoded, err := base64.StdEncoding.DecodeString(msg.Content); err == nil {
+			if decrypted, err := r.keys.Decrypt(decoded); err == nil {
+				msg.Content = string(decrypted)
+			}
+		}
+	}
+
+	return msg, nil
 }
 
 // enrichMessagesWithAttachments загружает вложения для списка сообщений
@@ -508,6 +577,15 @@ func (r *Repository) enrichMessagesWithAttachments(ctx context.Context, messages
 		}
 		att.Width = int(width.Int32)
 		att.Height = int(height.Int32)
+
+		// Дешифруем путь к файлу
+		if r.keys != nil && att.LocalPath != "" {
+			if decoded, err := base64.StdEncoding.DecodeString(att.LocalPath); err == nil {
+				if decrypted, err := r.keys.Decrypt(decoded); err == nil {
+					att.LocalPath = string(decrypted)
+				}
+			}
+		}
 
 		if msg, ok := msgMap[att.MessageID]; ok {
 			msg.Attachments = append(msg.Attachments, att)
