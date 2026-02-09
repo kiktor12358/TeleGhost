@@ -241,6 +241,11 @@ func (a *App) initUserRepository(userID string) error {
 		return fmt.Errorf("migration failed: %w", err)
 	}
 
+	// Мигрируем данные в зашифрованный вид если нужно
+	if err := repo.MigrateEncryption(a.ctx); err != nil {
+		log.Printf("[App] Encryption migration failed: %v", err)
+	}
+
 	log.Printf("[App] User repository initialized: %s", userDir)
 	return nil
 }
@@ -379,27 +384,23 @@ func (a *App) connectToI2P() {
 	if _, err := os.Stat(keysPath); err == nil {
 		log.Println("[App] Loading existing I2P keys from file...")
 
-		// Читаем файл и дешифруем если нужно
 		data, err := os.ReadFile(keysPath)
 		if err == nil {
 			if a.identity != nil && a.identity.Keys != nil {
 				decrypted, err := a.identity.Keys.Decrypt(data)
 				if err == nil {
-					// Используем временный файл для загрузки через i2pkeys
-					tmpPath := keysPath + ".tmp"
-					if err := os.WriteFile(tmpPath, decrypted, 0600); err == nil {
-						defer os.Remove(tmpPath)
-						keys, err := i2pkeys.LoadKeys(tmpPath)
-						if err == nil {
-							a.router.SetKeys(keys)
-							log.Println("[App] I2P keys decrypted and loaded successfully")
-						} else {
-							log.Printf("[App] Warning: failed to parse decrypted I2P keys: %v", err)
-						}
+					// Загружаем ключи из байтов напрямую через Reader
+					reader := bytes.NewReader(decrypted)
+					keys, err := i2pkeys.LoadKeysIncompat(reader)
+					if err == nil {
+						a.router.SetKeys(keys)
+						log.Println("[App] I2P keys decrypted and loaded from memory successfully")
+					} else {
+						log.Printf("[App] Warning: failed to parse decrypted I2P keys: %v", err)
 					}
 				} else {
 					log.Printf("[App] I2P keys file is not encrypted or wrong key: %v", err)
-					// Пробуем загрузить как есть (на случай если это старая версия без шифрования)
+					// Пробуем загрузить как есть через LoadKeys (совместимость)
 					keys, err := i2pkeys.LoadKeys(keysPath)
 					if err == nil {
 						a.router.SetKeys(keys)
@@ -418,45 +419,37 @@ func (a *App) connectToI2P() {
 	}
 
 	// Сохраняем I2P ключи в файл (зашифрованно)
-	destination := a.router.GetDestination()
 	currentKeys := a.router.GetKeys()
-	tmpPath := keysPath + ".save"
-	if err := i2pkeys.StoreKeys(currentKeys, tmpPath); err == nil {
-		defer os.Remove(tmpPath)
-		data, err := os.ReadFile(tmpPath)
-		if err == nil {
-			// Шифруем
-			if a.identity != nil && a.identity.Keys != nil {
-				encrypted, err := a.identity.Keys.Encrypt(data)
-				if err == nil {
-					data = encrypted
-				}
-			}
 
-			if err := os.WriteFile(keysPath, data, 0600); err != nil {
-				log.Printf("[App] Warning: failed to save encrypted I2P keys: %v", err)
-			} else {
-				log.Printf("[App] I2P keys saved and encrypted to %s", keysPath)
+	// Используем буфер для сериализации ключей в памяти
+	var buf bytes.Buffer
+	if err := i2pkeys.StoreKeysIncompat(currentKeys, &buf); err == nil {
+		data := buf.Bytes()
+		// Шифруем
+		if a.identity != nil && a.identity.Keys != nil {
+			encrypted, err := a.identity.Keys.Encrypt(data)
+			if err == nil {
+				data = encrypted
+			}
+		}
+
+		if err := os.WriteFile(keysPath, data, 0600); err != nil {
+			log.Printf("[App] Warning: failed to save encrypted I2P keys: %v", err)
+		} else {
+			log.Printf("[App] I2P keys saved and encrypted to %s", keysPath)
+		}
+
+		// Также сохраняем сами ключи в БД (репозиторий их зашифрует)
+		if a.repo != nil && a.identity != nil {
+			existingUser, _ := a.repo.GetMyProfile(a.ctx)
+			if existingUser != nil {
+				existingUser.I2PAddress = a.router.GetDestination()
+				existingUser.I2PKeys = buf.Bytes() // используем нешифрованные байты, репозиторий сам зашифрует
+				a.repo.SaveUser(a.ctx, existingUser)
 			}
 		}
 	} else {
-		log.Printf("[App] Warning: failed to store I2P keys to tmp: %v", err)
-	}
-
-	// Обновляем I2P адрес и ключи в профиле
-	if a.repo != nil && a.identity != nil {
-		existingUser, _ := a.repo.GetMyProfile(a.ctx)
-		if existingUser != nil {
-			existingUser.I2PAddress = destination
-
-			// Также сохраняем сами ключи в БД (репозиторий их зашифрует)
-			rawKeys, err := os.ReadFile(tmpPath)
-			if err == nil {
-				existingUser.I2PKeys = rawKeys
-			}
-
-			a.repo.SaveUser(a.ctx, existingUser)
-		}
+		log.Printf("[App] Warning: failed to serialize I2P keys: %v", err)
 	}
 
 	// Создаём мессенджер сервис
@@ -488,7 +481,7 @@ func (a *App) connectToI2P() {
 	}
 
 	a.setNetworkStatus(NetworkStatusOnline)
-	log.Printf("[App] Connected to I2P. Destination: %s...", destination[:32])
+	log.Printf("[App] Connected to I2P. Destination: %s...", a.router.GetDestination()[:32])
 }
 
 // saveAttachment сохраняет вложение на диск
