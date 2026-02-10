@@ -160,12 +160,21 @@ func (a *App) onContactRequest(pubKey, nickname, i2pAddress string) {
 	// Если не нашли по ключу, проверяем по адресу (мог быть добавлен вручную без ключа)
 	existingContact, err = a.repo.GetContactByAddress(a.ctx, i2pAddress)
 	if err == nil && existingContact != nil {
+		oldChatID := existingContact.ChatID
+		newChatID := identity.CalculateChatID(a.identity.Keys.PublicKeyBase64, pubKey)
+
 		// Обновляем ключ и ChatID у существующего контакта
 		existingContact.PublicKey = pubKey
 		existingContact.Nickname = nickname // Можно обновить ник на тот, что прислали
-		existingContact.ChatID = identity.CalculateChatID(a.identity.Keys.PublicKeyBase64, pubKey)
+		existingContact.ChatID = newChatID
 		existingContact.UpdatedAt = time.Now()
 		a.repo.SaveContact(a.ctx, existingContact)
+
+		// Мигрируем сообщения
+		if oldChatID != newChatID {
+			log.Printf("[App] Migrating messages from %s to %s for contact %s", oldChatID, newChatID, pubKey[:8])
+			a.repo.UpdateChatID(a.ctx, oldChatID, newChatID)
+		}
 		return
 	}
 

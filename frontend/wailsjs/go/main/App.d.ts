@@ -74,6 +74,8 @@ export function RemoveChatFromFolder(arg1:string,arg2:string):Promise<void>;
 
 export function RequestProfileUpdate(arg1:string):Promise<void>;
 
+export function SaveFileToLocation(arg1:string,arg2:string):Promise<void>;
+
 export function SaveRouterSettings(arg1:main.RouterSettings):Promise<void>;
 
 export function SaveTempImage(arg1:string,arg2:string):Promise<string>;

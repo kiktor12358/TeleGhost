@@ -1034,3 +1034,24 @@ func (r *Repository) GetFolderChats(ctx context.Context, folderID string) ([]str
 	}
 	return chatIDs, nil
 }
+
+// UpdateChatID переносит сообщения и вложения из одного ChatID в другой
+func (r *Repository) UpdateChatID(ctx context.Context, oldID, newID string) error {
+	if oldID == newID || oldID == "" || newID == "" {
+		return nil
+	}
+
+	// Обновляем чат
+	_, err := r.db.ExecContext(ctx, "UPDATE chats SET id = ? WHERE id = ?", newID, oldID)
+	if err != nil {
+		log.Printf("[Repo] Failed to update chat ID: %v", err)
+	}
+
+	// Обновляем сообщения
+	_, err = r.db.ExecContext(ctx, "UPDATE messages SET chat_id = ? WHERE chat_id = ?", newID, oldID)
+	if err != nil {
+		return fmt.Errorf("failed to update messages chat ID: %w", err)
+	}
+
+	return nil
+}

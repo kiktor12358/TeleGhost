@@ -317,23 +317,25 @@ func (s *Service) getOrCreateConnection(destination string) (net.Conn, error) {
 		return conn, nil
 	}
 
-	// Создаём новое соединение
-	s.connMu.Lock()
-	defer s.connMu.Unlock()
-
-	// Double-check
-	if conn, exists = s.connections[destination]; exists {
-		return conn, nil
-	}
-
-	// Dial с таймаутом
+	// Dial с таймаутом БЕЗ блокировки всего пула
+	log.Printf("[Messenger] Dialing %s...", destination[:16])
 	newConn, err := s.router.Dial(destination)
 	if err != nil {
 		return nil, err
 	}
 
+	// Сохраняем новое соединение
+	s.connMu.Lock()
+	defer s.connMu.Unlock()
+
+	// На случай, если кто-то другой уже успел создать соединение
+	if conn, exists = s.connections[destination]; exists {
+		newConn.Close()
+		return conn, nil
+	}
+
 	s.connections[destination] = newConn
-	log.Printf("[Messenger] Connected to %s...", destination[:32])
+	log.Printf("[Messenger] Connected to %s...", destination[:16])
 
 	return newConn, nil
 }

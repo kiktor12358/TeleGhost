@@ -166,6 +166,9 @@
         {/if}
         
         <div class="input-area">
+            <button class="btn-icon {isCompressed ? 'active' : ''}" on:click={() => isCompressed = !isCompressed} title={isCompressed ? 'Сжимать изображения (быстро)' : 'Отправлять оригинал (требует принятия)'}>
+                <div class="icon-svg" style="opacity: {isCompressed ? 1 : 0.5}">{@html isCompressed ? Icons.Image : Icons.File}</div>
+            </button>
             <button class="btn-icon" on:click={onSelectFiles} title="Прикрепить файл">
                 <div class="icon-svg">{@html Icons.Paperclip}</div>
             </button>
@@ -221,6 +224,7 @@
 
     .btn-icon { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
     .btn-icon:hover { background: rgba(255,255,255,0.1); color: white; }
+    .btn-icon.active { color: var(--accent); }
 
     .btn-send { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
     .btn-send:hover { transform: scale(1.05); }

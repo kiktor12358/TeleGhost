@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"mime"
 	"os"
 	"path/filepath"
@@ -272,16 +273,22 @@ func (a *App) SendText(contactID, text string) error {
 		a.repo.SaveContact(a.ctx, contact)
 	}
 
-	a.messenger.SendHandshake(contact.I2PAddress)
+	log.Printf("[App] Sending message to %s (ChatID: %s)", contact.Nickname, contact.ChatID)
+
+	// Отправляем handshake в фоне, если нет публичного ключа
+	if contact.PublicKey == "" {
+		go a.messenger.SendHandshake(contact.I2PAddress)
+	}
 
 	if err := a.messenger.SendTextMessage(contact.I2PAddress, contact.ChatID, text); err != nil {
+		log.Printf("[App] SendText error: %v", err)
 		return fmt.Errorf("send failed: %w", err)
 	}
 
 	msg := &core.Message{
 		ID:          uuid.New().String(),
 		ChatID:      contact.ChatID,
-		SenderID:    a.identity.Keys.UserID, // Revert to UserID
+		SenderID:    a.identity.Keys.UserID,
 		Content:     text,
 		ContentType: "text",
 		Status:      core.MessageStatusSent,
@@ -292,6 +299,7 @@ func (a *App) SendText(contactID, text string) error {
 	}
 
 	a.repo.SaveMessage(a.ctx, msg)
+	log.Printf("[App] Message saved and emitted: %s", msg.ID)
 
 	runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
 		"ID":         msg.ID,

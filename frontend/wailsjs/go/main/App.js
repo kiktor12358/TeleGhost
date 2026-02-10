@@ -142,6 +142,10 @@ export function RequestProfileUpdate(arg1) {
   return window['go']['main']['App']['RequestProfileUpdate'](arg1);
 }
 
+export function SaveFileToLocation(arg1, arg2) {
+  return window['go']['main']['App']['SaveFileToLocation'](arg1, arg2);
+}
+
 export function SaveRouterSettings(arg1) {
   return window['go']['main']['App']['SaveRouterSettings'](arg1);
 }

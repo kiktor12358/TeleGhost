@@ -558,7 +558,7 @@
                     {:else if selectedContact}
                         <Chat 
                             {selectedContact} {messages} {newMessage} {selectedFiles} {filePreviews}
-                            {editingMessageId} {editMessageContent} {isCompressed} {previewImage}
+                            {editingMessageId} {editMessageContent} bind:isCompressed {previewImage}
                             {...chatHandlers}
                         />
                     {:else}

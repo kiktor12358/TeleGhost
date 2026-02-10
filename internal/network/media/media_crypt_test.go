@@ -70,4 +70,16 @@ func TestMediaCrypt(t *testing.T) {
 	if !bytes.Equal(plainData, decrypted) {
 		t.Fatal("Decrypted data does not match original plain data")
 	}
+
+	// 4. Test DecryptDirectory
+	err = mc.DecryptDirectory(tempDir)
+	if err != nil {
+		t.Fatalf("DecryptDirectory failed: %v", err)
+	}
+
+	// Verify file is now plaintext on disk
+	onDiskData, _ := ioutil.ReadFile(plainFile)
+	if !bytes.Equal(plainData, onDiskData) {
+		t.Error("File on disk is not decrypted after DecryptDirectory")
+	}
 }
