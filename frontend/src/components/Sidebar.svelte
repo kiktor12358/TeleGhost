@@ -1,6 +1,6 @@
 <script>
     import { Icons } from '../Icons.js';
-    import { getInitials, formatTime, getStatusColor, getStatusText } from '../utils.js';
+    import { getInitials, formatTime, getStatusColor, getStatusText, getAvatarGradient } from '../utils.js';
     import { writable } from 'svelte/store';
 
     export let isMobile;
@@ -147,7 +147,7 @@
                     tabindex="0"
                     role="button"
                 >
-                    <div class="contact-avatar" style="background: var(--accent);">
+                    <div class="contact-avatar" style="background: {getAvatarGradient(contact.Nickname)};">
                         {#if contact.Avatar}
                             <img src={contact.Avatar} alt="av"/>
                         {:else}
@@ -230,7 +230,7 @@
                     tabindex="0"
                     role="button"
                 >
-                    <div class="contact-avatar" style="background: var(--accent);">
+                    <div class="contact-avatar" style="background: {getAvatarGradient(contact.Nickname)};">
                         {#if contact.Avatar}
                             <img src={contact.Avatar} alt="av"/>
                         {:else}

@@ -274,6 +274,23 @@ func (a *App) GetMyInfo() *UserInfo {
 	}
 }
 
+// GetCurrentProfile возвращает метаданные текущего профиля (для PIN настроек)
+func (a *App) GetCurrentProfile() map[string]interface{} {
+	if a.identity == nil || a.profileManager == nil {
+		return nil
+	}
+	profile, _ := a.profileManager.GetProfileByUserID(a.identity.Keys.UserID)
+	if profile == nil {
+		return nil
+	}
+	return map[string]interface{}{
+		"id":      profile.ID,
+		"use_pin": profile.UsePin,
+		"name":    profile.DisplayName,
+		"user_id": profile.UserID,
+	}
+}
+
 // UpdateMyProfile обновляет профиль
 func (a *App) UpdateMyProfile(nickname, bio, avatar string) error {
 	if err := a.repo.UpdateMyProfile(a.ctx, nickname, bio, avatar); err != nil {

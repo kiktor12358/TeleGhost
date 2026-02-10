@@ -58,6 +58,7 @@
   let profileBio = '';
   let profileAvatar = '';
   let routerSettings = { tunnelLength: 1, logToFile: false };
+  let selectedProfile = null;
 
   // Modals State
   let showConfirmModal = false;
@@ -69,7 +70,7 @@
   
   let showFolderModal = false;
   let isEditingFolder = false;
-  let currentFolderData = { id: '', name: '', icon: '📁' };
+  let currentFolderData = { ID: '', Name: '', Icon: '📁' };
   
   let aboutInfo = { app_version: '', i2p_version: '', i2p_path: '', author: '', license: '' };
   
@@ -153,6 +154,10 @@
           myDestination = info.Destination;
           identity = info.ID;
       }
+      // Load current profile metadata for PIN settings
+      try {
+          selectedProfile = await AppActions.GetCurrentProfile();
+      } catch(e) { console.warn('GetCurrentProfile failed:', e); }
   }
 
   async function loadContacts() {
@@ -364,12 +369,12 @@
       onSelectFolder: (id) => { activeFolderId = id; showSettings = false; },
       onEditFolder: (folder) => {
           isEditingFolder = true;
-          currentFolderData = { ...folder };
+          currentFolderData = { ID: folder.ID, Name: folder.Name, Icon: folder.Icon };
           showFolderModal = true;
       },
       onCreateFolder: () => {
           isEditingFolder = false;
-          currentFolderData = { id: '', name: '', icon: '📁' };
+          currentFolderData = { ID: '', Name: '', Icon: '📁' };
           showFolderModal = true;
       }
   };
@@ -492,8 +497,35 @@
           }
       },
       onLogout: handleLogout,
-      onTogglePinUsage: () => { /* Toggle PIN logic */ },
-      onChangePin: () => { /* Change PIN logic */ },
+      onTogglePinUsage: async () => {
+          if (!selectedProfile) return;
+          try {
+              const newUsePin = !selectedProfile.use_pin;
+              if (newUsePin) {
+                  // Включаем PIN — нужен новый PIN
+                  const pin = prompt('Введите новый ПИН-код (минимум 6 символов):');
+                  if (!pin || pin.length < 6) { showToast('ПИН-код должен быть минимум 6 символов', 'error'); return; }
+                  const mnemonic = currentUserInfo?.Mnemonic || '';
+                  await AppActions.UpdateProfile(selectedProfile.id, '', '', false, true, pin, mnemonic);
+              } else {
+                  // Отключаем PIN
+                  const mnemonic = currentUserInfo?.Mnemonic || '';
+                  await AppActions.UpdateProfile(selectedProfile.id, '', '', false, false, '', mnemonic);
+              }
+              selectedProfile = await AppActions.GetCurrentProfile();
+              showToast(newUsePin ? 'ПИН-код включён' : 'ПИН-код отключён', 'success');
+          } catch(e) { showToast('Ошибка: ' + e, 'error'); }
+      },
+      onChangePin: async () => {
+          if (!selectedProfile) return;
+          try {
+              const pin = prompt('Введите новый ПИН-код (минимум 6 символов):');
+              if (!pin || pin.length < 6) { showToast('ПИН-код должен быть минимум 6 символов', 'error'); return; }
+              const mnemonic = currentUserInfo?.Mnemonic || '';
+              await AppActions.UpdateProfile(selectedProfile.id, '', '', false, true, pin, mnemonic);
+              showToast('ПИН-код обновлён', 'success');
+          } catch(e) { showToast('Ошибка: ' + e, 'error'); }
+      },
       onBackToMenu: () => { settingsView = 'menu'; },
       onOpenCategory: (id) => { 
           activeSettingsTab = id; 
@@ -521,9 +553,9 @@
       onCancelConfirm: () => { showConfirmModal = false; },
       onSaveFolder: async () => {
           if (isEditingFolder) {
-              await AppActions.UpdateFolder(currentFolderData.id, currentFolderData.name, currentFolderData.icon);
+              await AppActions.UpdateFolder(currentFolderData.ID, currentFolderData.Name, currentFolderData.Icon);
           } else {
-              await AppActions.CreateFolder(currentFolderData.name, currentFolderData.icon);
+              await AppActions.CreateFolder(currentFolderData.Name, currentFolderData.Icon);
           }
           showFolderModal = false;
           loadContacts();
@@ -626,7 +658,7 @@
                                 {id: 'network', name: 'I2P Сеть', icon: Icons.Globe},
                                 {id: 'about', name: 'О программе', icon: Icons.Info}
                             ]}
-                            {activeSettingsTab} {settingsView} selectedProfile={null} {networkStatus} {myDestination}
+                            {activeSettingsTab} {settingsView} {selectedProfile} {networkStatus} {myDestination}
                             {aboutInfo}
                             {...settingsHandlers} 
                         />
@@ -659,7 +691,7 @@
                                 {id: 'network', name: 'I2P Сеть', icon: Icons.Globe},
                                 {id: 'about', name: 'О программе', icon: Icons.Info}
                             ]}
-                            {activeSettingsTab} {settingsView} selectedProfile={null} {networkStatus} {myDestination}
+                            {activeSettingsTab} {settingsView} {selectedProfile} {networkStatus} {myDestination}
                             {aboutInfo}
                             {...settingsHandlers} 
                         />
@@ -685,7 +717,7 @@
     {/if}
 
     <Modals {showConfirmModal} {confirmModalTitle} {confirmModalText} 
-            {showFolderModal} {isEditingFolder} folderName={currentFolderData.name} folderIcon={currentFolderData.icon}
+            {showFolderModal} {isEditingFolder} bind:folderName={currentFolderData.Name} bind:folderIcon={currentFolderData.Icon}
             showContactProfile={showContactProfile} contact={selectedContact}
             {showAddContact} bind:addContactName bind:addContactAddress
             {showSeedModal} mnemonic={currentUserInfo?.Mnemonic || ''}

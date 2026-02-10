@@ -3,6 +3,31 @@ export function getInitials(name) {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
+export function getAvatarGradient(name) {
+    if (!name) return 'linear-gradient(135deg, #6366f1, #a78bfa)';
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const palettes = [
+        ['#6366f1', '#a78bfa'], // indigo → violet
+        ['#8b5cf6', '#ec4899'], // violet → pink
+        ['#06b6d4', '#3b82f6'], // cyan → blue
+        ['#10b981', '#06b6d4'], // emerald → cyan
+        ['#f59e0b', '#ef4444'], // amber → red
+        ['#ec4899', '#f97316'], // pink → orange
+        ['#14b8a6', '#a78bfa'], // teal → violet
+        ['#3b82f6', '#8b5cf6'], // blue → violet
+        ['#f43f5e', '#fb923c'], // rose → orange
+        ['#22d3ee', '#818cf8'], // cyan → indigo
+        ['#a855f7', '#6366f1'], // purple → indigo
+        ['#059669', '#2dd4bf'], // emerald dark → teal
+    ];
+    const idx = Math.abs(hash) % palettes.length;
+    const angle = (Math.abs(hash >> 4) % 4) * 45 + 120; // 120-255 deg
+    return `linear-gradient(${angle}deg, ${palettes[idx][0]}, ${palettes[idx][1]})`;
+}
+
 export function formatTime(timestamp) {
     if (!timestamp) return '';
     const date = new Date(timestamp);

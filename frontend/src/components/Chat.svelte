@@ -1,6 +1,6 @@
 <script>
     import { Icons } from '../Icons.js';
-    import { getInitials, formatTime, parseMarkdown } from '../utils.js';
+    import { getInitials, formatTime, parseMarkdown, getAvatarGradient } from '../utils.js';
     import { fade } from 'svelte/transition';
 
     export let selectedContact;
@@ -58,7 +58,7 @@
             on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpenContactProfile()}
             style="cursor: pointer;"
         >
-            <div class="chat-avatar" style="background: rgba(255,255,255,0.05);">
+            <div class="chat-avatar" style="background: {getAvatarGradient(selectedContact?.Nickname)};">
                 {#if selectedContact?.Avatar}
                     <img src={selectedContact.Avatar} alt="av"/>
                 {:else}

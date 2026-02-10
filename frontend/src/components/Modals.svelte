@@ -1,6 +1,6 @@
 <script>
     import { Icons } from '../Icons.js';
-    import { getInitials } from '../utils.js';
+    import { getInitials, getAvatarGradient } from '../utils.js';
 
     // Confirm Modal
     export let showConfirmModal = false;
@@ -40,6 +40,25 @@
     export let mnemonic = '';
     export let onCloseSeed;
 
+    // I2P address toggle
+    let showFullAddress = false;
+
+    // Emoji picker
+    const emojiList = [
+        '📁', '💼', '👥', '👨‍👩‍👧‍👦', '🏠', '💬', '🎮', '🎵',
+        '📚', '💻', '🔒', '⭐', '❤️', '🔥', '🎯', '🌐',
+        '🛒', '📸', '🎬', '🏢', '✈️', '🎓', '🤝', '💡',
+        '🔔', '📌', '🏆', '🌟', '🎨', '🔧', '📈', '🛡️'
+    ];
+    let showEmojiPicker = false;
+
+    function selectEmoji(emoji) {
+        folderIcon = emoji;
+        showEmojiPicker = false;
+    }
+
+    // Close I2P when contact profile closes
+    $: if (!showContactProfile) showFullAddress = false;
 </script>
 
 <!-- Custom Confirm Modal -->
@@ -85,9 +104,20 @@
             <label class="form-label">Название
                 <input type="text" bind:value={folderName} class="input-field" placeholder="Напр: Работа, Семья" />
             </label>
-            <label class="form-label" style="margin-top: 16px;">Иконка (Emoji)
-                <input type="text" bind:value={folderIcon} class="input-field" style="font-size: 24px; text-align: center;" />
-            </label>
+            <div class="emoji-section" style="margin-top: 16px;">
+                <label class="form-label">Иконка</label>
+                <div class="emoji-current" on:click={() => showEmojiPicker = !showEmojiPicker} role="button" tabindex="0" on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && (showEmojiPicker = !showEmojiPicker)}>
+                    <span class="emoji-display">{folderIcon}</span>
+                    <span class="emoji-hint">{showEmojiPicker ? 'Закрыть' : 'Выбрать'}</span>
+                </div>
+                {#if showEmojiPicker}
+                    <div class="emoji-grid">
+                        {#each emojiList as emoji}
+                            <button class="emoji-btn" class:selected={folderIcon === emoji} on:click={() => selectEmoji(emoji)}>{emoji}</button>
+                        {/each}
+                    </div>
+                {/if}
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn-small btn-glass" on:click={onCancelFolder}>Отмена</button>
@@ -112,15 +142,28 @@
             <button class="btn-icon" on:click={onCloseContactProfile}><div class="icon-svg">{@html Icons.X}</div></button>
         </div>
         <div class="modal-body" style="text-align: center; padding: 20px 0;">
-            <div class="profile-avatar-large" style="width: 100px; height: 100px; margin: 0 auto 20px; background: var(--accent); border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white;">
+            <div class="profile-avatar-large" style="width: 100px; height: 100px; margin: 0 auto 20px; background: {getAvatarGradient(contact.Nickname)}; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white;">
                 {#if contact.Avatar}<img src={contact.Avatar} alt="av" style="width:100%;height:100%;object-fit:cover;"/>{:else}{getInitials(contact.Nickname)}{/if}
             </div>
             <h2 style="margin-bottom: 4px;">{contact.Nickname}</h2>
             <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">{contact.IsOnline ? 'В сети' : 'Оффлайн'}</p>
             
-            <div style="text-align: left; background: var(--bg-input); padding: 16px; border-radius: 16px;">
-                <span style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">I2P Адрес</span>
-                <code style="font-size: 11px; word-break: break-all; opacity: 0.8;">{contact.I2PAddress}</code>
+            <!-- I2P Address - collapsed by default -->
+            <div class="i2p-address-section">
+                <div class="i2p-toggle" on:click={() => showFullAddress = !showFullAddress} role="button" tabindex="0" on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && (showFullAddress = !showFullAddress)}>
+                    <span style="font-size: 12px; color: var(--text-secondary);">I2P Адрес</span>
+                    <span style="font-size: 12px; color: var(--text-secondary);">
+                        {#if !showFullAddress}
+                            {contact.I2PAddress ? contact.I2PAddress.slice(0, 20) + '...' : 'Нет адреса'}
+                        {/if}
+                        <span class="toggle-arrow" class:open={showFullAddress}>{@html Icons.ChevronRight || '▸'}</span>
+                    </span>
+                </div>
+                {#if showFullAddress}
+                    <div class="i2p-address-full" style="margin-top: 8px; text-align: left; background: var(--bg-input); padding: 12px; border-radius: 12px;">
+                        <code style="font-size: 11px; word-break: break-all; opacity: 0.8; line-height: 1.4;">{contact.I2PAddress}</code>
+                    </div>
+                {/if}
             </div>
         </div>
         <div class="modal-footer">
@@ -230,4 +273,43 @@
     .clickable-btn { cursor: pointer !important; position: relative; z-index: 10002; transition: all 0.2s; }
     .clickable-btn:hover { filter: brightness(1.2); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
     .clickable-btn:active { transform: translateY(0); }
+
+    /* I2P Address Section */
+    .i2p-address-section { text-align: left; margin-top: 8px; }
+    .i2p-toggle { 
+        display: flex; align-items: center; justify-content: space-between; 
+        padding: 12px 16px; background: var(--bg-input); border-radius: 14px; 
+        cursor: pointer; transition: background 0.2s;
+    }
+    .i2p-toggle:hover { background: rgba(255,255,255,0.08); }
+    .toggle-arrow { 
+        display: inline-flex; width: 16px; height: 16px; margin-left: 8px;
+        transition: transform 0.2s; vertical-align: middle;
+    }
+    .toggle-arrow :global(svg) { width: 100%; height: 100%; }
+    .toggle-arrow.open { transform: rotate(90deg); }
+
+    /* Emoji Picker */
+    .emoji-current {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 16px; background: var(--bg-input); border: 1px solid var(--border);
+        border-radius: 14px; cursor: pointer; transition: all 0.2s;
+    }
+    .emoji-current:hover { border-color: var(--accent); }
+    .emoji-display { font-size: 28px; line-height: 1; }
+    .emoji-hint { font-size: 12px; color: var(--text-secondary); }
+    .emoji-grid {
+        display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px;
+        padding: 12px; margin-top: 8px; background: var(--bg-input);
+        border: 1px solid var(--border); border-radius: 14px;
+        max-height: 200px; overflow-y: auto;
+    }
+    .emoji-btn {
+        width: 100%; aspect-ratio: 1; font-size: 22px; background: transparent;
+        border: 2px solid transparent; border-radius: 10px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.15s;
+    }
+    .emoji-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.15); }
+    .emoji-btn.selected { border-color: var(--accent); background: rgba(99, 102, 241, 0.15); }
 </style>
