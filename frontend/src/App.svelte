@@ -421,8 +421,10 @@
                               {editingMessageId} {editMessageContent} {isCompressed} {previewImage}
                               {...chatHandlers} />
                     {:else}
-                        <div class="no-chat">
-                            <img src="/icon.png" alt="Logo" class="rounded-full" style="width: 120px; opacity: 0.5;" />
+                        <div class="no-chat animate-fade-in">
+                            <div class="ghost-logo-wrapper">
+                                <div class="icon-svg-xl">{@html Icons.Ghost}</div>
+                            </div>
                             <h2>TeleGhost</h2>
                             <p>Выберите чат для начала общения</p>
                         </div>
@@ -503,4 +505,20 @@
         position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: flex; align-items: center; justify-content: center;
     }
     .fullscreen-preview img { max-width: 90%; max-height: 90%; object-fit: contain; }
+
+    .ghost-logo-wrapper {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(162, 155, 254, 0.1));
+        border-radius: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
+        opacity: 0.8;
+        margin-bottom: 20px;
+        border: 1px solid rgba(99, 102, 241, 0.1);
+    }
+    .icon-svg-xl { width: 64px; height: 64px; }
+    .icon-svg-xl :global(svg) { width: 100%; height: 100%; }
 </style>
