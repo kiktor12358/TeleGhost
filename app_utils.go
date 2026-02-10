@@ -97,6 +97,24 @@ func (a *App) ShowInFolder(path string) error {
 	return open.Run(filepath.Dir(path))
 }
 
+// SaveFileToLocation opens a save dialog and copies the source file to the selected location
+func (a *App) SaveFileToLocation(sourcePath string, filename string) error {
+	targetPath, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title:           "Сохранить файл",
+		DefaultFilename: filename,
+	})
+	if err != nil || targetPath == "" {
+		return err
+	}
+
+	data, err := os.ReadFile(sourcePath)
+	if err != nil {
+		return fmt.Errorf("failed to read source file: %w", err)
+	}
+
+	return os.WriteFile(targetPath, data, 0644)
+}
+
 // CopyToClipboard копирует текст в буфер обмена
 func (a *App) CopyToClipboard(text string) {
 	runtime.ClipboardSetText(a.ctx, text)
