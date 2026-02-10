@@ -97,16 +97,16 @@ func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) e
 		a.repo.SaveMessage(a.ctx, msg)
 
 		runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
-			"id":          msg.ID,
-			"chatId":      msg.ChatID,
-			"senderId":    msg.SenderID,
-			"content":     msg.Content,
-			"timestamp":   msg.Timestamp,
-			"isOutgoing":  msg.IsOutgoing,
-			"contentType": "file_offer",
-			"fileCount":   len(files),
-			"totalSize":   totalSize,
-			"filenames":   filenames,
+			"ID":          msg.ID,
+			"ChatID":      msg.ChatID,
+			"SenderID":    msg.SenderID,
+			"Content":     msg.Content,
+			"Timestamp":   msg.Timestamp,
+			"IsOutgoing":  msg.IsOutgoing,
+			"ContentType": "file_offer",
+			"FileCount":   len(files),
+			"TotalSize":   totalSize,
+			"Filenames":   filenames,
 		})
 
 		return nil
@@ -186,14 +186,14 @@ func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) e
 	a.repo.SaveMessage(a.ctx, msg)
 
 	runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
-		"id":          msg.ID,
-		"chatId":      msg.ChatID,
-		"senderId":    msg.SenderID,
-		"content":     msg.Content,
-		"timestamp":   msg.Timestamp,
-		"isOutgoing":  msg.IsOutgoing,
-		"contentType": msg.ContentType,
-		"status":      "sent",
+		"ID":          msg.ID,
+		"ChatID":      msg.ChatID,
+		"SenderID":    msg.SenderID,
+		"Content":     msg.Content,
+		"Timestamp":   msg.Timestamp,
+		"IsOutgoing":  msg.IsOutgoing,
+		"ContentType": msg.ContentType,
+		"Status":      msg.Status.String(),
 	})
 
 	return nil
@@ -248,13 +248,13 @@ func (a *App) onMessageReceived(msg *core.Message, senderPubKey, senderAddr stri
 	}
 
 	runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
-		"id":          msg.ID,
-		"chatId":      msg.ChatID,
-		"senderId":    msg.SenderID,
-		"content":     msg.Content,
-		"timestamp":   msg.Timestamp,
-		"isOutgoing":  msg.IsOutgoing,
-		"contentType": msg.ContentType,
+		"ID":          msg.ID,
+		"ChatID":      msg.ChatID,
+		"SenderID":    msg.SenderID,
+		"Content":     msg.Content,
+		"Timestamp":   msg.Timestamp,
+		"IsOutgoing":  msg.IsOutgoing,
+		"ContentType": msg.ContentType,
 	})
 }
 
@@ -296,13 +296,13 @@ func (a *App) SendText(contactID, text string) error {
 	a.repo.SaveMessage(a.ctx, msg)
 
 	runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
-		"id":         msg.ID,
-		"chatId":     msg.ChatID,
-		"senderId":   msg.SenderID,
-		"content":    msg.Content,
-		"timestamp":  msg.Timestamp,
-		"isOutgoing": msg.IsOutgoing,
-		"status":     "sent",
+		"ID":         msg.ID,
+		"ChatID":     msg.ChatID,
+		"SenderID":   msg.SenderID,
+		"Content":    msg.Content,
+		"Timestamp":  msg.Timestamp,
+		"IsOutgoing": msg.IsOutgoing,
+		"Status":     "sent",
 	})
 
 	return nil
@@ -393,16 +393,15 @@ func (a *App) onFileOffer(senderPubKey, messageID, chatID string, filenames []st
 	a.repo.SaveMessage(a.ctx, msg)
 
 	runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
-		"id":          msg.ID,
-		"chatId":      msg.ChatID,
-		"senderId":    msg.SenderID,
-		"content":     msg.Content,
-		"timestamp":   msg.Timestamp,
-		"isOutgoing":  msg.IsOutgoing,
-		"contentType": "file_offer",
-		"fileCount":   fileCount,
-		"totalSize":   totalSize,
-		"filenames":   filenames,
+		"ID":          msg.ID,
+		"ChatID":      msg.ChatID,
+		"SenderID":    msg.SenderID,
+		"Content":     "Отправлено файлов: " + fmt.Sprint(fileCount),
+		"Timestamp":   msg.Timestamp,
+		"IsOutgoing":  false,
+		"ContentType": "file_offer",
+		"TotalSize":   totalSize,
+		"FileCount":   fileCount,
 	})
 }
 

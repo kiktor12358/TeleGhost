@@ -183,10 +183,10 @@ func (a *App) onContactRequest(pubKey, nickname, i2pAddress string) {
 	a.repo.SaveContact(a.ctx, contact)
 
 	runtime.EventsEmit(a.ctx, "new_contact", map[string]interface{}{
-		"id":         contact.ID,
-		"nickname":   nickname,
-		"publicKey":  pubKey,
-		"i2pAddress": i2pAddress[:min(32, len(i2pAddress))] + "...",
+		"ID":         contact.ID,
+		"Nickname":   nickname,
+		"PublicKey":  pubKey,
+		"I2PAddress": i2pAddress[:min(32, len(i2pAddress))] + "...",
 	})
 }
 

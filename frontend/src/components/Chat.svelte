@@ -51,18 +51,18 @@
             style="cursor: pointer;"
         >
             <div class="chat-avatar" style="background: rgba(255,255,255,0.05);">
-                {#if selectedContact.avatar}
-                    <img src={selectedContact.avatar} alt="av"/>
+                {#if selectedContact?.Avatar}
+                    <img src={selectedContact.Avatar} alt="av"/>
                 {:else}
                     <img src="/icon.png" alt="av" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;" />
                 {/if}
             </div>
             <div>
-                <div class="chat-name">{selectedContact?.nickname || 'Unknown'}</div>
+                <div class="chat-name">{selectedContact?.Nickname || 'Unknown'}</div>
                 <div class="chat-status">
-                    <span class="status-dot" style="background: {(messages || []).some(m => !m.isOutgoing && m.senderId === selectedContact?.publicKey && (Date.now() - m.timestamp < 300000)) ? '#4CAF50' : '#9E9E9E'};"></span>
+                    <span class="status-dot" style="background: {(messages || []).some(m => !m.IsOutgoing && m.SenderID === selectedContact?.PublicKey && (Date.now() - m.Timestamp < 300000)) ? '#4CAF50' : '#9E9E9E'};"></span>
                     <span class="status-text">
-                        {(messages || []).some(m => !m.isOutgoing && m.senderId === selectedContact?.publicKey && (Date.now() - m.timestamp < 300000)) ? 'В сети' : 'Оффлайн'}
+                        {(messages || []).some(m => !m.IsOutgoing && m.SenderID === selectedContact?.PublicKey && (Date.now() - m.Timestamp < 300000)) ? 'В сети' : 'Оффлайн'}
                     </span>
                 </div>
             </div>
@@ -70,18 +70,18 @@
     </div>
     
     <div class="messages-container">
-        {#each messages as msg (msg.id)}
-            <div class="message animate-message" class:outgoing={msg.isOutgoing}>
-                <div class="message-bubble" class:outgoing={msg.isOutgoing} on:contextmenu|preventDefault={(e) => onShowMessageMenu(e, msg)}>
-                    {#if msg.attachments && msg.attachments.length > 0}
-                        <div class="message-images" style="grid-template-columns: {msg.attachments.length === 1 ? '1fr' : 'repeat(2, 1fr)'}">
-                            {#each msg.attachments as att}
-                                {#if att.mimeType && att.mimeType.startsWith('image/')}
+        {#each messages as msg (msg.ID)}
+            <div class="message animate-message" class:outgoing={msg.IsOutgoing}>
+                <div class="message-bubble" class:outgoing={msg.IsOutgoing} on:contextmenu|preventDefault={(e) => onShowMessageMenu(e, msg)}>
+                    {#if msg.Attachments && msg.Attachments.length > 0}
+                        <div class="message-images" style="grid-template-columns: {msg.Attachments.length === 1 ? '1fr' : 'repeat(2, 1fr)'}">
+                            {#each msg.Attachments as att}
+                                {#if att.mime_type && att.mime_type.startsWith('image/')}
                                     <img 
                                         use:startLoadingImage={att.local_path} 
                                         alt="attachment" 
                                         class="msg-img" 
-                                        style="height: {msg.attachments.length === 1 ? 'auto' : '120px'}" 
+                                        style="height: {msg.Attachments.length === 1 ? 'auto' : '120px'}" 
                                         role="button"
                                         tabindex="0"
                                         on:click={() => onPreviewImage(att.local_path)}
@@ -106,7 +106,7 @@
                         </div>
                     {/if}
 
-                    {#if editingMessageId === msg.id}
+                    {#if editingMessageId === msg.ID}
                         <div class="message-edit-container">
                             <textarea class="message-edit-input" bind:value={editMessageContent} on:keydown={(e) => e.key === 'Escape' && onCancelEdit()}></textarea>
                             <div class="message-edit-actions">
@@ -114,7 +114,7 @@
                                 <button class="btn-sm btn-secondary" on:click={onCancelEdit}>✕</button>
                             </div>
                         </div>
-                    {:else if msg.contentType === 'file_offer'}
+                    {:else if msg.ContentType === 'file_offer'}
                         <div class="file-offer-card">
                             <div class="file-icon-large">📁</div>
                             <div class="file-info">
@@ -123,19 +123,19 @@
                             </div>
                         </div>
                         <div class="file-actions">
-                            {#if !msg.isOutgoing}
+                            {#if !msg.IsOutgoing}
                                 <button class="btn-small btn-success" on:click|stopPropagation={() => onAcceptTransfer(msg)}>Принять</button>
                                 <button class="btn-small btn-danger" on:click|stopPropagation={() => onDeclineTransfer(msg)}>Отклонить</button>
                             {/if}
                         </div>
                     {:else}
-                        <div class="message-content">{@html parseMarkdown(msg.content)}</div>
+                        <div class="message-content">{@html parseMarkdown(msg.Content)}</div>
                     {/if}
 
                     <div class="message-meta">
-                        <span class="message-time">{formatTime(msg.timestamp)}</span>
-                        {#if msg.isOutgoing}
-                            <span class="message-status"><div class="icon-svg-sm" style="display:inline-block; width:12px; height:12px;">{@html msg.status === 'sending' ? Icons.Clock : Icons.Check}</div></span>
+                        <span class="message-time">{formatTime(msg.Timestamp)}</span>
+                        {#if msg.IsOutgoing}
+                            <span class="message-status"><div class="icon-svg-sm" style="display:inline-block; width:12px; height:12px;">{@html msg.Status === 'sending' ? Icons.Clock : Icons.Check}</div></span>
                         {/if}
                     </div>
                 </div>

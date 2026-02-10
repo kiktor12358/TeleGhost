@@ -28,24 +28,24 @@
     let longPressTimer;
 
     $: filteredContacts = (contacts || []).filter(c => {
-        if (!c || !c.nickname) return false;
+        if (!c || !c.Nickname) return false;
         
         // Фильтрация по папкам
         if (activeFolderId !== 'all') {
-            const folder = folders.find(f => f.id === activeFolderId);
+            const folder = (folders || []).find(f => f.ID === activeFolderId);
             if (folder && folder.ChatIDs && !folder.ChatIDs.includes(c.ChatID)) {
                 return false;
             }
         }
 
         const query = (searchQuery || "").toLowerCase();
-        const nickname = (c.nickname || "").toLowerCase();
-        const lastMsg = (c.lastMessage || "").toLowerCase();
+        const nickname = (c.Nickname || "").toLowerCase();
+        const lastMsg = (c.LastMessage || "").toLowerCase();
         return nickname.includes(query) || lastMsg.includes(query);
     });
 
     $: uiFolders = [
-        { id: 'all', name: 'Все', icon: Icons.Chat },
+        { ID: 'all', Name: 'Все', Icon: Icons.Chat },
         ...([...(folders || [])].sort((a, b) => (a?.position || 0) - (b?.position || 0))),
         { id: 'add', name: 'Создать', icon: Icons.Plus }
     ];
@@ -65,10 +65,10 @@
     }
 
     function handleFolderClick(folder) {
-        if (folder.id === 'add') {
+        if (folder.ID === 'add') {
             onCreateFolder();
         } else {
-            onSelectFolder(folder.id);
+            onSelectFolder(folder.ID);
         }
     }
 </script>
@@ -91,20 +91,20 @@
             {#each uiFolders as folder}
                 <div 
                     class="folder-item" 
-                    class:active={!showSettings && activeFolderId === folder.id && folder.id !== 'add'} 
+                    class:active={!showSettings && activeFolderId === folder.ID && folder.ID !== 'add'} 
                     role="button"
                     tabindex="0"
                     on:click={() => handleFolderClick(folder)}
                     on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && handleFolderClick(folder)}
-                    on:contextmenu|preventDefault={(e) => folder.id !== 'all' && folder.id !== 'add' && onEditFolder(folder)}
-                    on:touchstart={(e) => folder.id !== 'all' && folder.id !== 'add' && handleTouchStart(folder, 'folder', e)}
+                    on:contextmenu|preventDefault={(e) => folder.ID !== 'all' && folder.ID !== 'add' && onEditFolder(folder)}
+                    on:touchstart={(e) => folder.ID !== 'all' && folder.ID !== 'add' && handleTouchStart(folder, 'folder', e)}
                     on:touchend={handleTouchEnd}
                     on:touchmove={handleTouchEnd}
-                    title={folder.name}
-                    style={folder.id === 'add' ? 'margin-top: 10px; opacity: 0.7;' : ''}
+                    title={folder.Name}
+                    style={folder.ID === 'add' ? 'margin-top: 10px; opacity: 0.7;' : ''}
                 >
-                    <div class="folder-icon">{@html folder.icon}</div>
-                    <div class="folder-name">{folder.name}</div>
+                    <div class="folder-icon">{@html folder.Icon}</div>
+                    <div class="folder-name">{folder.Name}</div>
                 </div>
             {/each}
         </div>
@@ -137,7 +137,7 @@
             {#each filteredContacts as contact}
                 <div 
                     class="contact-item animate-card" 
-                    class:selected={selectedContact && selectedContact.id === contact.id} 
+                    class:selected={selectedContact && selectedContact.ID === contact.ID} 
                     on:click={() => onSelectContact(contact)}
                     on:contextmenu|preventDefault={(e) => onContextMenu(e, contact)}
                     on:touchstart={(e) => handleTouchStart(contact, 'contact', e)}
@@ -148,15 +148,15 @@
                     role="button"
                 >
                     <div class="contact-avatar" style="background: var(--accent);">
-                        {#if contact.avatar}
-                            <img src={contact.avatar} alt="av"/>
+                        {#if contact.Avatar}
+                            <img src={contact.Avatar} alt="av"/>
                         {:else}
-                            {getInitials(contact.nickname)}
+                            {getInitials(contact.Nickname)}
                         {/if}
                     </div>
                     <div class="contact-info">
-                        <div class="contact-name">{contact.nickname}</div>
-                        <div class="contact-last">{contact.lastMessage || 'Нет сообщений'}</div>
+                        <div class="contact-name">{contact.Nickname}</div>
+                        <div class="contact-last">{contact.LastMessage || 'Нет сообщений'}</div>
                     </div>
                 </div>
             {/each}

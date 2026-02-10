@@ -100,7 +100,7 @@
     
     EventsOn("new_message", (msg) => {
         if (!msg) return;
-        if (selectedContact && msg.chatId === selectedContact.ChatID) {
+        if (selectedContact && msg.ChatID === selectedContact.ChatID) {
             messages = [...(messages || []), msg];
             scrollToBottom();
         }
@@ -213,7 +213,7 @@
   function selectContact(contact) {
       if (!contact) return;
       selectedContact = contact;
-      loadMessages(contact.id);
+      loadMessages(contact.ID);
       if (isMobile) mobileView.set('chat');
   }
 
@@ -577,7 +577,7 @@
     {#if contextMenu.show}
         <div class="context-menu" style="top: {contextMenu.y}px; left: {contextMenu.x}px">
             <div class="context-item" on:click={() => { 
-                AppActions.DeleteContact(contextMenu.contact.id); 
+                AppActions.DeleteContact(contextMenu.contact.ID); 
                 loadContacts();
             }}>Удалить контакт</div>
         </div>
@@ -586,12 +586,12 @@
     {#if messageContextMenu.show}
         <div class="context-menu" style="top: {messageContextMenu.y}px; left: {messageContextMenu.x}px">
             <div class="context-item" on:click={() => {
-                editingMessageId = messageContextMenu.message.id;
-                editMessageContent = messageContextMenu.message.content;
+                editingMessageId = messageContextMenu.message.ID;
+                editMessageContent = messageContextMenu.message.Content;
             }}>Редактировать</div>
             <div class="context-item danger" on:click={() => {
-                AppActions.DeleteMessage(messageContextMenu.message.id);
-                loadMessages(selectedContact.id);
+                AppActions.DeleteMessage(messageContextMenu.message.ID);
+                loadMessages(selectedContact.ID);
             }}>Удалить</div>
         </div>
     {/if}
