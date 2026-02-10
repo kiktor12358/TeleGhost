@@ -132,16 +132,25 @@
           const result = await AppActions.GetContacts();
           console.log("[App] loadContacts: contacts received:", result?.length || 0);
           contacts = result || [];
-
-          console.log("[App] loadContacts: fetching folders...");
-          const f = await AppActions.GetFolders();
-          console.log("[App] loadContacts: folders received:", f?.length || 0);
-          folders = f || [];
+          
+          // Load folders in background without blocking contacts UI
+          loadFolders();
       } catch (err) {
           console.error("[App] loadContacts failed:", err);
           throw err;
       }
       console.log("[App] loadContacts internal finished");
+  }
+
+  async function loadFolders() {
+      console.log("[App] loadFolders started");
+      try {
+          const f = await AppActions.GetFolders();
+          console.log("[App] loadFolders: folders received:", f?.length || 0);
+          folders = f || [];
+      } catch (err) {
+          console.error("[App] loadFolders failed:", err);
+      }
   }
 
   async function onLoginSuccess() {
@@ -156,21 +165,23 @@
           console.log("[App] onLoginSuccess: loading MyInfo...");
           await loadMyInfo();
           
-          console.log("[App] onLoginSuccess: loading Contacts and Folders...");
-          await loadContacts();
-          
-          console.log("[App] onLoginSuccess: all data loaded, switching to main screen");
+          console.log("[App] onLoginSuccess: basic info loaded, switching screen early");
           screen = 'main';
           mobileView.set('list');
+          isInitializing = false; // Stop overlay early
+
+          // Load the rest in the background
+          console.log("[App] onLoginSuccess: loading Contacts and Folders in background...");
+          loadContacts().then(() => {
+              console.log("[App] onLoginSuccess: background data loaded");
+              loadAboutInfo();
+              
+              // Start background polling
+              console.log("[App] Starting background contact polling...");
+              setInterval(loadContacts, 300 * 1000);
+          });
           
-          console.log("[App] onLoginSuccess: loading AboutInfo...");
-          await loadAboutInfo();
-          
-          // Start background polling only after successful login
-          console.log("[App] Starting background contact polling...");
-          setInterval(loadContacts, 300 * 1000); // Poll every 5 minutes (reduced from 30s to save battery/i2p)
-          
-          console.log("[App] onLoginSuccess: everything done!");
+          console.log("[App] onLoginSuccess: transition complete!");
       } catch (err) {
           console.error("[App] onLoginSuccess failed:", err);
           showToast("Ошибка при загрузке данных: " + err, 'error');
@@ -255,7 +266,13 @@
       },
       onAddContactFromClipboard: async () => {
           try {
-              await AppActions.AddContactFromClipboard();
+              const newContact = await AppActions.AddContactFromClipboard();
+              
+              // Optimistic update
+              if (newContact) {
+                  contacts = [newContact, ...contacts];
+              }
+              
               loadContacts();
               showToast("Контакт добавлен", "success");
           } catch (e) { showToast(e, "error"); }
@@ -405,10 +422,17 @@
               return;
           }
           try {
-              await AppActions.AddContact(trimmedName, trimmedAddress);
+              const newContact = await AppActions.AddContact(trimmedName, trimmedAddress);
               showAddContact = false;
               addContactName = '';
               addContactAddress = '';
+              
+              // Optimistic update: add to list immediately
+              if (newContact) {
+                  contacts = [newContact, ...contacts];
+              }
+              
+              // Then reload to get full info (last messages etc)
               loadContacts();
               showToast("Контакт добавлен", "success");
           } catch (e) { 

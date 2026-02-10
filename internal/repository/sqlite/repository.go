@@ -584,9 +584,14 @@ func (r *Repository) ListContactsWithLastMessage(ctx context.Context) ([]*core.C
 	query := `
 		SELECT c.id, c.public_key, c.nickname, c.bio, c.avatar, c.i2p_address, c.chat_id,
 		       c.is_blocked, c.is_verified, c.last_seen, c.added_at, c.updated_at,
-		       (SELECT content FROM messages WHERE chat_id = c.chat_id ORDER BY timestamp DESC LIMIT 1) as last_msg_content,
-		       (SELECT timestamp FROM messages WHERE chat_id = c.chat_id ORDER BY timestamp DESC LIMIT 1) as last_msg_time
+		       m.content as last_msg_content,
+		       m.timestamp as last_msg_time
 		FROM contacts c
+		LEFT JOIN (
+			SELECT chat_id, content, timestamp,
+			       ROW_NUMBER() OVER (PARTITION BY chat_id ORDER BY timestamp DESC) as rn
+			FROM messages
+		) m ON m.chat_id = c.chat_id AND m.rn = 1
 		ORDER BY c.nickname ASC
 	`
 
