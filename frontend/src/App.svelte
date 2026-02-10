@@ -609,8 +609,8 @@
                 {:else if $mobileView === 'chat' && selectedContact}
                     <div class="content-area">
                         <Chat 
-                            {selectedContact} {messages} {newMessage} {selectedFiles} {filePreviews}
-                            {editingMessageId} {editMessageContent} {isCompressed} {previewImage}
+                            {selectedContact} {messages} bind:newMessage bind:selectedFiles {filePreviews}
+                            {editingMessageId} {editMessageContent} bind:isCompressed {previewImage}
                             {isMobile}
                             onBack={() => { selectedContact = null; messages = []; mobileView.set('list'); }}
                             {...chatHandlers}
@@ -665,7 +665,7 @@
                         />
                     {:else if selectedContact}
                         <Chat 
-                            {selectedContact} {messages} {newMessage} {selectedFiles} {filePreviews}
+                            {selectedContact} {messages} bind:newMessage bind:selectedFiles {filePreviews}
                             {editingMessageId} {editMessageContent} bind:isCompressed {previewImage}
                             isMobile={false}
                             {...chatHandlers}
