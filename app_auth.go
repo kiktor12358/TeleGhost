@@ -156,7 +156,7 @@ func (a *App) Login(seedPhrase string) error {
 	if err == nil {
 		a.mediaCrypt = mc
 		mediaDir := filepath.Join(a.dataDir, "users", keys.UserID, "media")
-		go mc.MigrateDirectory(mediaDir)
+		go mc.DecryptDirectory(mediaDir) // Decrypt on login
 	}
 
 	existingProfile, _ := a.repo.GetMyProfile(a.ctx)
@@ -225,6 +225,11 @@ func (a *App) CreateAccount() (string, error) {
 
 // Logout завершает сессию текущего пользователя
 func (a *App) Logout() {
+	if a.identity != nil && a.mediaCrypt != nil {
+		mediaDir := filepath.Join(a.dataDir, "users", a.identity.Keys.UserID, "media")
+		a.mediaCrypt.MigrateDirectory(mediaDir) // Encrypt on logout
+	}
+
 	a.identity = nil
 	if a.repo != nil {
 		a.repo.Close()
