@@ -68,10 +68,7 @@
         }
     }
 
-    function getInitials(name) {
-        if (!name) return 'U';
-        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-    }
+
 
     function selectProfileForLogin(p) {
         selectedProfile = p;
