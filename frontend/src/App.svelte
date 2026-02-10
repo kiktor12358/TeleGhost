@@ -124,26 +124,50 @@
   }
 
   async function loadContacts() {
-      const myInfo = await AppActions.GetMyInfo();
-      if (!myInfo) return;
-      contacts = await AppActions.GetContacts();
-      folders = await AppActions.GetFolders();
+      console.log("[App] loadContacts internal started");
+      try {
+          console.log("[App] loadContacts: fetching contacts...");
+          const result = await AppActions.GetContacts();
+          console.log("[App] loadContacts: contacts received:", result?.length || 0);
+          contacts = result || [];
+
+          console.log("[App] loadContacts: fetching folders...");
+          const f = await AppActions.GetFolders();
+          console.log("[App] loadContacts: folders received:", f?.length || 0);
+          folders = f || [];
+      } catch (err) {
+          console.error("[App] loadContacts failed:", err);
+          throw err;
+      }
+      console.log("[App] loadContacts internal finished");
   }
 
   async function onLoginSuccess() {
       console.log("[App] onLoginSuccess started");
+      if (isInitializing && screen === 'main') {
+          console.log("[App] onLoginSuccess: already initialized and on main screen, skipping redundant call");
+          return;
+      }
+      
       isInitializing = true;
       try {
-          console.log("[App] loading info and contacts...");
+          console.log("[App] onLoginSuccess: loading MyInfo...");
           await loadMyInfo();
+          
+          console.log("[App] onLoginSuccess: loading Contacts and Folders...");
           await loadContacts();
-          console.log("[App] info and contacts loaded, switching screen to main");
+          
+          console.log("[App] onLoginSuccess: all data loaded, switching to main screen");
           screen = 'main';
           mobileView.set('list');
-          loadAboutInfo();
+          
+          console.log("[App] onLoginSuccess: loading AboutInfo...");
+          await loadAboutInfo();
+          console.log("[App] onLoginSuccess: everything done!");
       } catch (err) {
-          console.error("[App] Initialization failed:", err);
+          console.error("[App] onLoginSuccess failed:", err);
           showToast("Ошибка при загрузке данных: " + err, 'error');
+          // Still try to show the app, maybe it's partially working
           screen = 'main';
       } finally {
           isInitializing = false;
