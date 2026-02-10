@@ -34,8 +34,8 @@ func New(dbPath string, keys *identity.Keys) (*Repository, error) {
 	}
 
 	// Настройки пула соединений
-	db.SetMaxOpenConns(1) // SQLite лучше работает с одним соединением
-	db.SetMaxIdleConns(1)
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(time.Hour)
 
 	repo := &Repository{
@@ -300,6 +300,8 @@ func (r *Repository) MigrateEncryption(ctx context.Context) error {
 					}
 				}
 				log.Printf("[Repo] Migrated batch of %d messages...", len(msgIDs))
+				// Небольшая пауза, чтобы дать другим горутинам доступ к БД
+				time.Sleep(50 * time.Millisecond)
 			}
 		}
 	}
