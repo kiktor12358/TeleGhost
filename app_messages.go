@@ -5,19 +5,17 @@ import (
 	"mime"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"teleghost/internal/core"
 	"teleghost/internal/core/identity"
 	pb "teleghost/internal/proto"
-	"teleghost/internal/utils"
 
 	"github.com/google/uuid"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// SendFileMessage отправляет сообщение с файлами
+// SendFileMessage отправляет предложение о передаче файлов
 func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) error {
 	if a.messenger == nil {
 		return fmt.Errorf("messenger not started")
@@ -34,155 +32,65 @@ func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) e
 		actualChatID = identity.CalculateChatID(a.identity.Keys.PublicKeyBase64, contact.PublicKey)
 	}
 
-	if isRaw {
-		now := time.Now().UnixMilli()
-		msgID := fmt.Sprintf("%d-%s", now, a.identity.Keys.UserID[:8])
-
-		a.transferMu.Lock()
-		a.pendingTransfers[msgID] = &PendingTransfer{
-			Destination: destination,
-			ChatID:      actualChatID,
-			Files:       files,
-			MessageID:   msgID,
-			Timestamp:   now,
-		}
-		a.transferMu.Unlock()
-
-		var totalSize int64
-		filenames := make([]string, len(files))
-		for i, f := range files {
-			info, _ := os.Stat(f)
-			if info != nil {
-				totalSize += info.Size()
-			}
-			filenames[i] = filepath.Base(f)
-		}
-
-		if err := a.messenger.SendFileOffer(destination, actualChatID, msgID, filenames, totalSize, int32(len(files))); err != nil {
-			return fmt.Errorf("failed to send file offer: %w", err)
-		}
-
-		msg := &core.Message{
-			ID:          msgID,
-			ChatID:      actualChatID,
-			SenderID:    a.identity.Keys.PublicKeyBase64,
-			Content:     text,
-			ContentType: "file_offer",
-			Status:      core.MessageStatusSent,
-			IsOutgoing:  true,
-			Timestamp:   now,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-		}
-
-		coreAttachments := make([]*core.Attachment, 0, len(files))
-		for _, f := range files {
-			stat, _ := os.Stat(f)
-			size := int64(0)
-			if stat != nil {
-				size = stat.Size()
-			}
-			coreAtt := &core.Attachment{
-				ID:           uuid.New().String(),
-				MessageID:    msgID,
-				Filename:     filepath.Base(f),
-				MimeType:     "application/octet-stream",
-				Size:         size,
-				LocalPath:    f,
-				IsCompressed: false,
-			}
-			coreAttachments = append(coreAttachments, coreAtt)
-		}
-		msg.Attachments = coreAttachments
-		a.repo.SaveMessage(a.ctx, msg)
-
-		runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
-			"ID":          msg.ID,
-			"ChatID":      msg.ChatID,
-			"SenderID":    msg.SenderID,
-			"Content":     msg.Content,
-			"Timestamp":   msg.Timestamp,
-			"IsOutgoing":  msg.IsOutgoing,
-			"ContentType": "file_offer",
-			"FileCount":   len(files),
-			"TotalSize":   totalSize,
-			"Filenames":   filenames,
-		})
-
-		return nil
-	}
-
-	attachments := make([]*pb.Attachment, 0, len(files))
-	for _, filePath := range files {
-		var data []byte
-		var mimeType string
-		var width, height int
-		var isCompressed bool
-
-		ext := strings.ToLower(filepath.Ext(filePath))
-		isImage := ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".webp"
-
-		if !isImage {
-			data, _ = os.ReadFile(filePath)
-			mimeType = mime.TypeByExtension(ext)
-			if mimeType == "" {
-				mimeType = "application/octet-stream"
-			}
-			isCompressed = false
-		} else {
-			data, mimeType, width, height, _ = utils.CompressImage(filePath, 1280, 1280)
-			isCompressed = true
-		}
-
-		att := &pb.Attachment{
-			Id:           uuid.New().String(),
-			Filename:     filepath.Base(filePath),
-			MimeType:     mimeType,
-			Size:         int64(len(data)),
-			Data:         data,
-			IsCompressed: isCompressed,
-			Width:        int32(width),
-			Height:       int32(height),
-		}
-		attachments = append(attachments, att)
-	}
-
 	now := time.Now().UnixMilli()
 	msgID := fmt.Sprintf("%d-%s", now, a.identity.Keys.UserID[:8])
 
-	if err := a.messenger.SendAttachmentMessageWithID(destination, actualChatID, msgID, text, attachments); err != nil {
-		return fmt.Errorf("failed to send message: %w", err)
+	a.transferMu.Lock()
+	a.pendingTransfers[msgID] = &PendingTransfer{
+		Destination: destination,
+		ChatID:      actualChatID,
+		Files:       files,
+		MessageID:   msgID,
+		Timestamp:   now,
+	}
+	a.transferMu.Unlock()
+
+	var totalSize int64
+	filenames := make([]string, len(files))
+	for i, f := range files {
+		info, _ := os.Stat(f)
+		if info != nil {
+			totalSize += info.Size()
+		}
+		filenames[i] = filepath.Base(f)
 	}
 
-	coreAttachments := make([]*core.Attachment, 0, len(attachments))
-	for _, att := range attachments {
-		savedPath, _ := a.saveAttachment(att.Filename, att.Data)
-		coreAtt := &core.Attachment{
-			ID:           att.Id,
-			Filename:     att.Filename,
-			MimeType:     att.MimeType,
-			Size:         att.Size,
-			LocalPath:    savedPath,
-			IsCompressed: att.IsCompressed,
-			Width:        int(att.Width),
-			Height:       int(att.Height),
-		}
-		coreAttachments = append(coreAttachments, coreAtt)
+	if err := a.messenger.SendFileOffer(destination, actualChatID, msgID, filenames, totalSize, int32(len(files))); err != nil {
+		return fmt.Errorf("failed to send file offer: %w", err)
 	}
 
 	msg := &core.Message{
 		ID:          msgID,
 		ChatID:      actualChatID,
-		SenderID:    a.identity.Keys.PublicKeyBase64,
+		SenderID:    a.identity.Keys.PublicKeyBase64, // Use consistency
 		Content:     text,
-		ContentType: "mixed",
+		ContentType: "file_offer",
 		Status:      core.MessageStatusSent,
 		IsOutgoing:  true,
 		Timestamp:   now,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
-		Attachments: coreAttachments,
 	}
+
+	coreAttachments := make([]*core.Attachment, 0, len(files))
+	for _, f := range files {
+		stat, _ := os.Stat(f)
+		size := int64(0)
+		if stat != nil {
+			size = stat.Size()
+		}
+		coreAtt := &core.Attachment{
+			ID:           uuid.New().String(),
+			MessageID:    msgID,
+			Filename:     filepath.Base(f),
+			MimeType:     "application/octet-stream",
+			Size:         size,
+			LocalPath:    f,
+			IsCompressed: false,
+		}
+		coreAttachments = append(coreAttachments, coreAtt)
+	}
+	msg.Attachments = coreAttachments
 	a.repo.SaveMessage(a.ctx, msg)
 
 	runtime.EventsEmit(a.ctx, "new_message", map[string]interface{}{
@@ -192,8 +100,10 @@ func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) e
 		"Content":     msg.Content,
 		"Timestamp":   msg.Timestamp,
 		"IsOutgoing":  msg.IsOutgoing,
-		"ContentType": msg.ContentType,
-		"Status":      msg.Status.String(),
+		"ContentType": "file_offer",
+		"FileCount":   len(files),
+		"TotalSize":   totalSize,
+		"Filenames":   filenames,
 	})
 
 	return nil
@@ -283,7 +193,7 @@ func (a *App) SendText(contactID, text string) error {
 	msg := &core.Message{
 		ID:          uuid.New().String(),
 		ChatID:      contact.ChatID,
-		SenderID:    a.identity.Keys.UserID,
+		SenderID:    a.identity.Keys.PublicKeyBase64, // Use PublicKey for consistency
 		Content:     text,
 		ContentType: "text",
 		Status:      core.MessageStatusSent,
