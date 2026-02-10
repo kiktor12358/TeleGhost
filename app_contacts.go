@@ -87,20 +87,20 @@ func (a *App) DeleteContact(id string) error {
 
 // GetContacts возвращает список контактов
 func (a *App) GetContacts() ([]*ContactInfo, error) {
-	contacts, err := a.repo.ListContacts(a.ctx)
+	if a.repo == nil {
+		return nil, fmt.Errorf("database not initialized")
+	}
+
+	contacts, err := a.repo.ListContactsWithLastMessage(a.ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]*ContactInfo, len(contacts))
 	for i, c := range contacts {
-		lastMsg := ""
-		messages, _ := a.repo.GetChatHistory(a.ctx, c.ChatID, 1, 0)
-		if len(messages) > 0 {
-			lastMsg = messages[0].Content
-			if len(lastMsg) > 30 {
-				lastMsg = lastMsg[:30] + "..."
-			}
+		lastSeen := ""
+		if c.LastSeen != nil {
+			lastSeen = c.LastSeen.Format("15:04")
 		}
 
 		result[i] = &ContactInfo{
@@ -109,8 +109,8 @@ func (a *App) GetContacts() ([]*ContactInfo, error) {
 			Avatar:      c.Avatar,
 			PublicKey:   c.PublicKey,
 			I2PAddress:  c.I2PAddress,
-			LastMessage: lastMsg,
-			LastSeen:    c.LastSeen.Format("15:04"),
+			LastMessage: c.LastMessage,
+			LastSeen:    lastSeen,
 			ChatID:      c.ChatID,
 		}
 	}
@@ -131,6 +131,18 @@ func (a *App) onContactRequest(pubKey, nickname, i2pAddress string) {
 			existingContact.UpdatedAt = time.Now()
 			a.repo.SaveContact(a.ctx, existingContact)
 		}
+		return
+	}
+
+	// Если не нашли по ключу, проверяем по адресу (мог быть добавлен вручную без ключа)
+	existingContact, err = a.repo.GetContactByAddress(a.ctx, i2pAddress)
+	if err == nil && existingContact != nil {
+		// Обновляем ключ и ChatID у существующего контакта
+		existingContact.PublicKey = pubKey
+		existingContact.Nickname = nickname // Можно обновить ник на тот, что прислали
+		existingContact.ChatID = identity.CalculateChatID(a.identity.Keys.PublicKeyBase64, pubKey)
+		existingContact.UpdatedAt = time.Now()
+		a.repo.SaveContact(a.ctx, existingContact)
 		return
 	}
 

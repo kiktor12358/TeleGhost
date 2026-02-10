@@ -74,13 +74,18 @@ type Contact struct {
 	IsVerified bool `json:"is_verified" db:"is_verified"`
 
 	// LastSeen — время последней активности контакта
-	LastSeen time.Time `json:"last_seen" db:"last_seen"`
+	LastSeen *time.Time `json:"last_seen,omitempty" db:"last_seen"`
 
 	// AddedAt — когда контакт был добавлен
 	AddedAt time.Time `json:"added_at" db:"added_at"`
 
 	// UpdatedAt — последнее обновление информации о контакте
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+
+	// LastMessage — последнее сообщение (не хранится в этой таблице)
+	LastMessage string `json:"last_message,omitempty" db:"-"`
+	// LastMessageTime — время последнего сообщения
+	LastMessageTime time.Time `json:"last_message_time,omitempty" db:"-"`
 }
 
 // MessageStatus определяет статус доставки сообщения

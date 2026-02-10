@@ -67,7 +67,7 @@ func (r *Repository) Migrate(ctx context.Context) error {
 	-- Таблица контактов
 	CREATE TABLE IF NOT EXISTS contacts (
 		id TEXT PRIMARY KEY,
-		public_key TEXT NOT NULL UNIQUE,
+		public_key TEXT UNIQUE,
 		nickname TEXT DEFAULT '',
 		bio TEXT DEFAULT '',
 		avatar TEXT DEFAULT '',
@@ -113,6 +113,12 @@ func (r *Repository) Migrate(ctx context.Context) error {
 	CREATE INDEX IF NOT EXISTS idx_messages_timestamp ON messages(chat_id, timestamp DESC);
 	CREATE INDEX IF NOT EXISTS idx_contacts_public_key ON contacts(public_key);
 
+	-- Таблица метаданных
+	CREATE TABLE IF NOT EXISTS db_metadata (
+		key TEXT PRIMARY KEY,
+		value TEXT
+	);
+
 	-- Таблица папок
 	CREATE TABLE IF NOT EXISTS folders (
 		id TEXT PRIMARY KEY,
@@ -129,6 +135,8 @@ func (r *Repository) Migrate(ctx context.Context) error {
 		FOREIGN KEY(folder_id) REFERENCES folders(id) ON DELETE CASCADE,
 		FOREIGN KEY(contact_id) REFERENCES contacts(id) ON DELETE CASCADE
 	);
+
+	-- Таблица вложений
 	CREATE TABLE IF NOT EXISTS message_attachments (
 		id TEXT PRIMARY KEY,
 		message_id TEXT NOT NULL,
@@ -149,12 +157,69 @@ func (r *Repository) Migrate(ctx context.Context) error {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 
+	// Миграция: Проверяем, является ли public_key в контактах NOT NULL
+	// В SQLite нельзя легко изменить колонку, нужно пересоздавать таблицу или проверить PRAGMA
+	rows, err := r.db.QueryContext(ctx, "PRAGMA table_info(contacts)")
+	if err == nil {
+		defer rows.Close()
+		publicKeyNotNull := false
+		for rows.Next() {
+			var cid int
+			var name, ctype string
+			var notnull, pk int
+			var dflt_value interface{}
+			if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt_value, &pk); err == nil {
+				if name == "public_key" && notnull == 1 {
+					publicKeyNotNull = true
+				}
+			}
+		}
+
+		if publicKeyNotNull {
+			log.Println("[Repo] Migrating contacts table to allow NULL public_key...")
+			migrationQuery := `
+				PRAGMA foreign_keys=off;
+				BEGIN TRANSACTION;
+				CREATE TABLE contacts_new (
+					id TEXT PRIMARY KEY,
+					public_key TEXT UNIQUE,
+					nickname TEXT DEFAULT '',
+					bio TEXT DEFAULT '',
+					avatar TEXT DEFAULT '',
+					i2p_address TEXT NOT NULL,
+					chat_id TEXT NOT NULL,
+					is_blocked INTEGER DEFAULT 0,
+					is_verified INTEGER DEFAULT 0,
+					last_seen DATETIME,
+					added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+					updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+				);
+				INSERT INTO contacts_new SELECT * FROM contacts;
+				DROP TABLE contacts;
+				ALTER TABLE contacts_new RENAME TO contacts;
+				COMMIT;
+				PRAGMA foreign_keys=on;
+			`
+			_, err = r.db.ExecContext(ctx, migrationQuery)
+			if err != nil {
+				log.Printf("[Repo] Migration failed: %v", err)
+			}
+		}
+	}
+
 	return nil
 }
 
 // MigrateEncryption переводит старые открытые данные в зашифрованный вид
 func (r *Repository) MigrateEncryption(ctx context.Context) error {
 	if r.keys == nil {
+		return nil
+	}
+
+	// Проверяем, была ли уже выполнена миграция
+	var val string
+	err := r.db.QueryRowContext(ctx, "SELECT value FROM db_metadata WHERE key = ?", "encryption_migrated").Scan(&val)
+	if err == nil && val == "true" {
 		return nil
 	}
 
@@ -214,6 +279,9 @@ func (r *Repository) MigrateEncryption(ctx context.Context) error {
 			}
 		}
 	}
+
+	// Сохраняем отметку об успешной миграции
+	_, _ = r.db.ExecContext(ctx, "INSERT OR REPLACE INTO db_metadata (key, value) VALUES (?, ?)", "encryption_migrated", "true")
 
 	return nil
 }
@@ -389,8 +457,10 @@ func (r *Repository) SaveContact(ctx context.Context, contact *core.Contact) err
 	bio := r.encryptString(contact.Bio)
 	address := r.encryptString(contact.I2PAddress)
 
+	pubKey := sql.NullString{String: contact.PublicKey, Valid: contact.PublicKey != ""}
+
 	_, err := r.db.ExecContext(ctx, query,
-		contact.ID, contact.PublicKey, nickname, bio, contact.Avatar,
+		contact.ID, pubKey, nickname, bio, contact.Avatar,
 		address, contact.ChatID, contact.IsBlocked, contact.IsVerified,
 		contact.LastSeen, contact.AddedAt, contact.UpdatedAt,
 	)
@@ -406,14 +476,16 @@ func (r *Repository) scanContact(row interface {
 	Scan(dest ...interface{}) error
 }) (*core.Contact, error) {
 	contact := &core.Contact{}
+	var pubKey sql.NullString
 	err := row.Scan(
-		&contact.ID, &contact.PublicKey, &contact.Nickname, &contact.Bio, &contact.Avatar,
+		&contact.ID, &pubKey, &contact.Nickname, &contact.Bio, &contact.Avatar,
 		&contact.I2PAddress, &contact.ChatID, &contact.IsBlocked, &contact.IsVerified,
 		&contact.LastSeen, &contact.AddedAt, &contact.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
+	contact.PublicKey = pubKey.String
 
 	contact.Nickname = r.decryptString(contact.Nickname)
 	contact.Bio = r.decryptString(contact.Bio)
@@ -478,6 +550,63 @@ func (r *Repository) GetContactByAddress(ctx context.Context, address string) (*
 	}
 
 	return nil, nil
+}
+
+// ListContactsWithLastMessage возвращает список контактов с их последним сообщением
+func (r *Repository) ListContactsWithLastMessage(ctx context.Context) ([]*core.Contact, error) {
+	// Используем JOIN для получения последнего сообщения для каждого контакта
+	query := `
+		SELECT c.id, c.public_key, c.nickname, c.bio, c.avatar, c.i2p_address, c.chat_id,
+		       c.is_blocked, c.is_verified, c.last_seen, c.added_at, c.updated_at,
+		       m.content as last_msg_content, m.timestamp as last_msg_time
+		FROM contacts c
+		LEFT JOIN (
+			SELECT chat_id, content, timestamp,
+			       ROW_NUMBER() OVER (PARTITION BY chat_id ORDER BY timestamp DESC) as rn
+			FROM messages
+		) m ON m.chat_id = c.chat_id AND m.rn = 1
+		ORDER BY c.nickname ASC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list contacts with messages: %w", err)
+	}
+	defer rows.Close()
+
+	var contacts []*core.Contact
+	for rows.Next() {
+		contact := &core.Contact{}
+		var pubKey sql.NullString
+		var lastMsgContent sql.NullString
+		var lastMsgTime sql.NullInt64
+
+		err := rows.Scan(
+			&contact.ID, &pubKey, &contact.Nickname, &contact.Bio, &contact.Avatar,
+			&contact.I2PAddress, &contact.ChatID, &contact.IsBlocked, &contact.IsVerified,
+			&contact.LastSeen, &contact.AddedAt, &contact.UpdatedAt,
+			&lastMsgContent, &lastMsgTime,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan contact with msg: %w", err)
+		}
+		contact.PublicKey = pubKey.String
+
+		contact.Nickname = r.decryptString(contact.Nickname)
+		contact.Bio = r.decryptString(contact.Bio)
+		contact.I2PAddress = r.decryptString(contact.I2PAddress)
+
+		if lastMsgContent.Valid {
+			contact.LastMessage = r.decryptString(lastMsgContent.String)
+			if lastMsgTime.Valid {
+				contact.LastMessageTime = time.Unix(0, lastMsgTime.Int64*int64(time.Millisecond))
+			}
+		}
+
+		contacts = append(contacts, contact)
+	}
+
+	return contacts, nil
 }
 
 // ListContacts возвращает список всех контактов

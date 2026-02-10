@@ -44,7 +44,7 @@ export function GetFileBase64(arg1:string):Promise<string>;
 
 export function GetFolders():Promise<Array<main.FolderInfo>>;
 
-export function GetImageThumbnail(arg1:string,arg2:number,arg3:number):Promise<string>;
+export function GetImageThumbnail(arg1:string):Promise<string>;
 
 export function GetMediaHandler():Promise<http.Handler>;
 
@@ -77,6 +77,8 @@ export function SaveRouterSettings(arg1:main.RouterSettings):Promise<void>;
 export function SaveTempImage(arg1:string,arg2:string):Promise<string>;
 
 export function SelectFiles():Promise<Array<string>>;
+
+export function SelectImage():Promise<string>;
 
 export function SendFileMessage(arg1:string,arg2:string,arg3:Array<string>,arg4:boolean):Promise<void>;
 

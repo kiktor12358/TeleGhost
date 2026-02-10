@@ -111,7 +111,7 @@
 
     async function handleLoginAction(mnemonic) {
         await Login(mnemonic);
-        onLoginSuccess();
+        await onLoginSuccess();
         showToast('Вход выполнен успешно');
     }
 

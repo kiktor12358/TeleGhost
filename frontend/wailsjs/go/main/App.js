@@ -82,8 +82,8 @@ export function GetFolders() {
   return window['go']['main']['App']['GetFolders']();
 }
 
-export function GetImageThumbnail(arg1, arg2, arg3) {
-  return window['go']['main']['App']['GetImageThumbnail'](arg1, arg2, arg3);
+export function GetImageThumbnail(arg1) {
+  return window['go']['main']['App']['GetImageThumbnail'](arg1);
 }
 
 export function GetMediaHandler() {
@@ -148,6 +148,10 @@ export function SaveTempImage(arg1, arg2) {
 
 export function SelectFiles() {
   return window['go']['main']['App']['SelectFiles']();
+}
+
+export function SelectImage() {
+  return window['go']['main']['App']['SelectImage']();
 }
 
 export function SendFileMessage(arg1, arg2, arg3, arg4) {

@@ -30,6 +30,9 @@ type ContactRepository interface {
 	// ListContacts возвращает список всех контактов
 	ListContacts(ctx context.Context) ([]*core.Contact, error)
 
+	// ListContactsWithLastMessage возвращает контакты с их последним сообщением
+	ListContactsWithLastMessage(ctx context.Context) ([]*core.Contact, error)
+
 	// SaveContact сохраняет новый контакт
 	SaveContact(ctx context.Context, contact *core.Contact) error
 

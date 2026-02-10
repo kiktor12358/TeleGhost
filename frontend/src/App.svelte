@@ -30,8 +30,9 @@
   let contacts = [];
   let searchQuery = '';
   let sidebarWidth = 300;
-  let isResizing = false;
+  let isInitializing = false;
   let selectedContact = null;
+  let isResizing = false;
   let activeFolderId = 'all';
   let folders = [];
   let showAddContact = false;
@@ -130,11 +131,22 @@
   }
 
   async function onLoginSuccess() {
-      await loadMyInfo();
-      await loadContacts();
-      screen = 'main';
-      mobileView.set('list');
-      loadAboutInfo();
+      isInitializing = true;
+      try {
+          await loadMyInfo();
+          await loadContacts();
+          screen = 'main';
+          mobileView.set('list');
+          loadAboutInfo();
+      } catch (err) {
+          console.error("Initialization failed:", err);
+          showToast("Ошибка при загрузке данных: " + err, 'error');
+          // If critical data failed to load, we might want to stay on login screen
+          // but usually loadContacts just gives empty array.
+          screen = 'main';
+      } finally {
+          isInitializing = false;
+      }
   }
 
   async function handleLogout() {
@@ -387,6 +399,14 @@
 
     {#if screen === 'login'}
         <Auth {logo} {onLoginSuccess} />
+    {:else if isInitializing}
+        <div class="initializing-overlay animate-fade-in">
+            <div class="glass-panel" style="padding: 40px; border-radius: 24px; text-align: center;">
+                <div class="spinner-xl"></div>
+                <h2 style="margin-top: 24px; color: #fff;">Подключение...</h2>
+                <p style="color: var(--text-secondary);">Синхронизация профиля и контактов</p>
+            </div>
+        </div>
     {:else}
         <div class="main-screen" class:mobile-layout={isMobile}>
             {#if isMobile}
@@ -521,4 +541,15 @@
     }
     .icon-svg-xl { width: 64px; height: 64px; }
     .icon-svg-xl :global(svg) { width: 100%; height: 100%; }
+
+    .initializing-overlay {
+        position: fixed; inset: 0; background: var(--bg-primary); z-index: 15000;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .spinner-xl {
+        width: 60px; height: 60px; border: 5px solid rgba(255,255,255,0.1);
+        border-top-color: var(--accent); border-radius: 50%;
+        animation: spin 1s linear infinite; margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 </style>
