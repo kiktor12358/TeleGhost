@@ -1,5 +1,6 @@
 <script>
     import { Icons } from '../Icons.js';
+    import { getInitials } from '../utils.js';
 
     // Confirm Modal
     export let showConfirmModal = false;
@@ -29,6 +30,10 @@
     export let onCancelAddContact;
     export let addContactName = '';
     export let addContactAddress = '';
+
+    const handleAddContact = () => {
+        onAddContact();
+    };
 
     // Show Seed Modal
     export let showSeedModal = false;
@@ -90,7 +95,7 @@
         </div>
         <div class="modal-body" style="text-align: center; padding: 20px 0;">
             <div class="profile-avatar-large" style="width: 100px; height: 100px; margin: 0 auto 20px; background: var(--accent); border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 40px; color: white;">
-                {#if contact.avatar}<img src={contact.avatar} alt="av" style="width:100%;height:100%;object-fit:cover;"/>{:else}{contact.nickname[0].toUpperCase()}{/if}
+                {#if contact.avatar}<img src={contact.avatar} alt="av" style="width:100%;height:100%;object-fit:cover;"/>{:else}{getInitials(contact.nickname)}{/if}
             </div>
             <h2 style="margin-bottom: 4px;">{contact.nickname}</h2>
             <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">{contact.isOnline ? 'В сети' : 'Оффлайн'}</p>
@@ -129,7 +134,7 @@
         </div>
         <div class="modal-footer">
             <button class="btn-small btn-glass" on:click={onCancelAddContact}>Отмена</button>
-            <button class="btn-small btn-primary" on:click={onAddContact}>Добавить</button>
+            <button class="btn-small btn-primary" on:click={handleAddContact}>Добавить</button>
         </div>
     </div>
 </div>
@@ -162,7 +167,7 @@
             </button>
         </div>
         <div class="modal-footer">
-            <button class="btn-primary full-width accent-btn" on:click={onCloseSeed}>Я всё сохранил(а)</button>
+            <button class="btn-primary full-width accent-btn clickable-btn" on:click|preventDefault|stopPropagation={onCloseSeed}>Я всё сохранил(а)</button>
         </div>
     </div>
 </div>
@@ -180,7 +185,6 @@
     .modal-footer { display: flex; gap: 12px; margin-top: 24px; }
     .btn-small { padding: 10px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
     .btn-small:hover { opacity: 0.9; transform: translateY(-1px); }
-    .btn-small:hover { opacity: 0.9; transform: translateY(-1px); }
     .btn-primary { background: var(--accent); color: white; flex: 1; border: none; }
     .accent-btn { background: #6366f1 !important; }
     .btn-glass { background: rgba(255,255,255,0.05); color: #a0a0ba; border: 1px solid rgba(255,255,255,0.1); }
@@ -190,4 +194,6 @@
     .icon-svg { width: 24px; height: 24px; }
     .btn-icon { border: none; color: white; cursor: pointer; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0;}
     .btn-icon:hover { background: rgba(255,255,255,0.1); }
+    .clickable-btn { cursor: pointer !important; position: relative; z-index: 10002; transition: all 0.2s; }
+    .clickable-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
 </style>

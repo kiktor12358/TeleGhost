@@ -12,6 +12,7 @@
         GetFileBase64,
         CopyToClipboard
     } from '../../wailsjs/go/main/App.js';
+    import { getInitials } from '../utils.js';
 
     export let logo;
     export let onLoginSuccess;
@@ -216,7 +217,7 @@
                   {#if p.id && profileAvatars[p.id]}
                     <img src={"data:image/jpeg;base64," + profileAvatars[p.id]} alt="Avatar" />
                   {:else}
-                    <img src="/icon.png" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;" />
+                    <div class="avatar-placeholder-mini" style="background: var(--accent);">{getInitials(p.display_name)}</div>
                   {/if}
                 </div>
                 <div class="profile-name">{p.display_name || 'Неизвестный'}</div>
@@ -362,8 +363,8 @@
          </button>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-primary full-width accent-btn" on:click={confirmMnemonicSaved}>
+    <div class="modal-footer" style="position: relative; z-index: 10001;">
+      <button class="btn-primary full-width accent-btn clickable-btn" on:click|preventDefault|stopPropagation={confirmMnemonicSaved} style="height: 52px; font-size: 16px;">
         Я сохранил(а) seed-фразу
       </button>
     </div>
@@ -539,8 +540,15 @@
   }
   .accent-btn { background: #6366f1 !important; }
 
-  .spinner {
-    display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite;
+  .avatar-placeholder-mini {
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 18px; font-weight: 700;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  .avatar-placeholder-large {
+      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 32px; font-weight: 700;
+  }
+  .clickable-btn { cursor: pointer !important; position: relative; z-index: 10002; }
+  .clickable-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .clickable-btn:active { transform: translateY(0); }
 </style>

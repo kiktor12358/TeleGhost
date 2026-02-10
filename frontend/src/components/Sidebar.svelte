@@ -124,11 +124,11 @@
                     tabindex="0"
                     role="button"
                 >
-                    <div class="contact-avatar" style="background: rgba(255,255,255,0.05);">
+                    <div class="contact-avatar" style="background: var(--accent);">
                         {#if contact.avatar}
                             <img src={contact.avatar} alt="av"/>
                         {:else}
-                            <img src="/icon.png" alt="av" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;" />
+                            {getInitials(contact.nickname)}
                         {/if}
                     </div>
                     <div class="contact-info">
