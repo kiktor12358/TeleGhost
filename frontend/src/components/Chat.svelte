@@ -12,6 +12,8 @@
     export let editMessageContent = '';
     export let isCompressed = false;
     export let previewImage = null;
+    export let isMobile = false;
+    export let onBack = null;
 
     export let onSendMessage;
     export let onKeyPress;
@@ -41,8 +43,13 @@
     export let startLoadingImage; 
 </script>
 
-<div class="chat-area animate-fade-in">
+<div class="chat-area animate-fade-in" class:mobile={isMobile}>
     <div class="chat-header">
+        {#if isMobile && onBack}
+            <button class="btn-back" on:click={onBack}>
+                <div class="icon-svg">{@html Icons.ArrowLeft || '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>'}</div>
+            </button>
+        {/if}
         <div 
             class="chat-contact-info" 
             role="button"
@@ -255,4 +262,27 @@
     .icon-svg :global(svg) { width: 100%; height: 100%; }
     .icon-svg-sm { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
     .icon-svg-sm :global(svg) { width: 100%; height: 100%; }
+
+    /* Back button */
+    .btn-back {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+        flex-shrink: 0;
+    }
+    .btn-back:hover { background: rgba(255,255,255,0.1); color: white; }
+
+    /* Mobile-specific overrides */
+    .chat-area.mobile .chat-header { padding: 0 12px; }
+    .chat-area.mobile .messages-container { padding: 12px; }
+    .chat-area.mobile .message-bubble { max-width: 85%; }
+    .chat-area.mobile .input-area-wrapper { padding: 8px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+    .chat-area.mobile .input-area { padding: 6px 10px; }
 </style>

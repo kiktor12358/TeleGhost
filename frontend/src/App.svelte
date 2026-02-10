@@ -611,8 +611,9 @@
                         <Chat 
                             {selectedContact} {messages} {newMessage} {selectedFiles} {filePreviews}
                             {editingMessageId} {editMessageContent} {isCompressed} {previewImage}
+                            {isMobile}
+                            onBack={() => { selectedContact = null; messages = []; mobileView.set('list'); }}
                             {...chatHandlers}
-                            on:back={() => mobileView.set('list')} 
                         />
                     </div>
                 {:else if $mobileView === 'settings'}
@@ -666,6 +667,7 @@
                         <Chat 
                             {selectedContact} {messages} {newMessage} {selectedFiles} {filePreviews}
                             {editingMessageId} {editMessageContent} bind:isCompressed {previewImage}
+                            isMobile={false}
                             {...chatHandlers}
                         />
                     {:else}

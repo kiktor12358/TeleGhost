@@ -180,10 +180,95 @@
     </div>
     
     <div class="resizer" on:mousedown={onStartResize} class:resizing={isResizing}></div>
+{:else}
+    <!-- Mobile Sidebar -->
+    <div class="mobile-sidebar">
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <button class="mobile-menu-btn" on:click={onToggleSettings}>
+                <div class="icon-svg">{@html Icons.Menu}</div>
+            </button>
+            <h1 class="mobile-title">TeleGhost</h1>
+            <div class="mobile-network-dot" style="background: {getStatusColor(networkStatus)}" title={getStatusText(networkStatus)}></div>
+        </div>
+        
+        <!-- Mobile Search -->
+        <div class="mobile-search">
+            <div class="search-input-wrapper">
+                <span class="search-icon"><div class="icon-svg-sm">{@html Icons.Search}</div></span>
+                <input type="text" placeholder="Поиск" bind:value={searchQuery} />
+            </div>
+        </div>
+
+        <!-- Mobile Folders Bar -->
+        <div class="mobile-folders-bar">
+            {#each uiFolders as folder}
+                <button 
+                    class="mobile-folder-chip"
+                    class:active={activeFolderId === folder.ID && folder.ID !== 'add'}
+                    on:click={() => handleFolderClick(folder)}
+                    on:touchstart={(e) => folder.ID !== 'all' && folder.ID !== 'add' && handleTouchStart(folder, 'folder', e)}
+                    on:touchend={handleTouchEnd}
+                >
+                    <span class="mobile-folder-icon">{@html folder.Icon}</span>
+                    <span>{folder.Name}</span>
+                </button>
+            {/each}
+        </div>
+
+        <!-- Mobile Contacts List -->
+        <div class="contacts-list mobile-contacts">
+            {#each filteredContacts as contact}
+                <div 
+                    class="contact-item animate-card"
+                    class:selected={selectedContact && selectedContact.ID === contact.ID}
+                    on:click={() => onSelectContact(contact)}
+                    on:contextmenu|preventDefault={(e) => onContextMenu(e, contact)}
+                    on:touchstart={(e) => handleTouchStart(contact, 'contact', e)}
+                    on:touchend={handleTouchEnd}
+                    on:touchmove={handleTouchEnd}
+                    tabindex="0"
+                    role="button"
+                >
+                    <div class="contact-avatar" style="background: var(--accent);">
+                        {#if contact.Avatar}
+                            <img src={contact.Avatar} alt="av"/>
+                        {:else}
+                            {getInitials(contact.Nickname)}
+                        {/if}
+                    </div>
+                    <div class="contact-info">
+                        <div class="contact-name">{contact.Nickname}</div>
+                        <div class="contact-last">{contact.LastMessage || 'Нет сообщений'}</div>
+                    </div>
+                </div>
+            {/each}
+            
+            {#if contacts.length === 0}
+                <div class="no-contacts">
+                    <div class="no-contacts-icon"><div class="icon-svg" style="width:48px;height:48px;">{@html Icons.Ghost}</div></div>
+                    <p>Нет контактов</p>
+                    <p class="hint">Нажмите + чтобы добавить</p>
+                </div>
+            {/if}
+        </div>
+        
+        <!-- Mobile Bottom Actions -->
+        <div class="mobile-bottom-bar">
+            <button class="mobile-action-btn" on:click={onOpenAddContact}>
+                <div class="icon-svg">{@html Icons.MessageSquarePlus}</div>
+                <span>Новый чат</span>
+            </button>
+            <button class="mobile-action-btn" on:click={onCopyDestination}>
+                <div class="icon-svg">{@html Icons.Copy}</div>
+                <span>Мой адрес</span>
+            </button>
+        </div>
+    </div>
 {/if}
 
 <style>
-    /* Add sidebar styles from App.svelte */
+    /* === Desktop Styles === */
     .folders-rail {
         width: 72px;
         background: var(--bg-tertiary, #11111b);
@@ -282,4 +367,142 @@
     .icon-svg :global(svg) { width: 100%; height: 100%; }
     .icon-svg-sm { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
     .icon-svg-sm :global(svg) { width: 100%; height: 100%; }
+
+    /* === Mobile Styles === */
+    .mobile-sidebar {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-primary, #0c0c14);
+    }
+
+    .mobile-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: var(--bg-secondary, #1e1e2e);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .mobile-menu-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+    .mobile-menu-btn:hover { background: rgba(255,255,255,0.1); }
+
+    .mobile-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+        flex: 1;
+        background: linear-gradient(135deg, #6366f1, #a78bfa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .mobile-network-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .mobile-search {
+        padding: 8px 16px;
+    }
+
+    .mobile-folders-bar {
+        display: flex;
+        gap: 8px;
+        padding: 4px 16px 12px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .mobile-folders-bar::-webkit-scrollbar { display: none; }
+
+    .mobile-folder-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: var(--bg-secondary, #1e1e2e);
+        color: var(--text-secondary);
+        font-size: 13px;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+    .mobile-folder-chip.active {
+        background: var(--accent, #6366f1);
+        color: white;
+        border-color: var(--accent, #6366f1);
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+    .mobile-folder-chip:hover { background: rgba(255,255,255,0.1); }
+
+    .mobile-folder-icon {
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+    }
+    .mobile-folder-icon :global(svg) { width: 14px; height: 14px; }
+
+    .mobile-contacts {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .mobile-bottom-bar {
+        display: flex;
+        gap: 8px;
+        padding: 10px 16px;
+        padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+        background: var(--bg-secondary, #1e1e2e);
+        border-top: 1px solid var(--border);
+    }
+
+    .mobile-action-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px;
+        border-radius: 14px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s;
+        color: white;
+    }
+    .mobile-action-btn:first-child {
+        background: var(--accent, #6366f1);
+    }
+    .mobile-action-btn:first-child:hover {
+        filter: brightness(1.1);
+    }
+    .mobile-action-btn:last-child {
+        background: rgba(255,255,255,0.08);
+        color: var(--text-primary);
+    }
+    .mobile-action-btn:last-child:hover {
+        background: rgba(255,255,255,0.12);
+    }
 </style>
