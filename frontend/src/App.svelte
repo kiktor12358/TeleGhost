@@ -131,21 +131,23 @@
   }
 
   async function onLoginSuccess() {
+      console.log("[App] onLoginSuccess started");
       isInitializing = true;
-      // Start switching screen immediately so overlay has a chance to show if its in main screen branch
-      // OR better, overlay is outside if-else.
       try {
+          console.log("[App] loading info and contacts...");
           await loadMyInfo();
           await loadContacts();
+          console.log("[App] info and contacts loaded, switching screen to main");
           screen = 'main';
           mobileView.set('list');
           loadAboutInfo();
       } catch (err) {
-          console.error("Initialization failed:", err);
+          console.error("[App] Initialization failed:", err);
           showToast("Ошибка при загрузке данных: " + err, 'error');
           screen = 'main';
       } finally {
           isInitializing = false;
+          console.log("[App] onLoginSuccess finished, isInitializing = false");
       }
   }
 
@@ -414,52 +416,71 @@
             {#if isMobile}
                 {#if $mobileView === 'list'}
                     <Sidebar 
-                        {contacts} {searchQuery} {selectedContact} {activeFolderId} {folders}
-                        on:select={handleSelectContact} 
+                        {isMobile} {contacts} {folders} {activeFolderId} {searchQuery} 
+                        {networkStatus} {showSettings} {sidebarWidth} {isResizing} {selectedContact}
+                        {...sidebarHandlers} 
                     />
+                {:else if $mobileView === 'chat' && selectedContact}
+                    <div class="content-area">
+                        <Chat 
+                            {selectedContact} {messages} {newMessage} {selectedFiles} {filePreviews}
+                            {editingMessageId} {editMessageContent} {isCompressed} {previewImage}
+                            {...chatHandlers}
+                            on:back={() => mobileView.set('list')} 
+                        />
+                    </div>
+                {:else if $mobileView === 'settings'}
+                     <div class="content-area">
+                        <Settings 
+                            {profileNickname} {profileBio} {profileAvatar} {routerSettings} 
+                            settingsCategories={[
+                                {id: 'profile', name: 'Профиль', icon: Icons.User},
+                                {id: 'privacy', name: 'Приватность', icon: Icons.Lock},
+                                {id: 'network', name: 'I2P Сеть', icon: Icons.Globe},
+                                {id: 'about', name: 'О программе', icon: Icons.Info}
+                            ]}
+                            {activeSettingsTab} {settingsView} selectedProfile={null} {networkStatus} {myDestination}
+                            {aboutInfo}
+                            {...settingsHandlers} 
+                        />
+                     </div>
                 {:else}
                     <div class="content-area">
-                        {#if selectedContact}
-                            <Chat 
-                                contact={selectedContact} {messages} {newMessage} {selectedFiles} {filePreviews}
-                                {editingMessageId} {editMessageContent}
-                                on:back={() => mobileView.set('list')} 
-                                on:send={sendMessage}
-                            />
-                        {:else}
-                            <div class="no-chat">
-                                <div class="ghost-logo-wrapper">
-                                    <div class="icon-svg-xl">{@html Icons.Ghost}</div>
-                                </div>
-                                <h2>TeleGhost</h2>
-                                <p>Выберите чат для начала общения</p>
+                        <div class="no-chat">
+                            <div class="ghost-logo-wrapper">
+                                <div class="icon-svg-xl">{@html Icons.Ghost}</div>
                             </div>
-                        {/if}
+                            <h2>TeleGhost</h2>
+                            <p>Выберите чат для начала общения</p>
+                        </div>
                     </div>
                 {/if}
             {:else}
                 <Sidebar 
-                    {contacts} {searchQuery} {selectedContact} {activeFolderId} {folders}
-                    on:select={handleSelectContact} 
+                    {isMobile} {contacts} {folders} {activeFolderId} {searchQuery} 
+                    {networkStatus} {showSettings} {sidebarWidth} {isResizing} {selectedContact}
+                    {...sidebarHandlers} 
                 />
                 
                 <div class="content-area">
                     {#if showSettings}
-                        <Settings {profileNickname} {profileBio} {profileAvatar} {routerSettings} 
-                                  settingsCategories={[
-                                      {id: 'profile', name: 'Профиль', icon: Icons.User},
-                                      {id: 'privacy', name: 'Приватность', icon: Icons.Lock},
-                                      {id: 'network', name: 'I2P Сеть', icon: Icons.Globe},
-                                      {id: 'about', name: 'О программе', icon: Icons.Info}
-                                  ]}
-                                  {activeSettingsTab} {settingsView} selectedProfile={null} {networkStatus} {myDestination}
-                                  {aboutInfo}
-                                  {...settingsHandlers} />
+                        <Settings 
+                            {profileNickname} {profileBio} {profileAvatar} {routerSettings} 
+                            settingsCategories={[
+                                {id: 'profile', name: 'Профиль', icon: Icons.User},
+                                {id: 'privacy', name: 'Приватность', icon: Icons.Lock},
+                                {id: 'network', name: 'I2P Сеть', icon: Icons.Globe},
+                                {id: 'about', name: 'О программе', icon: Icons.Info}
+                            ]}
+                            {activeSettingsTab} {settingsView} selectedProfile={null} {networkStatus} {myDestination}
+                            {aboutInfo}
+                            {...settingsHandlers} 
+                        />
                     {:else if selectedContact}
                         <Chat 
-                            contact={selectedContact} {messages} {newMessage} {selectedFiles} {filePreviews}
-                            {editingMessageId} {editMessageContent}
-                            on:send={sendMessage}
+                            {selectedContact} {messages} {newMessage} {selectedFiles} {filePreviews}
+                            {editingMessageId} {editMessageContent} {isCompressed} {previewImage}
+                            {...chatHandlers}
                         />
                     {:else}
                         <div class="no-chat animate-fade-in">
@@ -573,4 +594,17 @@
         animation: spin 1s linear infinite; margin: 0 auto;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-slide-down { animation: slideDown 0.3s ease-out forwards; }
+
+    @keyframes messageSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-message { animation: messageSlide 0.2s ease-out forwards; }
+
+    /* Mobile layout specific fixes */
+    .mobile-layout .sidebar { width: 100% !important; border-right: none; }
+    .mobile-layout .content-area { width: 100%; height: 100%; }
 </style>

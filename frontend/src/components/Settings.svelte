@@ -182,7 +182,13 @@
                                 </div>
                             </div>
 
-                            <div class="update-action-row" on:click={onCheckUpdates}>
+                            <div 
+                                class="update-action-row" 
+                                role="button"
+                                tabindex="0"
+                                on:click={onCheckUpdates}
+                                on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onCheckUpdates()}
+                            >
                                 <div class="info-icon accent">{@html Icons.Refresh}</div>
                                 <div class="info-content">
                                     <span class="info-value-fancy accent">Обновить приложение</span>

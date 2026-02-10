@@ -44,7 +44,13 @@
 
 <!-- Custom Confirm Modal -->
 {#if showConfirmModal}
-<div class="modal-backdrop animate-fade-in" on:click|self={onCancelConfirm}>
+<div 
+    class="modal-backdrop animate-fade-in" 
+    role="button"
+    tabindex="0"
+    on:click|self={onCancelConfirm}
+    on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget && onCancelConfirm()}
+>
     <div class="modal-content animate-slide-down" style="max-width: 400px;">
         <div class="modal-header">
             <h3>{confirmModalTitle}</h3>
@@ -63,7 +69,13 @@
 
 <!-- Add/Edit Folder Modal -->
 {#if showFolderModal}
-<div class="modal-backdrop animate-fade-in" on:click|self={onCancelFolder}>
+<div 
+    class="modal-backdrop animate-fade-in" 
+    role="button"
+    tabindex="0"
+    on:click|self={onCancelFolder}
+    on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget && onCancelFolder()}
+>
     <div class="modal-content animate-slide-down" style="max-width: 400px;">
         <div class="modal-header">
             <h3>{isEditingFolder ? 'Редактировать папку' : 'Новая папка'}</h3>
@@ -87,7 +99,13 @@
 
 <!-- Contact Profile Modal -->
 {#if showContactProfile && contact}
-<div class="modal-backdrop animate-fade-in" on:click|self={onCloseContactProfile}>
+<div 
+    class="modal-backdrop animate-fade-in" 
+    role="button"
+    tabindex="0"
+    on:click|self={onCloseContactProfile}
+    on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget && onCloseContactProfile()}
+>
     <div class="modal-content animate-slide-down">
         <div class="modal-header">
             <h3>Профиль контакта</h3>
@@ -101,7 +119,7 @@
             <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">{contact.isOnline ? 'В сети' : 'Оффлайн'}</p>
             
             <div style="text-align: left; background: var(--bg-input); padding: 16px; border-radius: 16px;">
-                <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">I2P Адрес</label>
+                <span style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">I2P Адрес</span>
                 <code style="font-size: 11px; word-break: break-all; opacity: 0.8;">{contact.i2pAddress}</code>
             </div>
         </div>
@@ -114,7 +132,13 @@
 
 <!-- Add Contact Modal -->
 {#if showAddContact}
-<div class="modal-backdrop animate-fade-in" on:click|self={onCancelAddContact}>
+<div 
+    class="modal-backdrop animate-fade-in" 
+    role="button"
+    tabindex="0"
+    on:click|self={onCancelAddContact}
+    on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget && onCancelAddContact()}
+>
     <div class="modal-content animate-slide-down" style="max-width: 450px;">
         <div class="modal-header">
             <h3>Добавить контакт</h3>
@@ -142,7 +166,13 @@
 
 <!-- Show Seed Modal -->
 {#if showSeedModal}
-<div class="modal-backdrop animate-fade-in" on:click|self={onCloseSeed}>
+<div 
+    class="modal-backdrop animate-fade-in" 
+    role="button"
+    tabindex="0"
+    on:click|self={onCloseSeed}
+    on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget && onCloseSeed()}
+>
     <div class="modal-content animate-slide-down" style="max-width: 450px; background: #1a1a2e; border: 1px solid rgba(255, 100, 100, 0.2);">
         <div class="modal-header">
             <h3 style="color: #ff6b6b;">🔐 Ваш секретный ключ</h3>
