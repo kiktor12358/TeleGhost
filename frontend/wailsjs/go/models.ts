@@ -74,6 +74,10 @@ export namespace main {
 	    Timestamp: number;
 	    IsOutgoing: boolean;
 	    Status: string;
+	    ContentType: string;
+	    FileCount: number;
+	    TotalSize: number;
+	    Filenames: string[];
 	    Attachments: any[];
 	
 	    static createFrom(source: any = {}) {
@@ -87,6 +91,10 @@ export namespace main {
 	        this.Timestamp = source["Timestamp"];
 	        this.IsOutgoing = source["IsOutgoing"];
 	        this.Status = source["Status"];
+	        this.ContentType = source["ContentType"];
+	        this.FileCount = source["FileCount"];
+	        this.TotalSize = source["TotalSize"];
+	        this.Filenames = source["Filenames"];
 	        this.Attachments = source["Attachments"];
 	    }
 	}

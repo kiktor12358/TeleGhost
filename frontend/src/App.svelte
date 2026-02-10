@@ -212,7 +212,13 @@
 
   function selectContact(contact) {
       if (!contact) return;
+      if (selectedContact && selectedContact.ID === contact.ID) {
+          selectedContact = null;
+          messages = [];
+          return;
+      }
       selectedContact = contact;
+      showSettings = false;
       loadMessages(contact.ID);
       if (isMobile) mobileView.set('chat');
   }

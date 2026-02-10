@@ -59,6 +59,10 @@ type MessageInfo struct {
 	Timestamp   int64
 	IsOutgoing  bool
 	Status      string
+	ContentType string
+	FileCount   int
+	TotalSize   int64
+	Filenames   []string
 	Attachments []map[string]interface{}
 }
 

@@ -54,7 +54,7 @@
                 {#if selectedContact?.Avatar}
                     <img src={selectedContact.Avatar} alt="av"/>
                 {:else}
-                    <img src="/icon.png" alt="av" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.7;" />
+                    <div class="avatar-placeholder">{getInitials(selectedContact?.Nickname)}</div>
                 {/if}
             </div>
             <div>
@@ -76,24 +76,24 @@
                     {#if msg.Attachments && msg.Attachments.length > 0}
                         <div class="message-images" style="grid-template-columns: {msg.Attachments.length === 1 ? '1fr' : 'repeat(2, 1fr)'}">
                             {#each msg.Attachments as att}
-                                {#if att.mime_type && att.mime_type.startsWith('image/')}
+                                {#if att.MimeType && att.MimeType.startsWith('image/')}
                                     <img 
-                                        use:startLoadingImage={att.local_path} 
+                                        use:startLoadingImage={att.LocalPath} 
                                         alt="attachment" 
                                         class="msg-img" 
                                         style="height: {msg.Attachments.length === 1 ? 'auto' : '120px'}" 
                                         role="button"
                                         tabindex="0"
-                                        on:click={() => onPreviewImage(att.local_path)}
-                                        on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onPreviewImage(att.local_path)}
+                                        on:click={() => onPreviewImage(att.LocalPath)}
+                                        on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onPreviewImage(att.LocalPath)}
                                     />
                                 {:else}
                                     <div 
                                         class="file-attachment-card" 
                                         role="button"
                                         tabindex="0"
-                                        on:click|stopPropagation={() => onOpenFile(att.local_path)}
-                                        on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpenFile(att.local_path)}
+                                        on:click|stopPropagation={() => onOpenFile(att.LocalPath)}
+                                        on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpenFile(att.LocalPath)}
                                     >
                                         <div class="file-icon">📄</div>
                                         <div class="file-info">
@@ -163,7 +163,7 @@
             <button class="btn-icon" on:click={onSelectFiles} title="Прикрепить файл">
                 <div class="icon-svg">{@html Icons.Paperclip}</div>
             </button>
-            <div style="flex: 1; position: relative;">
+            <div style="flex: 1; position: relative; width: 100%;">
                 <textarea
                     bind:this={textarea}
                     class="message-input"
@@ -172,6 +172,7 @@
                     on:keypress={handleKeyPress}
                     on:paste={onPaste}
                     rows="1"
+                    style="width: 100%;"
                 ></textarea>
             </div>
             <button class="btn-send" on:click={onSendMessage} disabled={!(newMessage || "").trim() && (selectedFiles || []).length === 0}>
@@ -185,8 +186,9 @@
     .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary, #0c0c14); overflow: hidden; }
     .chat-header { height: 64px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary, #1e1e2e); border-bottom: 1px solid var(--border); z-index: 10; }
     .chat-contact-info { display: flex; align-items: center; gap: 12px; }
-    .chat-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; overflow: hidden; }
+    .chat-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; overflow: hidden; background: var(--accent); }
     .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-placeholder { font-size: 14px; }
     .chat-name { font-weight: 600; font-size: 16px; color: white; }
     .chat-status { display: flex; align-items: center; gap: 6px; }
     .status-dot { width: 8px; height: 8px; border-radius: 50%; }

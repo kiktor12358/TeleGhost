@@ -322,13 +322,29 @@ func (a *App) GetMessages(contactID string, limit, offset int) ([]*MessageInfo, 
 
 	result := make([]*MessageInfo, len(messages))
 	for i, m := range messages {
-		result[i] = &MessageInfo{
-			ID:         m.ID,
-			Content:    m.Content,
-			Timestamp:  m.Timestamp,
-			IsOutgoing: m.IsOutgoing,
-			Status:     m.Status.String(),
+		info := &MessageInfo{
+			ID:          m.ID,
+			Content:     m.Content,
+			Timestamp:   m.Timestamp,
+			IsOutgoing:  m.IsOutgoing,
+			Status:      m.Status.String(),
+			ContentType: m.ContentType,
 		}
+
+		if len(m.Attachments) > 0 {
+			info.Attachments = make([]map[string]interface{}, len(m.Attachments))
+			for j, att := range m.Attachments {
+				info.Attachments[j] = map[string]interface{}{
+					"ID":           att.ID,
+					"Filename":     att.Filename,
+					"Size":         att.Size,
+					"LocalPath":    att.LocalPath,
+					"MimeType":     att.MimeType,
+					"IsCompressed": att.IsCompressed,
+				}
+			}
+		}
+		result[i] = info
 	}
 
 	return result, nil
