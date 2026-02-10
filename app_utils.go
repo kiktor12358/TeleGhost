@@ -74,6 +74,19 @@ func (a *App) SelectFiles() ([]string, error) {
 	})
 }
 
+// SelectImage открывает диалог выбора одного изображения
+func (a *App) SelectImage() (string, error) {
+	return runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Выберите изображение",
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: "Images",
+				Pattern:     "*.jpg;*.jpeg;*.png;*.webp",
+			},
+		},
+	})
+}
+
 // OpenFile opens a file using the system's default application
 func (a *App) OpenFile(path string) error {
 	return open.Run(path)
@@ -115,7 +128,8 @@ func (a *App) CopyImageToClipboard(path string) error {
 }
 
 // GetImageThumbnail создает уменьшенную копию изображения и возвращает base64
-func (a *App) GetImageThumbnail(path string, width, height uint) (string, error) {
+func (a *App) GetImageThumbnail(path string) (string, error) {
+	width, height := uint(100), uint(100)
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
