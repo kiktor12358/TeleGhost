@@ -51,6 +51,7 @@ func (a *App) AddContactFromClipboard() (*ContactInfo, error) {
 		return nil, fmt.Errorf("failed to save contact: %w", err)
 	}
 	log.Println("[App] AddContactFromClipboard: SaveContact success")
+	runtime.EventsEmit(a.ctx, "contact_updated")
 
 	return &ContactInfo{
 		ID:         contact.ID,
@@ -86,6 +87,7 @@ func (a *App) AddContact(name, destination string) (*ContactInfo, error) {
 		return nil, fmt.Errorf("failed to save contact: %w", err)
 	}
 	log.Println("[App] AddContact: SaveContact success")
+	runtime.EventsEmit(a.ctx, "contact_updated")
 
 	return &ContactInfo{
 		ID:         contact.ID,
