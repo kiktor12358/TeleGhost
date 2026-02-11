@@ -31,6 +31,7 @@
     export let onOpenFile;
     export let onSaveFile;
     export let onPreviewImage;
+    export let startLoadingImage; // Fix: Add missing prop
 
     let textarea;
     let touchStartX = 0;
@@ -363,7 +364,7 @@
                     class="message-input"
                     placeholder="Сообщение..."
                     bind:value={newMessage}
-                    on:keypress={handleKeyPress}
+                    on:keypress={onKeyPress}
                     on:paste={onPaste}
                     rows="1"
                     style="width: 100%;"

@@ -1,7 +1,9 @@
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
+    import { fade } from 'svelte/transition';
     import QRious from 'qrious';
     import { Icons } from '../Icons.js';
+    import * as AppActions from '../../wailsjs/go/main/App.js';
 
     export let show = false;
     export let address = '';
@@ -27,12 +29,13 @@
 
     async function copyToClipboard() {
         try {
-            await navigator.clipboard.writeText(address);
+            await AppActions.ClipboardSet(address);
             copied = true;
             setTimeout(() => copied = false, 2000);
             dispatch('toast', { message: 'Адрес скопирован', type: 'success' });
         } catch (err) {
             console.error('Failed to copy: ', err);
+            dispatch('toast', { message: 'Ошибка копирования', type: 'error' });
         }
     }
 </script>
