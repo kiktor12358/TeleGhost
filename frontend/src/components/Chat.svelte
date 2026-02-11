@@ -190,13 +190,17 @@
 
     function finishLoading() {
         if (chatReady) return;
-        chatReady = true;
-        imagesLoading = false;
-        // Force scroll to bottom once ready
+        
+        // Scroll while invisible FIRST
         tick().then(() => {
-             // Double insurance: scroll immediately and again after paint
              scrollToBottom(true);
-             setTimeout(() => scrollToBottom(true), 50);
+             
+             // Slight delay to ensure layout paints and scroll applies BEFORE we show it
+             setTimeout(() => {
+                 scrollToBottom(true); // Scroll again to be sure
+                 chatReady = true;
+                 imagesLoading = false;
+             }, 250);
         });
     }
 
