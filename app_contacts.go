@@ -119,6 +119,13 @@ func (a *App) GetContacts() ([]*ContactInfo, error) {
 	}
 	log.Printf("[App] GetContacts found %d contacts", len(contacts))
 
+	// Получаем количество непрочитанных для каждого чата
+	unreadCounts, err := a.repo.GetUnreadCountByChat(a.ctx)
+	if err != nil {
+		log.Printf("[App] Failed to get unread counts: %v", err)
+		unreadCounts = make(map[string]int)
+	}
+
 	result := make([]*ContactInfo, len(contacts))
 	for i, c := range contacts {
 		lastSeen := ""
@@ -126,15 +133,22 @@ func (a *App) GetContacts() ([]*ContactInfo, error) {
 			lastSeen = c.LastSeen.Format("15:04")
 		}
 
+		lastMessageTime := int64(0)
+		if !c.LastMessageTime.IsZero() {
+			lastMessageTime = c.LastMessageTime.UnixMilli()
+		}
+
 		result[i] = &ContactInfo{
-			ID:          c.ID,
-			Nickname:    c.Nickname,
-			Avatar:      c.Avatar,
-			PublicKey:   c.PublicKey,
-			I2PAddress:  c.I2PAddress,
-			LastMessage: c.LastMessage,
-			LastSeen:    lastSeen,
-			ChatID:      c.ChatID,
+			ID:              c.ID,
+			Nickname:        c.Nickname,
+			Avatar:          c.Avatar,
+			PublicKey:       c.PublicKey,
+			I2PAddress:      c.I2PAddress,
+			LastMessage:     c.LastMessage,
+			LastMessageTime: lastMessageTime,
+			LastSeen:        lastSeen,
+			ChatID:          c.ChatID,
+			UnreadCount:     unreadCounts[c.ChatID],
 		}
 	}
 
@@ -237,6 +251,24 @@ func (a *App) GetFolders() ([]FolderInfo, error) {
 	}
 	log.Printf("[App] GetFolders found %d folders", len(folders))
 
+	// Получаем количество непрочитанных для каждого чата
+	unreadCounts, err := a.repo.GetUnreadCountByChat(a.ctx)
+	if err != nil {
+		log.Printf("[App] Failed to get unread counts: %v", err)
+		unreadCounts = make(map[string]int)
+	}
+
+	// Получаем все контакты для маппинга ID -> ChatID
+	contacts, err := a.repo.ListContacts(a.ctx)
+	if err != nil {
+		log.Printf("[App] Failed to get contacts: %v", err)
+		contacts = []*core.Contact{}
+	}
+	contactChatMap := make(map[string]string) // contactID -> chatID
+	for _, c := range contacts {
+		contactChatMap[c.ID] = c.ChatID
+	}
+
 	result := make([]FolderInfo, 0, len(folders))
 	for _, f := range folders {
 		chatIDs, err := a.repo.GetFolderChats(a.ctx, f.ID)
@@ -244,12 +276,21 @@ func (a *App) GetFolders() ([]FolderInfo, error) {
 			chatIDs = []string{}
 		}
 
+		// Подсчитываем непрочитанные для этой папки
+		folderUnread := 0
+		for _, contactID := range chatIDs {
+			if chatID, ok := contactChatMap[contactID]; ok {
+				folderUnread += unreadCounts[chatID]
+			}
+		}
+
 		result = append(result, FolderInfo{
-			ID:       f.ID,
-			Name:     f.Name,
-			Icon:     f.Icon,
-			ChatIDs:  chatIDs,
-			Position: f.Position,
+			ID:          f.ID,
+			Name:        f.Name,
+			Icon:        f.Icon,
+			ChatIDs:     chatIDs,
+			Position:    f.Position,
+			UnreadCount: folderUnread,
 		})
 	}
 

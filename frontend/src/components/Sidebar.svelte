@@ -46,10 +46,12 @@
         return nickname.includes(query) || lastMsg.includes(query);
     });
 
+    $: totalUnread = (contacts || []).reduce((sum, c) => sum + (c.UnreadCount || 0), 0);
+
     $: uiFolders = [
-        { ID: 'all', Name: 'Все', Icon: Icons.Chat },
+        { ID: 'all', Name: 'Все', Icon: Icons.Chat, UnreadCount: totalUnread },
         ...([...(folders || [])].sort((a, b) => (a?.position || 0) - (b?.position || 0))),
-        { ID: 'add', Name: 'Создать', Icon: Icons.Plus }
+        { ID: 'add', Name: 'Создать', Icon: Icons.Plus, UnreadCount: 0 }
     ];
 
     function handleTouchStart(item, type, e) {
@@ -106,10 +108,13 @@
                     on:touchend={handleTouchEnd}
                     on:touchmove={handleTouchEnd}
                     title={folder.Name}
-                    style={folder.ID === 'add' ? 'margin-top: 10px; opacity: 0.7;' : ''}
+                    style={folder.ID === 'add' ? 'margin-top: 10px; opacity: 0.7;' : 'position: relative;'}
                 >
                     <div class="folder-icon">{@html folder.Icon}</div>
                     <div class="folder-name">{folder.Name}</div>
+                    {#if folder.UnreadCount > 0 && folder.ID !== 'add'}
+                        <div class="folder-unread-badge">{folder.UnreadCount > 99 ? '99+' : folder.UnreadCount}</div>
+                    {/if}
                 </div>
             {/each}
         </div>
@@ -163,6 +168,9 @@
                         <div class="contact-name">{contact.Nickname}</div>
                         <div class="contact-last">{contact.LastMessage || 'Нет сообщений'}</div>
                     </div>
+                    {#if contact.UnreadCount > 0}
+                        <div class="contact-unread-badge">{contact.UnreadCount > 99 ? '99+' : contact.UnreadCount}</div>
+                    {/if}
                 </div>
             {/each}
             
@@ -217,9 +225,13 @@
                     on:click={() => handleFolderClick(folder)}
                     on:touchstart={(e) => folder.ID !== 'all' && folder.ID !== 'add' && handleTouchStart(folder, 'folder', e)}
                     on:touchend={handleTouchEnd}
+                    style="position: relative;"
                 >
                     <span class="mobile-folder-icon">{@html folder.Icon}</span>
                     <span>{folder.Name}</span>
+                    {#if folder.UnreadCount > 0 && folder.ID !== 'add'}
+                        <span class="mobile-folder-badge">{folder.UnreadCount > 99 ? '99+' : folder.UnreadCount}</span>
+                    {/if}
                 </button>
             {/each}
         </div>
@@ -249,6 +261,9 @@
                         <div class="contact-name">{contact.Nickname}</div>
                         <div class="contact-last">{contact.LastMessage || 'Нет сообщений'}</div>
                     </div>
+                    {#if contact.UnreadCount > 0}
+                        <div class="contact-unread-badge">{contact.UnreadCount > 99 ? '99+' : contact.UnreadCount}</div>
+                    {/if}
                 </div>
             {/each}
             
@@ -361,6 +376,24 @@
         font-size: 10px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; color: var(--text-secondary);
     }
 
+    .folder-unread-badge {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: #ff4757;
+        color: white;
+        font-size: 9px;
+        font-weight: 700;
+        min-width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4);
+    }
+
     .sidebar { background: var(--bg-secondary, #1e1e2e); border-right: 1px solid var(--border); overflow: hidden; }
     .search-input-wrapper { background: var(--bg-input, #0c0c14); border-radius: 18px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
     .search-input-wrapper input { background: transparent; border: none; color: white; width: 100%; font-size: 14px; outline: none; }
@@ -391,6 +424,22 @@
     .contact-info { flex: 1; min-width: 0; }
     .contact-name { font-weight: 600; font-size: 15px; color: white; margin-bottom: 2px; }
     .contact-last { font-size: 13px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .contact-unread-badge {
+        background: #ff4757;
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        min-width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+        flex-shrink: 0;
+        box-shadow: 0 2px 6px rgba(255, 71, 87, 0.3);
+    }
 
     .no-contacts { padding: 40px 20px; text-align: center; color: var(--text-secondary); }
     .no-contacts-icon { margin-bottom: 16px; opacity: 0.5; display: flex; justify-content: center; }
@@ -503,6 +552,24 @@
         align-items: center;
     }
     .mobile-folder-icon :global(svg) { width: 14px; height: 14px; }
+
+    .mobile-folder-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        background: #ff4757;
+        color: white;
+        font-size: 9px;
+        font-weight: 700;
+        min-width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4);
+    }
 
     .mobile-contacts {
         flex: 1;

@@ -32,24 +32,27 @@ const (
 
 // FolderInfo информация о папке с ID чатов
 type FolderInfo struct {
-	ID       string
-	Name     string
-	Icon     string
-	ChatIDs  []string
-	Position int
+	ID          string
+	Name        string
+	Icon        string
+	ChatIDs     []string
+	Position    int
+	UnreadCount int
 }
 
 // ContactInfo информация о контакте для фронтенда
 type ContactInfo struct {
-	ID          string
-	Nickname    string
-	PublicKey   string
-	Avatar      string
-	I2PAddress  string
-	LastMessage string
-	LastSeen    string
-	IsOnline    bool
-	ChatID      string
+	ID              string
+	Nickname        string
+	PublicKey       string
+	Avatar          string
+	I2PAddress      string
+	LastMessage     string
+	LastMessageTime int64
+	LastSeen        string
+	IsOnline        bool
+	ChatID          string
+	UnreadCount     int
 }
 
 // MessageInfo сообщение для фронтенда

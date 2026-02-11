@@ -784,7 +784,22 @@
 
     {#if contextMenu.show}
         <div class="context-menu" style="top: {contextMenu.y}px; left: {contextMenu.x}px">
-            <div class="context-item" on:click={() => { 
+            {#if folders.length > 0}
+                <div class="context-item submenu-parent">
+                    Добавить в папку
+                    <div class="context-submenu">
+                        {#each folders as folder}
+                            <div class="context-item" on:click={async () => {
+                                await AppActions.AddChatToFolder(folder.ID, contextMenu.contact.ID);
+                                loadFolders();
+                                contextMenu.show = false;
+                                showToast(`Добавлено в папку "${folder.Name}"`, 'success');
+                            }}>{folder.Icon} {folder.Name}</div>
+                        {/each}
+                    </div>
+                </div>
+            {/if}
+            <div class="context-item danger" on:click={() => { 
                 AppActions.DeleteContact(contextMenu.contact.ID); 
                 loadContacts();
             }}>Удалить контакт</div>
@@ -855,9 +870,29 @@
     .context-menu {
         position: fixed; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 4px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    .context-item { padding: 10px 16px; cursor: pointer; border-radius: 4px; font-size: 14px; }
+    .context-item { padding: 10px 16px; cursor: pointer; border-radius: 4px; font-size: 14px; position: relative; }
     .context-item:hover { background: rgba(255,255,255,0.1); }
     .context-item.danger { color: #ff6b6b; }
+
+    .submenu-parent {
+        position: relative;
+    }
+    .submenu-parent:hover .context-submenu {
+        display: block;
+    }
+    .context-submenu {
+        display: none;
+        position: absolute;
+        left: 100%;
+        top: 0;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 4px;
+        min-width: 150px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        margin-left: 4px;
+    }
 
     .btn-danger {
         background: #ff4757;

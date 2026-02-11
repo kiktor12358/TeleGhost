@@ -617,7 +617,7 @@ func (r *Repository) ListContactsWithLastMessage(ctx context.Context) ([]*core.C
 		       (SELECT content FROM messages WHERE chat_id = c.chat_id ORDER BY timestamp DESC LIMIT 1) as last_msg_content,
 		       (SELECT timestamp FROM messages WHERE chat_id = c.chat_id ORDER BY timestamp DESC LIMIT 1) as last_msg_time
 		FROM contacts c
-		ORDER BY c.nickname ASC
+		ORDER BY last_msg_time DESC NULLS LAST, c.nickname ASC
 	`
 
 	rows, err := r.db.QueryContext(ctx, query)
@@ -1100,6 +1100,29 @@ func (r *Repository) GetUnreadCount(ctx context.Context) (int, error) {
 	}
 
 	return count, nil
+}
+
+// GetUnreadCountByChat возвращает количество непрочитанных сообщений для каждого чата
+func (r *Repository) GetUnreadCountByChat(ctx context.Context) (map[string]int, error) {
+	query := `SELECT chat_id, COUNT(*) as count FROM messages WHERE is_outgoing = 0 AND is_read = 0 GROUP BY chat_id`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get unread count by chat: %w", err)
+	}
+	defer rows.Close()
+
+	result := make(map[string]int)
+	for rows.Next() {
+		var chatID string
+		var count int
+		if err := rows.Scan(&chatID, &count); err != nil {
+			return nil, err
+		}
+		result[chatID] = count
+	}
+
+	return result, rows.Err()
 }
 
 // MarkChatAsRead помечает все сообщения в чате как прочитанные
