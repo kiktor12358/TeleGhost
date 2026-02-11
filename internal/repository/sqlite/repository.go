@@ -610,13 +610,18 @@ func (r *Repository) GetContactByAddress(ctx context.Context, address string) (*
 
 // ListContactsWithLastMessage возвращает список контактов с их последним сообщением
 func (r *Repository) ListContactsWithLastMessage(ctx context.Context) ([]*core.Contact, error) {
-	// Используем JOIN для получения последнего сообщения для каждого контакта
+	// Используем JOIN для получения последнего сообщения для каждого контакта (оптимизировано)
 	query := `
 		SELECT c.id, c.public_key, c.nickname, c.bio, c.avatar, c.i2p_address, c.chat_id,
 		       c.is_blocked, c.is_verified, c.last_seen, c.added_at, c.updated_at,
-		       (SELECT content FROM messages WHERE chat_id = c.chat_id ORDER BY timestamp DESC LIMIT 1) as last_msg_content,
-		       (SELECT timestamp FROM messages WHERE chat_id = c.chat_id ORDER BY timestamp DESC LIMIT 1) as last_msg_time
+		       m.content as last_msg_content, m.timestamp as last_msg_time
 		FROM contacts c
+		LEFT JOIN (
+			SELECT chat_id, MAX(timestamp) as max_ts
+			FROM messages
+			GROUP BY chat_id
+		) last_msg_meta ON c.chat_id = last_msg_meta.chat_id
+		LEFT JOIN messages m ON m.chat_id = last_msg_meta.chat_id AND m.timestamp = last_msg_meta.max_ts
 		ORDER BY last_msg_time DESC NULLS LAST, c.nickname ASC
 	`
 

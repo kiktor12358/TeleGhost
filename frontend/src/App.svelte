@@ -177,21 +177,19 @@
       } catch(e) { console.warn('GetUnreadCount failed:', e); }
   }
 
+  let isLoaderRunning = false;
   async function loadContacts() {
-      console.log("[App] loadContacts internal started");
+      if (isLoaderRunning) return;
+      isLoaderRunning = true;
       try {
-          console.log("[App] loadContacts: fetching contacts...");
           const result = await AppActions.GetContacts();
-          console.log("[App] loadContacts: contacts received:", result?.length || 0);
           contacts = result || [];
-          
-          // Load folders in background without blocking contacts UI
-          loadFolders();
+          await loadFolders();
       } catch (err) {
           console.error("[App] loadContacts failed:", err);
-          throw err;
+      } finally {
+          isLoaderRunning = false;
       }
-      console.log("[App] loadContacts internal finished");
   }
 
   async function loadFolders() {
@@ -206,44 +204,27 @@
   }
 
   async function onLoginSuccess() {
-      console.log("[App] onLoginSuccess started");
-      if (isInitializing) {
-          console.log("[App] onLoginSuccess: already initializing, skipping redundant call");
-          return;
-      }
-      
+      if (isInitializing) return;
       isInitializing = true;
       try {
-          console.log("[App] onLoginSuccess: loading MyInfo...");
           await loadMyInfo();
-          
-          console.log("[App] onLoginSuccess: basic info loaded, switching screen early");
           screen = 'main';
           mobileView.set('list');
-          isInitializing = false; // Stop overlay early
-
-          // Load the rest in the background
-          console.log("[App] onLoginSuccess: loading Contacts and Folders in background...");
-          loadContacts().then(() => {
-              console.log("[App] onLoginSuccess: initial background data load finished");
-              loadAboutInfo();
-              
-              // Start background polling
-              console.log("[App] Starting background contact polling...");
-              setInterval(loadContacts, 300 * 1000);
-          }).finally(() => {
-              isInitializing = false; // Ensure overlay is removed even if loadContacts fails partially
-          });
           
-          console.log("[App] onLoginSuccess: transition complete!");
+          // Wait for essential data before hiding the overlay
+          await Promise.all([
+              loadContacts(),
+              loadAboutInfo()
+          ]);
+          
+          // Start background polling
+          setInterval(loadContacts, 300 * 1000);
       } catch (err) {
           console.error("[App] onLoginSuccess failed:", err);
           showToast("Ошибка при загрузке данных: " + err, 'error');
-          // Still try to show the app, maybe it's partially working
           screen = 'main';
       } finally {
           isInitializing = false;
-          console.log("[App] onLoginSuccess finished, isInitializing = false");
       }
   }
 
@@ -814,12 +795,30 @@
     {/if}
 
     <Modals
-        {showConfirmModal} {confirmModalTitle} {confirmModalText} {onConfirm} onCancelConfirm={() => showConfirmModal = false}
-        {showFolderModal} {isEditingFolder} bind:folderName={currentFolderData.Name} bind:folderIcon={currentFolderData.Icon}
-        showContactProfile={showContactProfile} contact={selectedContact} onCloseContactProfile={() => showContactProfile = false} onUpdateProfile={settingsHandlers.onUpdateProfile}
-        {showAddContact} onAddContact={contactHandlers.onAddContact} onCancelAddContact={contactHandlers.onCancelAddContact} bind:addContactName bind:addContactAddress
-        {showSeedModal} mnemonic={currentUserInfo?.Mnemonic || ''} onCloseSeed={contactHandlers.onCloseSeed}
-        {showChangePinModal} onSavePin={contactHandlers.onSavePin} onCancelChangePin={contactHandlers.onCancelChangePin}
+        {showConfirmModal} {confirmModalTitle} {confirmModalText} 
+        onConfirm={modalHandlers.onConfirm} 
+        onCancelConfirm={modalHandlers.onCancelConfirm}
+        {showFolderModal} {isEditingFolder} 
+        bind:folderName={currentFolderData.Name} 
+        bind:folderIcon={currentFolderData.Icon}
+        onSaveFolder={modalHandlers.onSaveFolder}
+        onCancelFolder={modalHandlers.onCancelFolder}
+        onDeleteFolder={modalHandlers.onDeleteFolder}
+        showContactProfile={showContactProfile} 
+        contact={selectedContact} 
+        onCloseContactProfile={modalHandlers.onCloseContactProfile} 
+        onUpdateProfile={settingsHandlers.onUpdateProfile}
+        {showAddContact} 
+        onAddContact={modalHandlers.onAddContact} 
+        onCancelAddContact={modalHandlers.onCancelAddContact} 
+        bind:addContactName 
+        bind:addContactAddress
+        {showSeedModal} 
+        mnemonic={currentUserInfo?.Mnemonic || ''} 
+        onCloseSeed={modalHandlers.onCloseSeed}
+        {showChangePinModal} 
+        onSavePin={modalHandlers.onSavePin} 
+        onCancelChangePin={modalHandlers.onCancelChangePin}
     />
 
     {#if previewImage}
