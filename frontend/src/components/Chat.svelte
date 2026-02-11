@@ -360,7 +360,7 @@
     .status-dot { width: 8px; height: 8px; border-radius: 50%; }
     .status-text { font-size: 12px; color: var(--text-secondary); }
 
-    .messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+    .messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 4px; overflow-anchor: auto; }
     .message { display: flex; margin-bottom: 2px; position: relative; align-items: center; }
     .message.outgoing { justify-content: flex-end; }
     
