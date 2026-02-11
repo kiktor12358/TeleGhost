@@ -134,10 +134,12 @@ func (a *AppCore) Login(mnemonic string) error {
 			}
 
 			if needsUpdateDB {
+				log.Printf("[Auth] Syncing DB nickname: %s", dbUser.Nickname)
 				a.Repo.UpdateMyProfile(a.Ctx, dbUser.Nickname, dbUser.Bio, dbUser.Avatar)
 			}
 			if needsUpdatePM && a.ProfileManager != nil {
 				if meta, _ := a.ProfileManager.GetProfileByUserID(keys.UserID); meta != nil {
+					log.Printf("[Auth] Syncing PM nickname: %s", dbUser.Nickname)
 					a.UpdateMyProfile(dbUser.Nickname, dbUser.Bio, dbUser.Avatar)
 				}
 			}
@@ -192,17 +194,21 @@ func (a *AppCore) GetMyInfo() map[string]interface{} {
 	res := map[string]interface{}{
 		"ID":        a.Identity.Keys.UserID,
 		"PublicKey": a.Identity.Keys.PublicKeyBase64,
+		"Mnemonic":  a.Identity.Mnemonic, // Return mnemonic for privacy settings
 	}
 
 	if a.Repo != nil {
 		if u, err := a.Repo.GetMyProfile(a.Ctx); err == nil && u != nil {
 			res["Nickname"] = u.Nickname
 			res["Avatar"] = u.Avatar
+			res["Bio"] = u.Bio
 		}
 	}
 
 	if a.Messenger != nil {
 		res["Destination"] = a.Messenger.GetDestination()
+	} else if a.Router != nil {
+		res["Destination"] = a.Router.GetDestination()
 	}
 
 	return res

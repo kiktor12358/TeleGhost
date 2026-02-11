@@ -14,16 +14,12 @@ export function AddContact(arg1, arg2) {
   return window['go']['main']['App']['AddContact'](arg1, arg2);
 }
 
-export function AddContactFromClipboard() {
-  return window['go']['main']['App']['AddContactFromClipboard']();
+export function AddContactFromClipboard(arg1) {
+  return window['go']['main']['App']['AddContactFromClipboard'](arg1);
 }
 
 export function CheckForUpdates() {
   return window['go']['main']['App']['CheckForUpdates']();
-}
-
-export function CopyImageToClipboard(arg1) {
-  return window['go']['main']['App']['CopyImageToClipboard'](arg1);
 }
 
 export function CopyToClipboard(arg1) {
@@ -56,10 +52,6 @@ export function DeleteFolder(arg1) {
 
 export function DeleteMessage(arg1) {
   return window['go']['main']['App']['DeleteMessage'](arg1);
-}
-
-export function DeleteMessageForAll(arg1) {
-  return window['go']['main']['App']['DeleteMessageForAll'](arg1);
 }
 
 export function DeleteProfile(arg1) {
@@ -150,8 +142,8 @@ export function RemoveChatFromFolder(arg1, arg2) {
   return window['go']['main']['App']['RemoveChatFromFolder'](arg1, arg2);
 }
 
-export function RequestProfileUpdate(arg1) {
-  return window['go']['main']['App']['RequestProfileUpdate'](arg1);
+export function RequestProfileUpdate() {
+  return window['go']['main']['App']['RequestProfileUpdate']();
 }
 
 export function SaveFileToLocation(arg1, arg2) {

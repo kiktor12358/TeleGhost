@@ -44,6 +44,7 @@ void i2pd_init(const char *datadir, int sam_enabled, int sam_port,
   // This ensures i2pd knows where to find its files even if command line
   // parsing fails
   i2p::fs::DetectDataDir(g_datadir, false);
+  i2p::fs::SetCertsDir(g_datadir + "/certificates");
 
   // Storage for strings to ensure they stay alive until InitI2P call
   static std::vector<std::string> args_storage;
@@ -215,14 +216,26 @@ void i2pd_stop() {
   if (!g_running)
     return;
 
-  i2p::client::context.Stop();
-  i2p::api::StopI2P();
+  std::cout << "[i2pd_wrapper] Stopping I2P router..." << std::endl;
+  try {
+    i2p::client::context.Stop();
+    i2p::api::StopI2P();
+    std::cout << "[i2pd_wrapper] Router services stopped." << std::endl;
+  } catch (...) {
+    std::cout << "[i2pd_wrapper] Error during StopI2P" << std::endl;
+  }
   g_running = false;
 }
 
 // Terminate and cleanup
 void i2pd_terminate() {
-  i2p::api::TerminateI2P();
+  std::cout << "[i2pd_wrapper] Terminating I2P..." << std::endl;
+  try {
+    i2p::api::TerminateI2P();
+    std::cout << "[i2pd_wrapper] I2P terminated." << std::endl;
+  } catch (...) {
+    std::cout << "[i2pd_wrapper] Error during TerminateI2P" << std::endl;
+  }
   g_b32_address.clear();
 }
 

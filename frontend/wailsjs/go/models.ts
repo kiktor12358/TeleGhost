@@ -118,55 +118,6 @@ export namespace main {
 	        this.LogToFile = source["LogToFile"];
 	    }
 	}
-	export class UserInfo {
-	    ID: string;
-	    Nickname: string;
-	    Avatar: string;
-	    PublicKey: string;
-	    Destination: string;
-	    Fingerprint: string;
-	    Mnemonic: string;
-	
-	    static createFrom(source: any = {}) {
-	        return new UserInfo(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.ID = source["ID"];
-	        this.Nickname = source["Nickname"];
-	        this.Avatar = source["Avatar"];
-	        this.PublicKey = source["PublicKey"];
-	        this.Destination = source["Destination"];
-	        this.Fingerprint = source["Fingerprint"];
-	        this.Mnemonic = source["Mnemonic"];
-	    }
-	}
-
-}
-
-export namespace profiles {
-	
-	export class ProfileMetadata {
-	    id: string;
-	    display_name: string;
-	    user_id: string;
-	    avatar_path: string;
-	    use_pin: boolean;
-	
-	    static createFrom(source: any = {}) {
-	        return new ProfileMetadata(source);
-	    }
-	
-	    constructor(source: any = {}) {
-	        if ('string' === typeof source) source = JSON.parse(source);
-	        this.id = source["id"];
-	        this.display_name = source["display_name"];
-	        this.user_id = source["user_id"];
-	        this.avatar_path = source["avatar_path"];
-	        this.use_pin = source["use_pin"];
-	    }
-	}
 
 }
 

@@ -15,7 +15,7 @@ import (
 func (a *App) initEmbeddedRouter(ctx context.Context) error {
 	log.Printf("[App] Initializing embedded i2pd router...")
 
-	i2pdDir := filepath.Join(a.dataDir, "i2pd")
+	i2pdDir := filepath.Join(a.core.DataDir, "i2pd")
 
 	// Check for debug mode (default to false unless strictly requested/dev)
 	// But user asked for a behavior where it writes logs ONLY if debug is needed.

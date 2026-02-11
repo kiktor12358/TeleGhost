@@ -111,8 +111,12 @@
                     <div class="settings-section">
                         <label class="form-label">Ваш I2P адрес (Destination)</label>
                         <div class="destination-box">
-                            <code class="destination-code">{myDestination ? myDestination.slice(0, 50) + '...' : 'Загрузка...'}</code>
-                            <button class="btn-icon-copy" on:click={() => navigator.clipboard.writeText(myDestination)}>📋</button>
+                            <code class="destination-code">{myDestination || 'Загрузка...'}</code>
+                            <button class="btn-icon-copy" on:click={() => {
+                                navigator.clipboard.writeText(myDestination);
+                                // We can't easily call showToast from here without passing it as prop, 
+                                // but the parent App.svelte already has onCopyDestination.
+                            }}>📋</button>
                         </div>
                         <div class="info-item">
                             <span class="info-label">Статус сети:</span>

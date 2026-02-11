@@ -231,9 +231,23 @@ func (r *Router) Stop() error {
 		return nil
 	}
 
-	log.Println("[I2PD] Stopping router...") // Changed from Printf to Println and message
-	C.i2pd_stop()
-	C.i2pd_terminate() // Вызываем терминацию для полной очистки ресурсов
+	log.Println("[I2PD] Stopping router services...")
+
+	// Create a channel to signal completion
+	done := make(chan bool, 1)
+	go func() {
+		C.i2pd_stop()
+		C.i2pd_terminate()
+		done <- true
+	}()
+
+	// Wait up to 5 seconds for clean stop
+	select {
+	case <-done:
+		log.Println("[I2PD] Router stopped cleanly.")
+	case <-time.After(5 * time.Second):
+		log.Println("[I2PD] Warning: i2pd stop timed out, continuing shutdown...")
+	}
 
 	r.running = false
 	return nil

@@ -1,378 +1,56 @@
 package main
 
-import (
-	"encoding/base64"
-	"fmt"
-	"log"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
-
-	"teleghost/internal/core"
-	"teleghost/internal/core/identity"
-	"teleghost/internal/network/media"
-	"teleghost/internal/network/profiles"
-	pb "teleghost/internal/proto"
-	"teleghost/internal/repository/sqlite"
-
-	"github.com/wailsapp/wails/v2/pkg/runtime"
-	"google.golang.org/protobuf/proto"
-)
-
-// === Profile Management ===
-
-// CreateProfile создает новый зашифрованный профиль
-func (a *App) CreateProfile(name string, pin string, mnemonic string, userID string, avatarPath string, usePin bool) error {
-	if a.profileManager == nil {
-		return fmt.Errorf("profile manager not initialized")
-	}
-
-	// Fix: If userID is empty, use the current identity's ID or derive it
-	if userID == "" && a.identity != nil {
-		userID = a.identity.Keys.UserID
-	}
-
-	// For new profiles, existingID is empty
-	err := a.profileManager.CreateProfile(name, pin, mnemonic, userID, avatarPath, usePin, "")
-	if err != nil {
-		return err
-	}
-
-	// Fix: Sync profile to DB if this is our current user OR if we just created it
-	var targetRepo *sqlite.Repository = a.repo
-	if targetRepo == nil && userID != "" {
-		// During registration, repo might be initialized but identity is definitely there
-		if a.identity != nil && a.identity.Keys.UserID == userID {
-			// It should be initialized by now in CreateAccount
-		}
-	}
-
-	if a.identity != nil && a.identity.Keys.UserID == userID && a.repo != nil {
-		profile, _ := a.repo.GetMyProfile(a.ctx)
-		if profile != nil {
-			profile.Nickname = name
-			if avatarPath != "" {
-				// Read avatar and convert to base64 for DB
-				avatarData, err := os.ReadFile(avatarPath)
-				if err == nil {
-					ext := filepath.Ext(avatarPath)
-					mimeType := "image/jpeg"
-					if strings.ToLower(ext) == ".png" {
-						mimeType = "image/png"
-					} else if strings.ToLower(ext) == ".webp" {
-						mimeType = "image/webp"
-					}
-					profile.Avatar = fmt.Sprintf("data:%s;base64,%s", mimeType, base64.StdEncoding.EncodeToString(avatarData))
-				}
-			}
-			a.repo.SaveUser(a.ctx, profile)
-			log.Printf("[App] Synced profile for %s (avatar set: %v)", name, profile.Avatar != "")
-		}
-	}
-
-	return nil
+// ListProfiles возвращает список доступных профилей.
+func (a *App) ListProfiles() ([]map[string]interface{}, error) {
+	return a.core.ListProfiles()
 }
 
-// UpdateProfile обновляет профиль
-func (a *App) UpdateProfile(profileID string, name string, avatarPath string, deleteAvatar bool, usePin bool, newPin string, mnemonic string) error {
-	if a.profileManager == nil {
-		return fmt.Errorf("profile manager not initialized")
-	}
-	return a.profileManager.UpdateProfile(profileID, name, avatarPath, deleteAvatar, usePin, newPin, mnemonic)
+// CreateProfile создаёт новый профиль.
+func (a *App) CreateProfile(name, pin, mnemonic, userID, avatarPath string, usePin bool) error {
+	return a.core.CreateProfile(name, pin, mnemonic, userID, avatarPath, usePin)
 }
 
-// ListProfiles возвращает список доступных профилей
-func (a *App) ListProfiles() ([]profiles.ProfileMetadata, error) {
-	if a.profileManager == nil {
-		return nil, fmt.Errorf("profile manager not initialized")
-	}
-	return a.profileManager.ListProfiles()
+// UnlockProfile проверяет PIN и возвращает мнемонику.
+func (a *App) UnlockProfile(profileID, pin string) (string, error) {
+	return a.core.UnlockProfile(profileID, pin)
 }
 
-// UnlockProfile проверяет ПИН и возвращает мнемонику
-func (a *App) UnlockProfile(profileID string, pin string) (string, error) {
-	if a.profileManager == nil {
-		return "", fmt.Errorf("profile manager not initialized")
-	}
-	return a.profileManager.UnlockProfile(profileID, pin)
-}
-
-// DeleteProfile удаляет профиль и все связанные данные
+// DeleteProfile удаляет профиль.
 func (a *App) DeleteProfile(profileID string) error {
-	if a.profileManager == nil {
-		return fmt.Errorf("profile manager not initialized")
-	}
-
-	// Получаем метаданные для удаления папки пользователя
-	profiles, _ := a.profileManager.ListProfiles()
-	var userID string
-	for _, p := range profiles {
-		if p.ID == profileID {
-			userID = p.UserID
-			break
-		}
-	}
-
-	// Удаляем JSON профиля
-	if err := a.profileManager.DeleteProfile(profileID); err != nil {
-		return err
-	}
-
-	// Удаляем папку данных пользователя если нашли UserID
-	if userID != "" {
-		userDataDir := filepath.Join(a.dataDir, "users", userID)
-		log.Printf("[App] Deleting user data directory: %s", userDataDir)
-		os.RemoveAll(userDataDir)
-	}
-
-	return nil
+	return a.core.DeleteProfile(profileID)
 }
 
-// Login авторизация по seed-фразе
+// Login авторизует пользователя.
 func (a *App) Login(seedPhrase string) error {
-	log.Printf("[DEBUG] Login called")
-	seedPhrase = strings.TrimSpace(seedPhrase)
-
-	if !identity.ValidateMnemonic(seedPhrase) {
-		return fmt.Errorf("invalid seed phrase")
-	}
-
-	keys, err := identity.RecoverKeys(seedPhrase)
-	if err != nil {
-		return fmt.Errorf("failed to recover keys: %w", err)
-	}
-
-	a.identity = &identity.Identity{
-		Mnemonic: seedPhrase,
-		Keys:     keys,
-	}
-
-	if err := a.initUserRepository(keys.UserID); err != nil {
-		return fmt.Errorf("failed to init user repository: %w", err)
-	}
-
-	mc, err := media.NewMediaCrypt(keys.EncryptionKey)
-	if err == nil {
-		a.mediaCrypt = mc
-		mediaDir := filepath.Join(a.dataDir, "users", keys.UserID, "media")
-		go mc.DecryptDirectory(mediaDir) // Decrypt on login
-	}
-
-	existingProfile, _ := a.repo.GetMyProfile(a.ctx)
-	if existingProfile == nil {
-		user := &core.User{
-			ID:         keys.UserID,
-			PublicKey:  keys.PublicKeyBase64,
-			PrivateKey: keys.SigningPrivateKey,
-			Mnemonic:   seedPhrase,
-			Nickname:   "User",
-			CreatedAt:  time.Now(),
-			UpdatedAt:  time.Now(),
-		}
-		a.repo.SaveUser(a.ctx, user)
-	}
-
-	jsonProfile, _ := a.profileManager.GetProfileByUserID(keys.UserID)
-	if jsonProfile == nil {
-		name := "User"
-		avatarPath := ""
-		if existingProfile != nil {
-			name = existingProfile.Nickname
-			avatarPath = existingProfile.Avatar
-		}
-		a.profileManager.CreateProfile(name, "", seedPhrase, keys.UserID, avatarPath, false, "")
-	}
-
-	go a.connectToI2P()
-	return nil
+	return a.core.Login(seedPhrase)
 }
 
-// CreateAccount создаёт новый аккаунт
+// CreateAccount создаёт новый аккаунт.
 func (a *App) CreateAccount() (string, error) {
-	id, err := identity.GenerateNewIdentity()
-	if err != nil {
-		return "", fmt.Errorf("failed to generate identity: %w", err)
-	}
-
-	a.identity = id
-
-	if err := a.initUserRepository(id.Keys.UserID); err != nil {
-		return "", fmt.Errorf("failed to init user repository: %w", err)
-	}
-
-	mc, err := media.NewMediaCrypt(id.Keys.EncryptionKey)
-	if err == nil {
-		a.mediaCrypt = mc
-		mediaDir := filepath.Join(a.dataDir, "users", id.Keys.UserID, "media")
-		os.MkdirAll(mediaDir, 0700)
-	}
-
-	user := &core.User{
-		ID:         id.Keys.UserID,
-		PublicKey:  id.Keys.PublicKeyBase64,
-		PrivateKey: id.Keys.SigningPrivateKey,
-		Mnemonic:   id.Mnemonic,
-		Nickname:   "User",
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
-	}
-	a.repo.SaveUser(a.ctx, user)
-
-	go a.connectToI2P()
-	return id.Mnemonic, nil
+	return a.core.CreateAccount()
 }
 
-// Logout завершает сессию текущего пользователя
+// Logout выходит из аккаунта.
 func (a *App) Logout() {
-	if a.identity != nil && a.mediaCrypt != nil {
-		mediaDir := filepath.Join(a.dataDir, "users", a.identity.Keys.UserID, "media")
-		a.mediaCrypt.MigrateDirectory(mediaDir) // Encrypt on logout
-	}
-
-	a.identity = nil
-	if a.repo != nil {
-		a.repo.Close()
-		a.repo = nil
-	}
-	if a.messenger != nil {
-		a.messenger.Stop()
-		a.messenger = nil
-	}
-	if a.router != nil {
-		a.router.Stop()
-		a.router = nil
-	}
+	a.core.Logout()
 }
 
-func (a *App) GetMyInfo() *UserInfo {
-	log.Println("[App] GetMyInfo called")
-	if a.identity == nil {
-		log.Println("[App] GetMyInfo: identity is nil")
-		return nil
-	}
-
-	nickname := "User"
-	avatar := ""
-
-	if a.repo != nil {
-		profile, err := a.repo.GetMyProfile(a.ctx)
-		if err == nil && profile != nil {
-			nickname = profile.Nickname
-			avatar = profile.Avatar
-		}
-	}
-
-	return &UserInfo{
-		ID:          a.identity.Keys.UserID,
-		Nickname:    nickname,
-		Avatar:      avatar,
-		PublicKey:   a.identity.Keys.PublicKeyBase64,
-		Destination: a.GetMyDestination(),
-		Fingerprint: a.identity.Keys.Fingerprint(),
-		Mnemonic:    a.identity.Mnemonic,
-	}
+// GetMyInfo возвращает информацию о текущем пользователе.
+func (a *App) GetMyInfo() map[string]interface{} {
+	return a.core.GetMyInfo()
 }
 
-// GetCurrentProfile возвращает метаданные текущего профиля (для PIN настроек)
-func (a *App) GetCurrentProfile() map[string]interface{} {
-	if a.identity == nil || a.profileManager == nil {
-		return nil
-	}
-	profile, _ := a.profileManager.GetProfileByUserID(a.identity.Keys.UserID)
-	if profile == nil {
-		return nil
-	}
-	return map[string]interface{}{
-		"id":      profile.ID,
-		"use_pin": profile.UsePin,
-		"name":    profile.DisplayName,
-		"user_id": profile.UserID,
-	}
-}
-
-// UpdateMyProfile обновляет профиль
+// UpdateMyProfile обновляет профиль пользователя.
 func (a *App) UpdateMyProfile(nickname, bio, avatar string) error {
-	if err := a.repo.UpdateMyProfile(a.ctx, nickname, bio, avatar); err != nil {
-		return err
-	}
-	go a.broadcastProfileUpdate()
-	return nil
+	return a.core.UpdateMyProfile(nickname, bio, avatar)
 }
 
-// BroadcastProfileUpdate broadcasts current profile to all contacts
-func (a *App) broadcastProfileUpdate() {
-	if a.messenger == nil {
-		return
-	}
-
-	profile, err := a.repo.GetMyProfile(a.ctx)
-	if err != nil || profile == nil {
-		return
-	}
-
-	avatarBytes := []byte{}
-	if profile.Avatar != "" {
-		parts := strings.Split(profile.Avatar, ",")
-		if len(parts) > 1 {
-			avatarBytes, _ = base64.StdEncoding.DecodeString(parts[1])
-		} else {
-			avatarBytes, _ = base64.StdEncoding.DecodeString(profile.Avatar)
-		}
-	}
-
-	packet := &pb.Packet{
-		Type: pb.PacketType_PROFILE_UPDATE,
-		Payload: func() []byte {
-			update := &pb.ProfileUpdate{
-				Nickname: profile.Nickname,
-				Bio:      "",
-				Avatar:   avatarBytes,
-			}
-			data, _ := proto.Marshal(update)
-			return data
-		}(),
-	}
-
-	a.messenger.Broadcast(packet)
+// GetCurrentProfile возвращает текущий профиль.
+func (a *App) GetCurrentProfile() map[string]interface{} {
+	return a.core.GetCurrentProfile()
 }
 
-func (a *App) onProfileUpdate(pubKey, nickname, bio string, avatar []byte) {
-	if a.repo == nil {
-		return
-	}
-
-	contact, err := a.repo.GetContactByPublicKey(a.ctx, pubKey)
-	if err != nil || contact == nil {
-		return
-	}
-
-	contact.Nickname = nickname
-	if len(avatar) > 0 {
-		contact.Avatar = "data:image/jpeg;base64," + base64.StdEncoding.EncodeToString(avatar)
-	}
-
-	contact.UpdatedAt = time.Now()
-	a.repo.SaveContact(a.ctx, contact)
-
-	runtime.EventsEmit(a.ctx, "contact_updated", contact.ID)
-}
-
-// RequestProfileUpdate запрашивает обновление профиля у контакта
-func (a *App) RequestProfileUpdate(contactID string) error {
-	if a.messenger == nil {
-		return fmt.Errorf("not connected to I2P")
-	}
-
-	contact, err := a.repo.GetContact(a.ctx, contactID)
-	if err != nil || contact == nil {
-		return fmt.Errorf("contact not found")
-	}
-
-	return a.messenger.SendProfileRequest(contact.I2PAddress)
-}
-
-// onProfileRequest обрабатывает входящий запрос профиля
-func (a *App) onProfileRequest(requestorPubKey string) {
-	a.broadcastProfileUpdate()
+// UpdateProfile обновляет данные профиля (ПИН-код и т.д.)
+func (a *App) UpdateProfile(profileID, name, avatarPath string, deleteAvatar bool, usePin bool, newPin, mnemonic string) error {
+	return a.core.UpdateProfile(profileID, name, avatarPath, deleteAvatar, usePin, newPin, mnemonic)
 }

@@ -28,6 +28,8 @@ import (
 	"teleghost/internal/network/router"
 	"teleghost/internal/repository/sqlite"
 
+	"github.com/go-i2p/i2pkeys"
+
 	"github.com/google/uuid"
 )
 
@@ -330,13 +332,60 @@ func (a *AppCore) InitUserRepository(userID string) error {
 func (a *AppCore) ConnectToI2P() {
 	a.SetNetworkStatus(StatusConnecting)
 
+	routerSettings := a.GetRouterSettings()
 	cfg := router.DefaultConfig()
+	cfg.InboundLength = routerSettings.TunnelLength
+	cfg.OutboundLength = routerSettings.TunnelLength
+
 	a.Router = router.NewSAMRouter(cfg)
 
+	// Загружаем существующие ключи из БД
+	if a.Repo != nil {
+		user, err := a.Repo.GetMyProfile(a.Ctx)
+		if err == nil && user != nil && len(user.I2PKeys) > 0 {
+			log.Println("[AppCore] Loading existing I2P keys from database")
+			keysPath := filepath.Join(a.DataDir, "users", a.Identity.Keys.UserID, "i2p_keys.dat")
+			if err := os.WriteFile(keysPath, user.I2PKeys, 0600); err == nil {
+				keys, err := i2pkeys.LoadKeys(keysPath)
+				if err == nil {
+					a.Router.SetKeys(keys)
+				} else {
+					log.Printf("[AppCore] Failed to load I2P keys from %s: %v", keysPath, err)
+				}
+				// Удаляем временный файл ключей после загрузки (опционально, но безопаснее хранить в БД)
+				os.Remove(keysPath)
+			}
+		}
+	}
+
 	if err := a.Router.Start(a.Ctx); err != nil {
+		if a.Ctx.Err() != nil {
+			log.Println("[AppCore] I2P connection canceled")
+			return
+		}
 		a.SetNetworkStatus(StatusError)
 		log.Printf("[AppCore] I2P connection failed: %v", err)
 		return
+	}
+
+	// Если ключи были сгенерированы заново, сохраняем их
+	if a.Repo != nil && a.Identity != nil {
+		keys := a.Router.GetKeys()
+		dest := a.Router.GetDestination()
+
+		user, _ := a.Repo.GetMyProfile(a.Ctx)
+		if user != nil {
+			keysPath := filepath.Join(a.DataDir, "users", a.Identity.Keys.UserID, "temp_i2p_keys.dat")
+			if err := i2pkeys.StoreKeys(keys, keysPath); err == nil {
+				if keysData, err := os.ReadFile(keysPath); err == nil {
+					user.I2PKeys = keysData
+					user.I2PAddress = dest
+					log.Printf("[AppCore] Saving I2P destination to DB: %s", dest)
+					a.Repo.SaveUser(a.Ctx, user)
+				}
+				os.Remove(keysPath)
+			}
+		}
 	}
 
 	// Запускаем messenger
