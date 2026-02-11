@@ -437,6 +437,10 @@ func (a *AppCore) OnMessageReceived(msg *core.Message, senderPubKey, senderAddr 
 		}
 		a.Repo.SaveContact(a.Ctx, contact)
 		a.Emitter.Emit("contact_updated")
+		// Запрашиваем профиль у нового контакта
+		if a.Messenger != nil {
+			go a.Messenger.SendProfileRequest(senderAddr)
+		}
 	}
 
 	msg.ChatID = contact.ChatID

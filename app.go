@@ -361,7 +361,6 @@ func (a *App) RequestProfileUpdate() {
 func (a *App) SetAppFocus(focused bool) {
 	if a.core != nil {
 		a.core.IsFocused = focused
-		log.Printf("[App] Focus changed: %v", focused)
 	}
 }
 
@@ -369,6 +368,5 @@ func (a *App) SetAppFocus(focused bool) {
 func (a *App) SetActiveChat(chatID string) {
 	if a.core != nil {
 		a.core.ActiveChatID = chatID
-		log.Printf("[App] Active chat: %s", chatID)
 	}
 }

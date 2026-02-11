@@ -458,6 +458,9 @@ func (s *Service) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	remoteAddr := conn.RemoteAddr().String()
+	if i2pAddr, ok := conn.RemoteAddr().(interface{ Base64() string }); ok {
+		remoteAddr = i2pAddr.Base64()
+	}
 	log.Printf("[Messenger] Incoming connection from %s...", remoteAddr[:min(32, len(remoteAddr))])
 
 	for {

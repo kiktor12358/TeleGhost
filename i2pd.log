@@ -9454,3 +9454,1809 @@
 17:12:35@540/info - NetDb: RouterInfo updated: YXSBqkQJ1JL7F-ILQ9bqr6TXBxanABLw60Wk8LMAyxE=
 17:12:35@300/info - Tunnel: Outbound tunnel 3109893907 has been created
 17:12:35@604/warn - Destination: Publish confirmation was not received in 1800 milliseconds or failed. will try again
+17:21:23@169/info - API: Starting NetDB
+17:21:23@169/warn - Family: Can't load family certificates from /home/nethunter/.config/TeleGhost/i2pd/certificates/family
+17:21:23@169/info - NetDb: 654 routers loaded (495 floodfils)
+17:21:23@169/info - API: Starting Transports
+17:21:23@169/info - NTCP2: Proxy is not used
+17:21:23@169/info - NTCP2: Start listening v4 TCP port 26965
+17:21:23@169/info - SSU2: Socket receive buffer size: 131072
+17:21:23@169/info - SSU2: Socket send buffer size: 131072
+17:21:23@169/info - SSU2: Start listening on 0.0.0.0:26965
+17:21:23@169/info - Transports: Started peer test IPv4
+17:21:23@169/info - API: Starting Tunnels
+17:21:23@169/info - API: Starting Router context
+17:21:23@169/info - Destination: Parameters for tunnel set to: 3 inbound (3 hops), 3 outbound (3 hops), 40 tags
+17:21:23@169/info - Addressbook: Using index file /home/nethunter/.config/TeleGhost/i2pd/addressbook/addresses.csv
+17:21:23@169/info - Addressbook: 78 addresses loaded from storage
+17:21:23@169/info - Addressbook: Loading subscriptions from config
+17:21:23@169/info - Addressbook: 1 subscriptions urls loaded
+17:21:23@169/info - Clients: 0 I2P client tunnels created
+17:21:23@169/info - Clients: 0 I2P server tunnels created
+17:21:23@169/info - Clients: Starting SAM bridge at 0.0.0.0:[7656|0]
+17:21:23@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:23@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:23@335/info - NetDb: RouterInfo updated: gIBStJpm-puvFngf46ZJ46gwKjGK48nC6QAcOVXC138=
+17:21:23@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:24@860/warn - Profiling: No profile yet for bjnI3OgsSueu8VEBrUCsnYM4tg24DFuO8NOlcmzMFOI=
+17:21:24@860/info - NetDb: RouterInfo added: bjnI3OgsSueu8VEBrUCsnYM4tg24DFuO8NOlcmzMFOI=
+17:21:24@860/info - Router: network status v4 changed Unknown -> Firewalled
+17:21:24@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:24@335/info - NetDb: RouterInfo updated: s8YbQnzYiAD4Ratu2ikM8a5nW8R8oh0KBmvQaZ07~i8=
+17:21:24@436/error - SAM: Read error: End of file
+17:21:24@860/warn - Profiling: No profile yet for DJOt6RcWCqYKdnNrdm4KuCy837MTF2jJzPlvItaJkFU=
+17:21:24@860/info - NetDb: RouterInfo added: DJOt6RcWCqYKdnNrdm4KuCy837MTF2jJzPlvItaJkFU=
+17:21:25@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:25@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:26@335/info - NetDb: RouterInfo updated: dYMTTa9B6oefNxeipWzNhS75qbJCbjwSyz19n2Ivq~8=
+17:21:26@383/warn - Profiling: No profile yet for gIBStJpm-puvFngf46ZJ46gwKjGK48nC6QAcOVXC138=
+17:21:26@710/info - Tunnel: Outbound tunnel 115627932 has been declined
+17:21:26@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:28@860/warn - SSU2: Session with 76.174.123.111:13396 was not established after 5 seconds
+17:21:28@860/warn - SSU2: Session with 47.154.169.134:13117 was not established after 5 seconds
+17:21:28@860/warn - SSU2: Session with 78.164.239.66:18103 was not established after 5 seconds
+17:21:29@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:29@436/info - Destination: Parameters for tunnel set to: 2 inbound (1 hops), 2 outbound (1 hops), 40 tags
+17:21:29@436/info - Destination: Local address qlejoclfm7ln7o3sawowatvwxiarqu3q4kgcp27sxqlqtwknee3a created
+17:21:30@341/warn - Profiling: No profile yet for J2-1WI5FmeAryPoEPpfjzWgpW2WhTc0vDdJpl9GxkGU=
+17:21:30@710/info - Tunnels: Can't select first hop for a tunnel. Trying already connected
+17:21:30@710/error - Tunnels: Can't select next hop for Uk3~Cpmc8x~1ld-e405Rnx43IAT-2AoGefFrjlnzUeY=
+17:21:30@710/error - Tunnels: Can't create inbound tunnel, no peers available
+17:21:30@341/warn - Profiling: No profile yet for ZvK1-cQbEcEN85ckFKn~vQsxDInmAzUiVPEQFzJX-O4=
+17:21:30@710/info - Tunnels: Can't select first hop for a tunnel. Trying already connected
+17:21:30@710/error - Tunnels: Can't select next hop for Uk3~Cpmc8x~1ld-e405Rnx43IAT-2AoGefFrjlnzUeY=
+17:21:30@710/error - Tunnels: Can't create inbound tunnel, no peers available
+17:21:30@710/info - Tunnels: Can't select first hop for a tunnel. Trying already connected
+17:21:30@710/error - Tunnels: Can't select next hop for Uk3~Cpmc8x~1ld-e405Rnx43IAT-2AoGefFrjlnzUeY=
+17:21:30@710/error - Tunnels: Can't create inbound tunnel, no peers available
+17:21:30@860/warn - SSU2: Unexpected message type 84 instead 9
+17:21:30@335/info - NetDb: RouterInfo updated: J2-1WI5FmeAryPoEPpfjzWgpW2WhTc0vDdJpl9GxkGU=
+17:21:30@341/warn - Profiling: No profile yet for RXJC~w38i-31TVl3Kqk7oHtnEgTVoJMUd6w6trpb-64=
+17:21:31@335/info - NetDb: RouterInfo updated: ZvK1-cQbEcEN85ckFKn~vQsxDInmAzUiVPEQFzJX-O4=
+17:21:31@335/info - NetDb: RouterInfo updated: RXJC~w38i-31TVl3Kqk7oHtnEgTVoJMUd6w6trpb-64=
+17:21:31@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:31@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:31@335/info - NetDb: RouterInfo updated: O3kRuoEbUwsEFki-3tPJQMtqtVwDomTwNAvkX6ktuZs=
+17:21:32@383/warn - Profiling: No profile yet for O3kRuoEbUwsEFki-3tPJQMtqtVwDomTwNAvkX6ktuZs=
+17:21:33@969/info - Router: Publishing our RouterInfo to hZsj. reply token=648105815
+17:21:33@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:34@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:34@335/info - NetDb: RouterInfo updated: hZsj0OOYVjazp2AB8iGLPH3kGN3rwNLKluunmKcXAnU=
+17:21:35@969/info - Router: Publishing confirmed. reply token=648105815
+17:21:35@341/warn - Profiling: No profile yet for fn9F8lvq6QaYvDx6a7cO-DjNm04QfGyu~wmiwCXiJwA=
+17:21:35@341/warn - Profiling: No profile yet for J4VB-tjRD5pw71CRi7tEcMe23CVNJtOcYi7dFXWAqHQ=
+17:21:35@341/warn - Profiling: No profile yet for Mu-f6tVZUAE7Y2a7Mn54QZ--gp8SeFYsSR6NCp0ZzrQ=
+17:21:35@341/warn - Profiling: No profile yet for s6SP36b-Pr25YpcXmR-maFFudj8-Eyz4E3nFkisKQIw=
+17:21:35@341/warn - Profiling: No profile yet for 8R7pXsXoIt1HNptMjoTB1q8actg2EgJCZSwyFbVZvkM=
+17:21:35@341/warn - Profiling: No profile yet for 3tDtG9zjDP7XQ9Ggrh91Mc3qPDRJAg0vxzN2yh~OWgk=
+17:21:35@563/warn - NTCP2: SessionCreated read error: End of file
+17:21:35@341/info - Transports: No compatible addresses available
+17:21:35@341/info - I2NP: Tunnel 2508310818 request was not sent
+17:21:35@341/warn - Profiling: No profile yet for gIptvTz3YT-y8NToG0dbnRSK-mZHnGDDpghv7e3kYEQ=
+17:21:35@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:35@335/info - NetDb: RouterInfo updated: J4VB-tjRD5pw71CRi7tEcMe23CVNJtOcYi7dFXWAqHQ=
+17:21:36@860/warn - SSU2: Session with 75.176.129.160:21084 was not established after 5 seconds
+17:21:36@860/warn - SSU2: Unexpected message type 198 from 47.154.169.134:13117 of 131 bytes
+17:21:44@959/warn - Profiling: No profile yet for ZqWVwtqxAepL7OLv8bJA6K37iCZlBXgczU~TdLrph8Q=
+17:21:45@341/warn - Profiling: No profile yet for oeg9DkDK-G7LSs1abPIxF-ItQExTdqWRukmJG9vy45Y=
+17:21:45@341/warn - Profiling: No profile yet for iYGWE--L~fIsSP9aErCN9-DBZ5rHaR9TpBGMuXsM1mc=
+17:21:45@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:45@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:45@335/info - NetDb: RouterInfo updated: Mu-f6tVZUAE7Y2a7Mn54QZ--gp8SeFYsSR6NCp0ZzrQ=
+17:21:45@335/info - NetDb: RouterInfo updated: F7T0A2YDIQ8M4Nj3cgOFzJiPqquSo1oLNC6N9kqPtKA=
+17:21:45@335/info - NetDb: RouterInfo updated: H6rl5Uy8yKamox8~E48LR0-ebdx7AIt7OKBFqYU0ruY=
+17:21:46@335/info - NetDb: RouterInfo updated: iYGWE--L~fIsSP9aErCN9-DBZ5rHaR9TpBGMuXsM1mc=
+17:21:46@335/info - NetDb: RouterInfo updated: oeg9DkDK-G7LSs1abPIxF-ItQExTdqWRukmJG9vy45Y=
+17:21:50@341/warn - Profiling: No profile yet for Feaj82BEM2Irs9vZAs3cSf4eJpH9hObMTMfJDkA1kSc=
+17:21:50@341/warn - Profiling: No profile yet for 2uy9Up1~rxn-eGC6KynrYD~WjpJGkVuMklWcD62Ecy4=
+17:21:50@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:50@710/info - Tunnel: Inbound tunnel 1561897528 has been created
+17:21:50@710/info - Tunnel: Inbound tunnel 1213749961 has been declined
+17:21:50@710/info - Tunnel: Outbound tunnel 957490493 has been created
+17:21:50@436/warn - Profiling: No profile yet for IJeaf5kgnBNFWACQVAZqdIxGdIyStR7xOTgYHLiGj6g=
+17:21:50@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:50@335/info - NetDb: RouterInfo updated: YXEAXlOWii2kTnnqiSz6Krhix4-OY70XWIHhWLmtB5o=
+17:21:50@563/warn - NTCP2: SessionCreated read error: End of file
+17:21:50@341/info - Transports: No compatible addresses available
+17:21:50@341/info - I2NP: Tunnel 1574528551 request was not sent
+17:21:50@563/warn - NTCP2: SessionCreated read error: End of file
+17:21:51@341/warn - Profiling: No profile yet for ZaXLrE4goRLmXmpQDL50aXu0eng930BmJX89qEtzc~8=
+17:21:51@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:51@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:21:51@335/info - NetDb: RouterInfo updated: ZaXLrE4goRLmXmpQDL50aXu0eng930BmJX89qEtzc~8=
+17:21:51@341/warn - Profiling: No profile yet for g5SSjaVoXsP~soBha04y07x~F6ntjrB3lWBk3oPivew=
+17:21:51@335/info - NetDb: RouterInfo updated: g5SSjaVoXsP~soBha04y07x~F6ntjrB3lWBk3oPivew=
+17:21:51@335/info - NetDb: RouterInfo updated: ZqWVwtqxAepL7OLv8bJA6K37iCZlBXgczU~TdLrph8Q=
+17:21:55@341/warn - Profiling: No profile yet for lHPdqPuuoZJC0N3Oc9vbLROEq0sIvfdovqM2J0HR7ag=
+17:21:56@335/info - NetDb: RouterInfo updated: lHPdqPuuoZJC0N3Oc9vbLROEq0sIvfdovqM2J0HR7ag=
+17:21:57@710/info - Tunnel: Inbound tunnel 1691765967 has been declined
+17:22:00@341/warn - Profiling: No profile yet for VLkwE7PlPZVpM51ZpeKp-jHWWge8wI6UPAyllt7ppMo=
+17:22:00@563/warn - NTCP2: SessionCreated read error: End of file
+17:22:00@563/info - NTCP2: Not connected in 25 seconds
+17:22:00@563/info - NTCP2: Connect error Операция отменена
+17:22:00@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:22:00@860/warn - SSU2: Retry token is zero
+17:22:00@341/info - Transports: No compatible addresses available
+17:22:00@341/warn - Profiling: No profile yet for I3FAphCcwRmYLXOAKeyL4Kg-kvJxNQm7C2z9m9iJWXI=
+17:22:00@341/info - I2NP: Tunnel 675855566 request was not sent
+17:22:00@710/info - Tunnel: Inbound tunnel 3606669448 has been declined
+17:22:00@341/warn - Profiling: No profile yet for Ni9d6Lg2xodf6sTra-PE95y84AerUna-TG8Dc2j-LQo=
+17:22:00@335/info - NetDb: RouterInfo updated: Ni9d6Lg2xodf6sTra-PE95y84AerUna-TG8Dc2j-LQo=
+17:22:00@710/info - Tunnel: Outbound tunnel 1838362045 has been declined
+17:22:01@959/warn - Profiling: No profile yet for ViMoeZSE9KfGALJLGwnAmXAhzH14XrizUwC6a44tkHw=
+17:22:01@959/warn - Profiling: No profile yet for 1c-Q66~dgbZNqLA9ydS0zwnyNlyTOE9yW5qLNF-WxQw=
+17:22:02@563/info - NTCP2: Connect error Нет маршрута до узла
+17:22:02@341/info - Transports: No compatible addresses available
+17:22:02@341/info - I2NP: Tunnel 2754986599 request was not sent
+17:22:05@860/warn - SSU2: Session with 111.95.4.37:9335 was not established after 5 seconds
+17:22:05@341/info - Transports: No compatible addresses available
+17:22:05@341/warn - Profiling: No profile yet for m-~0KXmJhVMyLjS3VbfkkTqIRgbwTlD2gc-vN5hZAKQ=
+17:22:05@341/info - I2NP: Tunnel 1094463521 request was not sent
+17:22:05@341/info - I2NP: Tunnel 3095120072 request was not sent
+17:22:05@563/info - NTCP2: Not connected in 25 seconds
+17:22:05@563/info - NTCP2: Connect error Операция отменена
+17:22:05@563/info - NTCP2: Not connected in 25 seconds
+17:22:05@563/info - NTCP2: Connect error Операция отменена
+17:22:05@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:22:05@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:22:05@341/warn - Profiling: No profile yet for rQypCSetcXvY19Qn8YoD0oO6~smEZ83YIUz1ceZqcPM=
+17:22:05@341/warn - Profiling: No profile yet for hIvf~kg4deUHPV2CqCcCCA5B94iYtKm3cXeOYgaF-rY=
+17:22:05@335/info - NetDb: RouterInfo updated: hIvf~kg4deUHPV2CqCcCCA5B94iYtKm3cXeOYgaF-rY=
+17:22:06@710/info - Tunnel: Inbound tunnel 2090494939 has been declined
+17:22:06@710/info - Tunnel: Outbound tunnel 2780555109 has been declined
+17:22:06@563/warn - NTCP2: SessionCreated read error: Соединение разорвано другой стороной
+17:22:06@341/info - Transports: No compatible addresses available
+17:22:06@341/info - I2NP: Tunnel 2150267613 request was not sent
+17:22:06@341/warn - Profiling: No profile yet for j5TPrxDmGMXuuZfKgIyV-9du5tNWFv1f6idA~4QXD5M=
+17:22:06@335/info - NetDb: RouterInfo updated: j5TPrxDmGMXuuZfKgIyV-9du5tNWFv1f6idA~4QXD5M=
+17:22:07@710/info - Tunnel: Inbound tunnel 2128337686 has been declined
+17:22:07@959/warn - Profiling: No profile yet for O-sMFHcKs~~h0Xx5AkDjb56a2Nj~GPxbBKjyEOyCPyQ=
+17:22:10@860/warn - SSU2: Session with 68.4.35.38:15030 was not established after 5 seconds
+17:22:10@341/info - Transports: No compatible addresses available
+17:22:10@341/warn - Profiling: No profile yet for tkkJvWwB34DsrmenMsgWL2NcwO9OgNtdC69m4scjyGs=
+17:22:10@341/info - I2NP: Tunnel 3269798601 request was not sent
+17:22:10@563/info - NTCP2: Not connected in 25 seconds
+17:22:10@563/info - NTCP2: Connect error Операция отменена
+17:22:10@710/info - Tunnel: Outbound tunnel 2001312784 has been created
+17:22:10@335/info - NetDb: RouterInfo updated: E-rqtQLP-IKeaQypcxGRbOwYGik0Gk9t~wZiyCQQubA=
+17:22:10@959/warn - Profiling: No profile yet for rRrRyW4Dee4aDD6Bl8D~4IvNYpDmF3MQ3JRnVbdyx7U=
+17:22:10@959/warn - Profiling: No profile yet for O~vXjJCUFUu6ye8o7r5DTVUdqz-7JgKUzBo8eTHkKtk=
+17:22:10@959/warn - Profiling: No profile yet for LhpIe9nSRZKuftfcx7weJh~zF~WnrPt9c869KkiHAek=
+17:22:10@959/warn - Profiling: No profile yet for R~aF4Aai5Nn2gzTQTU2hOMGmzLkbM1u9F5QG7i5~Ve0=
+17:22:10@959/warn - Profiling: No profile yet for 6g-otMbD0TG5LNmS8j~PUZaFQbYTfn-mMxUXvM6fzvw=
+17:22:10@959/warn - Profiling: No profile yet for 8mEwVmu9a5LSSuk0Fta96ixTOHks18Xv4JZjYayX5Hk=
+17:22:10@959/warn - Profiling: No profile yet for tt1nXR0A9z~I36NXFl0iE0--bs9vB3ho-PgeSfSc05w=
+17:22:10@710/info - Tunnel: Inbound tunnel 4218051418 has been declined
+17:22:15@860/warn - SSU2: Session with 184.144.224.170:9210 was not established after 5 seconds
+17:22:15@341/info - Transports: No compatible addresses available
+17:22:15@341/info - I2NP: Tunnel 601512803 request was not sent
+17:22:15@341/info - I2NP: Tunnel 2866888788 request was not sent
+17:22:15@563/info - NTCP2: Not connected in 25 seconds
+17:22:15@341/info - Transports: No compatible addresses available
+17:22:15@341/info - I2NP: Tunnel 1463397703 request was not sent
+17:22:15@563/info - NTCP2: Connect error Операция отменена
+17:22:15@341/warn - Profiling: No profile yet for 81H6tq7RBXjHsVkXYSxPHUr3vizVwa6hc018nmctIsc=
+17:22:15@341/warn - Profiling: No profile yet for 2yf57kOSohXMue93eHnZSBpdXuGOygml2IyJ6ZLoJUg=
+17:22:15@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:22:15@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:22:15@335/info - NetDb: RouterInfo updated: WmFCz4ooPxP8TIrCpwyJwaTGz77y7Gtne1Ww79z1LXk=
+17:22:16@341/warn - Profiling: No profile yet for GljX4q-8xnHSsSuMz44jkBeAb6kHNNSLBWZy8FxwLk8=
+17:22:16@335/info - NetDb: RouterInfo updated: GljX4q-8xnHSsSuMz44jkBeAb6kHNNSLBWZy8FxwLk8=
+17:22:18@401/info - NetDbReq: Exploring new 1 routers ...
+17:22:18@563/info - NTCP2: Connect error В соединении отказано
+17:22:20@341/warn - Profiling: No profile yet for 3N6a-Qz~57PuYt7XiwCfFQI386Ols-4YJcIzqtjTH9M=
+17:22:20@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:22:20@563/warn - NTCP2: SessionCreated read error: Соединение разорвано другой стороной
+17:22:20@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:22:21@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:22:21@860/warn - SSU2: Retry token is zero
+17:22:21@341/info - Transports: No compatible addresses available
+17:22:21@341/warn - Profiling: No profile yet for jvF-AZtVr8JxGXTMz7SJbYpxGfOIvMtmMo6EiYqzeCI=
+17:22:21@341/info - I2NP: Tunnel 2303100123 request was not sent
+17:22:21@335/info - NetDb: RouterInfo updated: 1c-Q66~dgbZNqLA9ydS0zwnyNlyTOE9yW5qLNF-WxQw=
+17:22:23@860/warn - SSU2: Session with 99.254.149.142:26092 was not established after 5 seconds
+17:22:23@341/info - Transports: No compatible addresses available
+17:22:23@563/info - NTCP2: Connect error Нет маршрута до узла
+17:22:24@335/info - NetDb: Saved 28 new/updated routers
+17:22:24@335/info - NetDb: Deleting 90 unreachable routers
+17:22:25@563/info - NTCP2: Not connected in 25 seconds
+17:22:25@563/info - NTCP2: Connect error Операция отменена
+17:22:25@341/warn - Profiling: No profile yet for Bx-db0sPKAbGfgl86YezlK7QzH1nTtHK0LwTQKSh3dQ=
+17:22:26@335/info - NetDb: RouterInfo updated: Bx-db0sPKAbGfgl86YezlK7QzH1nTtHK0LwTQKSh3dQ=
+17:22:26@710/info - Tunnel: Inbound tunnel 3122338155 has been declined
+17:22:28@383/warn - Profiling: No profile yet for aks~hFl7RTFZ4sCq3BH0jrO1ZNoL5yVbLvF0pcE8JH8=
+17:22:28@383/warn - Profiling: No profile yet for 9X9qXq7b0mxdCMx~Plt7drRaNz3POUnX7iTAjW0Sg98=
+17:22:28@383/warn - Profiling: No profile yet for 0TAeSz3yl1SKqZul1urF4chBBUmLLQasM8XRb9JweYE=
+17:22:28@383/warn - Profiling: No profile yet for Ca7KzxOjJdfIImdW2ehpXacAaUix6KX7VbbnsBku4Q4=
+17:22:28@383/warn - Profiling: No profile yet for OKcvylmujpOKcJyiIsDWZbbCzft3PKMJvM1AzbYhju0=
+17:22:28@383/warn - Profiling: No profile yet for 9D4nSAJfphp0O8mkkJVMw6acg4rSj70ZWElUtHnykyc=
+17:22:28@383/warn - Profiling: No profile yet for CQYUYOM-2CLiuH-xZLwwZ7H~FZj066qQ-qYbfMoL9dY=
+17:22:28@860/warn - SSU2: Session with 71.238.103.172:21318 was not established after 5 seconds
+17:22:28@341/info - Transports: No compatible addresses available
+17:22:28@341/info - I2NP: Tunnel 4231443121 request was not sent
+17:22:30@860/warn - SSU2: Session with 126.182.55.246:14924 was not established after 5 seconds
+17:22:30@341/info - Transports: No compatible addresses available
+17:22:30@341/info - I2NP: Tunnel 2856918092 request was not sent
+17:22:30@341/info - I2NP: Tunnel 328976687 request was not sent
+17:22:30@710/info - Tunnel: Inbound tunnel 2956042671 has been declined
+17:22:30@341/warn - Profiling: No profile yet for RaGUK5AqqBmKfBAmhzcy5Bs3JzYntD6J~tugOaYvuS4=
+17:22:30@335/info - NetDb: RouterInfo updated: RaGUK5AqqBmKfBAmhzcy5Bs3JzYntD6J~tugOaYvuS4=
+17:22:35@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:22:35@710/info - Tunnel: Inbound tunnel 482282354 has been declined
+17:22:35@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:22:36@335/info - NetDb: RouterInfo updated: YXSBqkQJ1JL7F-ILQ9bqr6TXBxanABLw60Wk8LMAyxE=
+17:22:36@710/info - Tunnel: Outbound tunnel 2420177716 has been declined
+17:22:38@341/warn - Transports: Session to peer 3N6a-Qz~57PuYt7XiwCfFQI386Ols-4YJcIzqtjTH9M= has not been created in 15 seconds
+17:22:38@341/warn - Transports: Session to peer 6lu-2GyWv3JhaJGLkWxyKeosX4vTQf40Up~JptvJdcg= has not been created in 15 seconds
+17:22:38@341/warn - Transports: Session to peer 3tDtG9zjDP7XQ9Ggrh91Mc3qPDRJAg0vxzN2yh~OWgk= has not been created in 15 seconds
+17:22:38@341/warn - Transports: Session to peer 9R4FGFr6Y3N5fKIShQSAPdG5JxYqLDTPXKMWnKVt6Hc= has not been created in 15 seconds
+17:22:40@710/info - Tunnel: Inbound tunnel 2638581017 has been created
+17:22:40@710/info - Tunnel: Outbound tunnel 367769891 has been created
+17:22:42@796/warn - Profiling: No profile yet for J1OiO1PoKpQgkPEl95nfxjqmTi07~-ggfVZqpRDJmNQ=
+17:22:44@335/info - NetDb: RouterInfo updated: 9R4FGFr6Y3N5fKIShQSAPdG5JxYqLDTPXKMWnKVt6Hc=
+17:22:45@335/info - NetDb: RouterInfo updated: wTmtDn5aZDSj7JQZD-Y1PLDwlebhG-bOusN0cFvUzHA=
+17:22:45@710/info - Tunnel: Inbound tunnel 1612093082 has been created
+17:22:45@563/info - NTCP2: Not connected in 25 seconds
+17:22:45@563/info - NTCP2: Connect error Операция отменена
+17:22:45@710/info - Tunnel: Inbound tunnel 3772778049 has been declined
+17:22:47@796/warn - Profiling: No profile yet for ix0oO2944JBkiUr4A70uy4muVAvtPRDy0xgub2K5Ixg=
+17:22:50@341/warn - Profiling: No profile yet for ihnLjhsyB5jfnLJ2k~dbLT3seEgnDYTYfdA~Z3oitlk=
+17:22:51@563/warn - NTCP2: SessionCreated read error: Соединение разорвано другой стороной
+17:22:51@563/warn - NTCP2: SessionCreated read error: End of file
+17:22:51@341/info - Transports: No compatible addresses available
+17:22:51@341/info - I2NP: Tunnel 2817032998 request was not sent
+17:22:51@341/info - Transports: No compatible addresses available
+17:22:51@341/info - I2NP: Tunnel 398729877 request was not sent
+17:22:51@710/info - Tunnel: Inbound tunnel 733040512 has been declined
+17:22:51@710/info - Tunnel: Outbound tunnel 850188579 has been declined
+17:22:53@563/warn - NTCP2: SessionCreated read error: Операция отменена
+17:22:53@796/warn - Profiling: No profile yet for RuMzvgjhwR58H-6P8uQ-etKu3pJSud-ZvDHiFx-yrgs=
+17:22:53@796/warn - Profiling: No profile yet for 6lu-2GyWv3JhaJGLkWxyKeosX4vTQf40Up~JptvJdcg=
+17:22:56@796/warn - Profiling: No profile yet for teQgnWkKVJLeN6Q4-V760bdYtp8dCQpcxlRHiqq4NmY=
+17:22:56@796/warn - Profiling: No profile yet for fM4nYOftRI-RylPXib590UcwyXB~TkVB2H0z9RZayac=
+17:22:56@796/warn - Profiling: No profile yet for QRbIdWrPvAp58Qf~asFdm1s-oz9NDmwimu61pndVpNY=
+17:22:56@796/warn - Profiling: No profile yet for idIIiMNhccNizeniTCXZGr5t459oNIe6nTb0WAV4FaI=
+17:22:56@796/warn - Profiling: No profile yet for jGo1t6Gpgv373iAYWpG27SBfq1Wj~eYJKzPvdRorKQg=
+17:22:56@796/warn - Profiling: No profile yet for 2Zuj808kmyAeVk7Rlnkk19jWovynnvJ2nmeycCbJDIY=
+17:22:56@796/warn - Profiling: No profile yet for hgeRQmven3GAB6bUfjJ63EqTv6UO4cXCbAZu51hL-uc=
+17:22:58@401/info - NetDbReq: Exploring new 1 routers ...
+17:22:58@401/warn - Profiling: No profile yet for YV3JPLAnkfF3ZJrHp0A-039VbOayKDPAy4~0d09IDhU=
+17:22:59@335/info - NetDb: RouterInfo updated: YV3JPLAnkfF3ZJrHp0A-039VbOayKDPAy4~0d09IDhU=
+17:23:00@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:00@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:00@563/info - NTCP2: Not connected in 25 seconds
+17:23:00@563/info - NTCP2: Connect error Операция отменена
+17:23:00@335/info - NetDb: RouterInfo updated: cpMLhv262OBAg500e83IQdvniACia02IYk2hlxhIUrA=
+17:23:00@710/info - Tunnel: Inbound tunnel 3169112284 has been declined
+17:23:00@341/warn - Profiling: No profile yet for O-N2kFgF1~N5RLnHSgC1W5gAvkypQ02uBsu8uioaBiE=
+17:23:00@401/warn - Profiling: No profile yet for C-P0ixGrj-UzwLvj4aNL9sWET5DNQf7bDeM0VHSneA8=
+17:23:00@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:00@335/info - NetDb: RouterInfo updated: O-N2kFgF1~N5RLnHSgC1W5gAvkypQ02uBsu8uioaBiE=
+17:23:01@563/info - NTCP2: Connect error В соединении отказано
+17:23:01@341/info - Transports: No compatible addresses available
+17:23:01@401/warn - Profiling: No profile yet for Cl0PXtjIkKaeMW1ION68~i2AQwo3JU-ZiyvrUBlq3tE=
+17:23:01@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:01@710/info - Tunnel: Inbound tunnel 2783165149 has been declined
+17:23:01@341/warn - Profiling: No profile yet for OLfaPycoBviKbZovK9Q-jmmtbATFxvgRkor49q1HS-0=
+17:23:01@335/info - NetDb: RouterInfo updated: OLfaPycoBviKbZovK9Q-jmmtbATFxvgRkor49q1HS-0=
+17:23:01@401/warn - Profiling: No profile yet for SrMJ4wYj~zJVATFZ~qLtP5qGrfyCSSWE0kut4Nw1VU0=
+17:23:01@710/info - Tunnel: Outbound tunnel 3595069068 has been declined
+17:23:02@401/warn - Profiling: No profile yet for Sr7wT5UVKMb3Ict9nA2MlJIZYxshT8J6fBd0tGN1xDU=
+17:23:02@401/warn - Profiling: No profile yet for CViq7cbtbHHgqyqUC8MJ~My3XaPpKIVsUz2TvMCqQNY=
+17:23:03@401/warn - Profiling: No profile yet for SqKjaYsFR7Qexuh4p3inviQj8Yih4SPEFOmM5Qdl9L4=
+17:23:03@335/info - NetDb: RouterInfo updated: CViq7cbtbHHgqyqUC8MJ~My3XaPpKIVsUz2TvMCqQNY=
+17:23:03@335/info - NetDb: RouterInfo updated: Cl0PXtjIkKaeMW1ION68~i2AQwo3JU-ZiyvrUBlq3tE=
+17:23:03@335/warn - Profiling: No profile yet for YVOtX68kX2PDR8wZ0KRben7ChXCCk0iDgG7jigl4PCg=
+17:23:03@335/info - NetDb: RouterInfo added: YVOtX68kX2PDR8wZ0KRben7ChXCCk0iDgG7jigl4PCg=
+17:23:04@335/info - NetDb: RouterInfo updated: SqKjaYsFR7Qexuh4p3inviQj8Yih4SPEFOmM5Qdl9L4=
+17:23:04@335/info - NetDb: RouterInfo updated: YUXSfA3p3dbKa0EhroLQM2i4300ZdfXhOs-K3bp7S8E=
+17:23:05@563/warn - NTCP2: Session with 6lu-2GyWv3JhaJGLkWxyKeosX4vTQf40Up~JptvJdcg= already exists. Dropped
+17:23:05@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:05@710/info - Tunnel: Inbound tunnel 1780378119 has been declined
+17:23:05@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:06@335/info - NetDb: RouterInfo updated: LhpIe9nSRZKuftfcx7weJh~zF~WnrPt9c869KkiHAek=
+17:23:06@341/warn - Profiling: No profile yet for j4oDy6OtBCMEcnGVw15c-Xs6LKenHAdHBpS9NRzDN7k=
+17:23:06@335/info - NetDb: RouterInfo updated: 6lu-2GyWv3JhaJGLkWxyKeosX4vTQf40Up~JptvJdcg=
+17:23:06@335/info - NetDb: RouterInfo updated: j4oDy6OtBCMEcnGVw15c-Xs6LKenHAdHBpS9NRzDN7k=
+17:23:06@710/info - Tunnel: Inbound tunnel 1392013934 has been declined
+17:23:07@710/info - Tunnel: Outbound tunnel 2145985211 has been declined
+17:23:07@796/warn - Profiling: No profile yet for pZ0VjE0sY5jSq2yrbtd15fEqGXAzpmS1UWk3b7tXQhE=
+17:23:10@796/warn - Profiling: No profile yet for WmZDcHs-g4mP4wnjs1T2wC7YKrle~P4ok-VgFDIMCGo=
+17:23:10@796/warn - Profiling: No profile yet for 9BuZGjAkzfN5F~aRlLRKAzV3v3Ja5BfJ1C62D-0RwyI=
+17:23:10@796/warn - Profiling: No profile yet for J2NQ8rn29eqoqr3xwRjJmmKudu41nMbcsk~atk3v0J0=
+17:23:10@796/warn - Profiling: No profile yet for 7zcpZAHeBs8XXiQ~mFJtEYiMmRiBgYb6g7d0dMOCZxQ=
+17:23:10@563/info - NTCP2: Not connected in 25 seconds
+17:23:10@563/info - NTCP2: Connect error Операция отменена
+17:23:10@860/warn - SSU2: Session with 72.190.170.122:14075 was not established after 5 seconds
+17:23:11@563/info - NetDb: RouterInfo updated: 6lu-2GyWv3JhaJGLkWxyKeosX4vTQf40Up~JptvJdcg=
+17:23:15@710/info - Tunnel: Inbound tunnel 3393387531 has been declined
+17:23:15@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:15@860/warn - SSU2: Session with 179.36.158.134:10641 was not established after 5 seconds
+17:23:15@341/info - Transports: No compatible addresses available
+17:23:15@341/info - I2NP: Tunnel 2196144439 request was not sent
+17:23:15@710/info - Tunnel: Outbound tunnel 571101680 has been declined
+17:23:15@710/info - Tunnel: Outbound tunnel 3792929427 has been declined
+17:23:15@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:15@335/info - NetDb: RouterInfo updated: pZ0VjE0sY5jSq2yrbtd15fEqGXAzpmS1UWk3b7tXQhE=
+17:23:15@796/warn - Profiling: No profile yet for 1UGawzA2GjopMuNh3ugcrBuhmEn9UShZ1rMUkT3FbII=
+17:23:16@710/info - Tunnel: Outbound tunnel 3663857843 has been declined
+17:23:17@341/warn - Transports: Session to peer CQYUYOM-2CLiuH-xZLwwZ7H~FZj066qQ-qYbfMoL9dY= has not been created in 15 seconds
+17:23:17@341/warn - Transports: Session to peer SrMJ4wYj~zJVATFZ~qLtP5qGrfyCSSWE0kut4Nw1VU0= has not been created in 15 seconds
+17:23:18@796/warn - Profiling: No profile yet for kbXhEhd0CFgZcV1vxiWaxqG~4U~6QymfdthcxQ45Vx8=
+17:23:20@117/warn - Transports: 28 ephemeral keys generated at the time
+17:23:24@335/info - NetDb: Saved 18 new/updated routers
+17:23:24@335/info - NetDb: Deleting 6 unreachable routers
+17:23:26@563/info - NTCP2: Not connected in 25 seconds
+17:23:26@563/info - NTCP2: Connect error Операция отменена
+17:23:27@563/info - NTCP2: Not connected in 25 seconds
+17:23:27@563/info - NTCP2: Connect error Операция отменена
+17:23:27@341/info - Transports: No compatible addresses available
+17:23:27@796/warn - Profiling: No profile yet for L3l-chcdZ5Yz0Y84biAJHmGJrZxJbM9aDgKGAZTeLKw=
+17:23:27@796/warn - Profiling: No profile yet for uYUBV1HFUxydF4enpXM48ySCJYb3ZiZcKIDoxSTO6s8=
+17:23:30@563/info - NTCP2: Not connected in 25 seconds
+17:23:30@563/info - NTCP2: Connect error Операция отменена
+17:23:30@341/info - Transports: No compatible addresses available
+17:23:30@341/info - I2NP: Tunnel 2960512662 request was not sent
+17:23:30@341/warn - Profiling: No profile yet for WLLomRQbMOGXA5YwBr-actBvDwuRparENWZTIg3VwvU=
+17:23:31@710/info - Tunnel: Inbound tunnel 2780706399 has been declined
+17:23:31@563/warn - NTCP2: SessionCreated read error: End of file
+17:23:31@341/info - Transports: No compatible addresses available
+17:23:31@341/info - I2NP: Tunnel 3014862581 request was not sent
+17:23:31@341/warn - Profiling: No profile yet for 8Nz3Hhm3K~315H6WJVJGQi2k-LdUuqHhBlgkiwQLrO4=
+17:23:31@335/info - NetDb: RouterInfo updated: 8Nz3Hhm3K~315H6WJVJGQi2k-LdUuqHhBlgkiwQLrO4=
+17:23:32@710/info - Tunnel: Inbound tunnel 2430597167 has been declined
+17:23:32@710/info - Tunnel: Outbound tunnel 1805876356 has been declined
+17:23:35@710/info - Tunnel: Outbound tunnel 3505233759 has been declined
+17:23:35@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:35@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:35@710/info - Tunnel: Inbound tunnel 377425560 has been declined
+17:23:35@710/info - Tunnel: Inbound tunnel 3771099142 has been declined
+17:23:35@563/info - NTCP2: Not connected in 25 seconds
+17:23:35@563/info - NTCP2: Connect error Операция отменена
+17:23:35@341/info - Transports: No compatible addresses available
+17:23:35@341/info - I2NP: Tunnel 3420760475 request was not sent
+17:23:35@341/info - I2NP: Tunnel 547636007 request was not sent
+17:23:35@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:35@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:35@335/info - NetDb: RouterInfo updated: lzOFMwu8Z8Vpq86vDknV6Hv8pzTSjxVNC4Rqbf5eFOY=
+17:23:36@335/info - NetDb: RouterInfo updated: -5bSfzwtjCf3EFgl-Cx6u4oPW6ff2IZxbS8wdqOi3Ac=
+17:23:36@710/info - Tunnel: Inbound tunnel 3041282425 has been declined
+17:23:36@710/info - Tunnel: Outbound tunnel 368192841 has been declined
+17:23:43@796/warn - Profiling: No profile yet for NjvHjYuFxv307tGHTPHZfYqZFTAKNNrnKhwrfcEcYLM=
+17:23:44@401/info - NetDbReq: Exploring new 1 routers ...
+17:23:45@710/info - Tunnel: Inbound tunnel 160701711 has been declined
+17:23:45@563/info - NTCP2: Not connected in 25 seconds
+17:23:45@563/info - NTCP2: Connect error Операция отменена
+17:23:45@341/info - Transports: No compatible addresses available
+17:23:45@341/info - I2NP: Tunnel 3510173882 request was not sent
+17:23:45@341/info - I2NP: Tunnel 1995331911 request was not sent
+17:23:45@563/warn - NTCP2: SessionCreated read error: Соединение разорвано другой стороной
+17:23:45@341/info - Transports: No compatible addresses available
+17:23:45@341/info - I2NP: Tunnel 4286481843 request was not sent
+17:23:46@710/info - Tunnel: Outbound tunnel 2826063073 has been created
+17:23:50@341/warn - Profiling: No profile yet for m-y7JDL6odmTMdmJJTqW7tjIOZmUT-eF-cx8553y2Cg=
+17:23:50@710/info - Tunnel: Outbound tunnel 883413419 has been declined
+17:23:50@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:50@710/info - Tunnel: Inbound tunnel 3728532408 has been declined
+17:23:50@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:23:50@710/info - Tunnel: Outbound tunnel 3075684687 has been declined
+17:23:50@710/info - Tunnel: Inbound tunnel 1033659248 has been declined
+17:23:50@335/info - NetDb: RouterInfo updated: IF-gmz9ltCXOx1K2S1SLQLh1BTIO~TJAIYAAI87BTHk=
+17:23:50@335/info - NetDb: RouterInfo updated: jGo1t6Gpgv373iAYWpG27SBfq1Wj~eYJKzPvdRorKQg=
+17:23:51@563/warn - NTCP2: SessionCreated read error: Операция отменена
+17:23:57@383/warn - Profiling: No profile yet for gz9qliN5Zx7-6fNupIWiABnDSdj9ET1g97HeZzAoB6o=
+17:23:57@383/warn - Profiling: No profile yet for Wy0LZe29aZRZV7FtXc5ungqS1w7i2Ip4SGmkmcsI~lk=
+17:24:05@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:24:05@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:24:05@710/info - Tunnel: Inbound tunnel 3678157625 has been created
+17:24:05@710/info - Tunnel: Inbound tunnel 3106491323 has been declined
+17:24:05@335/info - NetDb: RouterInfo updated: ViMoeZSE9KfGALJLGwnAmXAhzH14XrizUwC6a44tkHw=
+17:24:05@710/info - Tunnel: Outbound tunnel 3372852600 has been declined
+17:24:05@710/info - Tunnel: Inbound tunnel 2246137547 has been declined
+17:24:07@335/info - NetDb: RouterInfo updated: tt1nXR0A9z~I36NXFl0iE0--bs9vB3ho-PgeSfSc05w=
+17:24:07@710/info - Tunnel: Outbound tunnel 2161318359 has been declined
+17:24:10@335/info - NetDb: RouterInfo updated: dsna3VCM~jBQTQQbD6EKy-3sqxl4Q6lHVVCIchcU2q4=
+17:24:12@401/warn - Profiling: No profile yet for Vpcey58LtMf0nccAPz1ea9Xt2Ijb7L26xTrGpS8VW7M=
+17:24:12@401/warn - Profiling: No profile yet for qlGLdP~CmrlzPyxJkEA4TqP0FFFbIGQQgSv8oLqpKmE=
+17:24:13@401/warn - Profiling: No profile yet for 1fNmDTTanc6KT0esCw7LI8oHO5scVnZd7DftRc97zRU=
+17:24:13@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:24:13@335/info - NetDb: RouterInfo updated: Vpcey58LtMf0nccAPz1ea9Xt2Ijb7L26xTrGpS8VW7M=
+17:24:13@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:24:13@335/warn - Profiling: No profile yet for d3pJuKHD3ghjxTUuHMeWeQrnJqYmv0GmGqdf9B~fCC0=
+17:24:13@335/info - NetDb: RouterInfo added: d3pJuKHD3ghjxTUuHMeWeQrnJqYmv0GmGqdf9B~fCC0=
+17:24:13@335/info - NetDb: RouterInfo updated: Vo5GPbrqigwouDMfqzq7xZ-iAjO68IXNND8oeuVBMlA=
+17:24:13@401/warn - Profiling: No profile yet for qk8xsvW3fcjtaMWlevy9x5ojt1C~mdMbDLVOHVV6g-Y=
+17:24:13@335/info - NetDb: RouterInfo updated: d3pJuKHD3ghjxTUuHMeWeQrnJqYmv0GmGqdf9B~fCC0=
+17:24:13@335/info - NetDb: RouterInfo updated: 1fNmDTTanc6KT0esCw7LI8oHO5scVnZd7DftRc97zRU=
+17:24:14@401/warn - Profiling: No profile yet for 1dKSH8bxWLFjyMLbXw5rRWeRGLn67h1h0vVH6ydFocU=
+17:24:14@401/warn - Profiling: No profile yet for ci3OJ99ZVoxiACiWrS6wO33lZbp9ADdXo0Han97nPQk=
+17:24:14@401/warn - Profiling: No profile yet for AdVVFDOudECRiXNfy8hb-2uGZTK85Jqc0s3m~u3Xcb8=
+17:24:14@335/warn - Profiling: No profile yet for 1SSxmYhvbUhvsvCH5faGpzSRKztBeixFcYbsS9e7LN0=
+17:24:14@335/info - NetDb: RouterInfo added: 1SSxmYhvbUhvsvCH5faGpzSRKztBeixFcYbsS9e7LN0=
+17:24:14@335/info - NetDb: RouterInfo updated: qk8xsvW3fcjtaMWlevy9x5ojt1C~mdMbDLVOHVV6g-Y=
+17:24:14@335/warn - Profiling: No profile yet for d3x~7~k~FxJpvbjEp9FH3ArHTichK~SaieWGO0Y-ZnY=
+17:24:14@335/info - NetDb: RouterInfo added: d3x~7~k~FxJpvbjEp9FH3ArHTichK~SaieWGO0Y-ZnY=
+17:24:14@335/info - NetDb: RouterInfo updated: 1dKSH8bxWLFjyMLbXw5rRWeRGLn67h1h0vVH6ydFocU=
+17:24:14@335/info - NetDb: RouterInfo updated: ci3OJ99ZVoxiACiWrS6wO33lZbp9ADdXo0Han97nPQk=
+17:24:14@335/warn - Profiling: No profile yet for d1s2Rth4DEDx4Ga-kdrkV9OKQWxrOYhCafAUxhgDARw=
+17:24:14@335/info - NetDb: RouterInfo added: d1s2Rth4DEDx4Ga-kdrkV9OKQWxrOYhCafAUxhgDARw=
+17:24:14@335/info - NetDb: RouterInfo updated: AdVVFDOudECRiXNfy8hb-2uGZTK85Jqc0s3m~u3Xcb8=
+17:24:15@335/warn - Profiling: No profile yet for 1Sh1H5PWb8HaAE2TYHzsisja2VKwSoTknRSQQt~U~LQ=
+17:24:15@335/info - NetDb: RouterInfo added: 1Sh1H5PWb8HaAE2TYHzsisja2VKwSoTknRSQQt~U~LQ=
+17:24:15@401/warn - Profiling: No profile yet for Ad3AB1MiHZz~uladRt9RiCbJEoBAFU5hICzLAGs-tt4=
+17:24:15@335/warn - Profiling: No profile yet for 1SqgWzSDEk5MJa-NUvg~OUJ3RFgpLi4Vh-OiIG55B-o=
+17:24:15@335/info - NetDb: RouterInfo added: 1SqgWzSDEk5MJa-NUvg~OUJ3RFgpLi4Vh-OiIG55B-o=
+17:24:15@335/info - NetDb: RouterInfo updated: 1UGawzA2GjopMuNh3ugcrBuhmEn9UShZ1rMUkT3FbII=
+17:24:15@710/info - Tunnel: Outbound tunnel 3917686472 has been created
+17:24:16@335/info - NetDb: RouterInfo updated: Ad3AB1MiHZz~uladRt9RiCbJEoBAFU5hICzLAGs-tt4=
+17:24:20@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:24:20@710/info - Tunnel: Outbound tunnel 2695650867 has been created
+17:24:20@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:24:21@335/info - NetDb: RouterInfo updated: O-sMFHcKs~~h0Xx5AkDjb56a2Nj~GPxbBKjyEOyCPyQ=
+17:24:21@341/warn - Transports: Session to peer 2Zuj808kmyAeVk7Rlnkk19jWovynnvJ2nmeycCbJDIY= has not been created in 15 seconds
+17:24:21@341/warn - Transports: Session to peer 9BuZGjAkzfN5F~aRlLRKAzV3v3Ja5BfJ1C62D-0RwyI= has not been created in 15 seconds
+17:24:21@335/info - NetDb: RouterInfo updated: lHPdqPuuoZJC0N3Oc9vbLROEq0sIvfdovqM2J0HR7ag=
+17:24:21@710/info - Tunnel: Outbound tunnel 1715099826 has been declined
+17:24:25@563/info - NTCP2: Not connected in 25 seconds
+17:24:25@563/info - NTCP2: Connect error Операция отменена
+17:24:25@335/info - NetDb: Saved 25 new/updated routers
+17:24:25@335/info - NetDb: Deleting 6 unreachable routers
+17:24:26@613/warn - Profiling: No profile yet for IvU2NG9lIPziOspDjabiZ3vlBytK5SErEdi~JSyGqCA=
+17:24:26@613/warn - Profiling: No profile yet for I01OGaa3dj7lMuLtLWCYrwak4aPW0cTtfiI7q3yvn4U=
+17:24:26@341/info - Transports: RouterInfo for 4XI5ThG0pZOAzz0p4SW1LtfYxsfX6~IC1Hv~SCCEiis= not found, requested
+17:24:26@401/warn - Profiling: No profile yet for gw6VA7b8--q2D32NH5xQx1tqjwc~Xvn4RZ5zuUKuWAE=
+17:24:27@401/warn - Profiling: No profile yet for gwTBYsd0DrcXp9a-R~4RYgQt0p3u8lRxaaM7T6x0YVU=
+17:24:28@401/warn - Profiling: No profile yet for gzUGvEd82Dh7tw7ZA6VAf8QZwojO43MVBN-dvfvMTpA=
+17:24:28@563/info - NetDb: RouterInfo updated: gwTBYsd0DrcXp9a-R~4RYgQt0p3u8lRxaaM7T6x0YVU=
+17:24:28@563/info - NTCP2: Connect error В соединении отказано
+17:24:28@341/info - Transports: No compatible addresses available
+17:24:28@401/warn - Profiling: No profile yet for g0v82FSJ5BZ4PFbnLXilVL7WIYvpy0ThFS70nAkedjg=
+17:24:29@335/info - NetDb: RouterInfo updated: g0v82FSJ5BZ4PFbnLXilVL7WIYvpy0ThFS70nAkedjg=
+17:24:29@401/warn - Profiling: No profile yet for g0fE~XQwptSHusMrlMgQzCWbZ6T5Pf2knGPQIQoktoc=
+17:24:29@401/warn - Profiling: No profile yet for JYZjgKHdYSRFE070Sx1pr5MrT00prHExEzV2EgQteJs=
+17:24:29@401/info - NetDbReq: Exploring new 1 routers ...
+17:24:29@401/warn - Profiling: No profile yet for uQg6FirgoTBSqT-5skpGB-l33yFVyv0fLz6Bpqkq2f8=
+17:24:29@401/warn - Profiling: No profile yet for 83UWVgiJXW5-ShsF21n8vrtrBRz-GwKI4O124-H2kZ0=
+17:24:29@563/info - NTCP2: Connect error В соединении отказано
+17:24:30@401/warn - NetDbReq: 4XI5ThG0pZOAzz0p4SW1LtfYxsfX6~IC1Hv~SCCEiis= not found after 5 attempts
+17:24:30@341/info - Transports: RouterInfo not found, failed to send messages
+17:24:30@401/warn - Profiling: No profile yet for JYciprCierGEQWAdH4jtOP7m-FI4xqIOG6888bL~jGE=
+17:24:30@335/info - NetDb: RouterInfo updated: JYZjgKHdYSRFE070Sx1pr5MrT00prHExEzV2EgQteJs=
+17:24:30@335/info - NetDb: RouterInfo updated: 83UWVgiJXW5-ShsF21n8vrtrBRz-GwKI4O124-H2kZ0=
+17:24:30@335/warn - Profiling: No profile yet for gib0zSI6OmyW-unIS0R35NjBCZtRVzKAPzvF5tI1jy8=
+17:24:30@335/info - NetDb: RouterInfo added: gib0zSI6OmyW-unIS0R35NjBCZtRVzKAPzvF5tI1jy8=
+17:24:30@335/warn - Profiling: No profile yet for qEf2BFSCtTPvegg6fOANRojMfg8k-6qbFcdkJN8CEZo=
+17:24:30@335/info - NetDb: RouterInfo added: qEf2BFSCtTPvegg6fOANRojMfg8k-6qbFcdkJN8CEZo=
+17:24:30@401/warn - Profiling: No profile yet for uQkal861zcuhnQNjxlYSdCo5kSSM~1dJAYB2TAFkCEw=
+17:24:30@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:24:30@401/warn - Profiling: No profile yet for YUKRKnbKa5Acr9ylkkNgVykFubmHlG0HNLwhE-nM86I=
+17:24:30@335/info - NetDb: RouterInfo updated: JYciprCierGEQWAdH4jtOP7m-FI4xqIOG6888bL~jGE=
+17:24:30@401/warn - Profiling: No profile yet for cIVXjMJsP6OFD9-GW4y0z~5n5d0nR5DgRI46uJZT02k=
+17:24:30@401/warn - Profiling: No profile yet for OwLnyB0u7zwXN-uYWxpWBxTeUkjesDKHxdwIsJxzTGQ=
+17:24:31@401/warn - Profiling: No profile yet for uRemkagUjYtu59v9pAFbIJRnkw0d6Exebpqd3XVuW2Y=
+17:24:31@401/warn - Profiling: No profile yet for iElAsj9dgh7JpNTLOE8KUDXf7ENddUKLTet3pZiH7ic=
+17:24:31@401/warn - Profiling: No profile yet for qmncLs4cSzCsObS0WgnVHnxUDkYUHDi5vSE7KFu5DRM=
+17:24:31@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:24:31@710/info - Tunnel: Inbound tunnel 2275691969 has been declined
+17:24:31@563/info - NTCP2: Connect error В соединении отказано
+17:24:31@563/info - NTCP2: Connect error В соединении отказано
+17:24:31@341/info - Transports: No compatible addresses available
+17:24:31@341/info - Transports: No compatible addresses available
+17:24:31@401/warn - Profiling: No profile yet for qmaxQk780m~eOnLcwh0LZAfTFBUusLpQuSMZ1x0Qw8o=
+17:24:31@401/warn - Profiling: No profile yet for iEpmVXdEb6hqRXXFCMqRC7pRWtwY5PC9OJtIcdYSxHY=
+17:24:31@335/info - NetDb: RouterInfo updated: OwLnyB0u7zwXN-uYWxpWBxTeUkjesDKHxdwIsJxzTGQ=
+17:24:31@563/info - NTCP2: Connect error В соединении отказано
+17:24:31@341/info - Transports: No compatible addresses available
+17:24:31@401/warn - NetDbReq: gg85018pgMxmzCjj~XJSRPzgh90169HMkJsqYxU9Pss= not found after 5 attempts
+17:24:31@335/warn - Profiling: No profile yet for O1VQlIQH4lWM8WarRtcUEFrn2aYpeN4NoNac7SZmOFY=
+17:24:31@335/info - NetDb: RouterInfo added: O1VQlIQH4lWM8WarRtcUEFrn2aYpeN4NoNac7SZmOFY=
+17:24:31@335/info - NetDb: RouterInfo updated: zZV2spYKnEEnT3LVgwsAwBmQqmA9KOWL7HxoThQFXio=
+17:24:31@401/warn - Profiling: No profile yet for YUXSfA3p3dbKa0EhroLQM2i4300ZdfXhOs-K3bp7S8E=
+17:24:31@401/warn - Profiling: No profile yet for zawZ1NnX7Lf7Y3GaiBl3c29q5kgHHKd9GSzLkRIu9XE=
+17:24:31@335/info - NetDb: RouterInfo updated: uRemkagUjYtu59v9pAFbIJRnkw0d6Exebpqd3XVuW2Y=
+17:24:31@335/warn - Profiling: No profile yet for YdEQqBqn9Ada9Mly7rXeDan-8ZRxkiQ4q9idbYKfm64=
+17:24:31@335/info - NetDb: RouterInfo added: YdEQqBqn9Ada9Mly7rXeDan-8ZRxkiQ4q9idbYKfm64=
+17:24:31@335/warn - Profiling: No profile yet for YfUnKC2R5iUonkr--xHIMIz5eU~wne5qENkvZrSZo4g=
+17:24:31@335/info - NetDb: RouterInfo added: YfUnKC2R5iUonkr--xHIMIz5eU~wne5qENkvZrSZo4g=
+17:24:31@335/warn - Profiling: No profile yet for Ydg~GBzIsR997wIrmOMVQN8-ScHWz820Uiu70CK2gys=
+17:24:31@335/info - NetDb: RouterInfo added: Ydg~GBzIsR997wIrmOMVQN8-ScHWz820Uiu70CK2gys=
+17:24:32@335/warn - Profiling: No profile yet for qEq12ReocoxP4xDxgiU4GkgchFYQLGvpBPvnwywZHRo=
+17:24:32@335/info - NetDb: RouterInfo added: qEq12ReocoxP4xDxgiU4GkgchFYQLGvpBPvnwywZHRo=
+17:24:32@401/warn - Profiling: No profile yet for iFx75dAPcJQqGPigICGL0lvKgc61EXWMajXv~abBA0Q=
+17:24:32@401/warn - NetDbReq: gg85018pgMxmzCjj~XJSRPzgh90169HMkJsqYxU9Pss= not found after 5 attempts
+17:24:32@335/warn - Profiling: No profile yet for qFkBe5Tn-NlWTiJU9MBYOMIzVaj80HwsHFrP5KQXnKc=
+17:24:32@335/info - NetDb: RouterInfo added: qFkBe5Tn-NlWTiJU9MBYOMIzVaj80HwsHFrP5KQXnKc=
+17:24:32@710/info - Tunnel: Outbound tunnel 737159989 has been created
+17:24:32@335/info - NetDb: RouterInfo updated: iFx75dAPcJQqGPigICGL0lvKgc61EXWMajXv~abBA0Q=
+17:24:32@401/warn - NetDbReq: giSjrbrWP4bMZQn5bpL47i1bDEa6ZQ4yVIyfhSWekeE= not found after 5 attempts
+17:24:32@335/warn - Profiling: No profile yet for giSjrbrWP4bMZQn5bpL47i1bDEa6ZQ4yVIyfhSWekeE=
+17:24:32@335/info - NetDb: RouterInfo added: giSjrbrWP4bMZQn5bpL47i1bDEa6ZQ4yVIyfhSWekeE=
+17:24:33@563/info - NTCP2: Connect error Нет маршрута до узла
+17:24:33@341/info - Transports: No compatible addresses available
+17:24:34@401/warn - Profiling: No profile yet for fiK9wae-04WKv7IsTFtsMcOMjTl8IHyHMbjOaHDrZ60=
+17:24:34@860/warn - SSU2: Session with 24.80.237.95:11903 was not established after 5 seconds
+17:24:34@341/info - Transports: No compatible addresses available
+17:24:34@335/info - NetDb: RouterInfo updated: YUKRKnbKa5Acr9ylkkNgVykFubmHlG0HNLwhE-nM86I=
+17:24:34@401/warn - Profiling: No profile yet for fmhczbNo~cWMk1Uhz5NBS2SEyjoY3zxP-XcPbsg2zHk=
+17:24:34@860/info - SSU2: Packet was not Acked after 6 attempts. Terminate session
+17:24:34@401/info - NetDbReq: Unsolicited or late database search reply for qFkBe5Tn-NlWTiJU9MBYOMIzVaj80HwsHFrP5KQXnKc=
+17:24:35@710/warn - Tunnels: Test of tunnel 2720646797 failed
+17:24:35@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:24:35@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:24:35@335/info - NetDb: RouterInfo updated: 9D4nSAJfphp0O8mkkJVMw6acg4rSj70ZWElUtHnykyc=
+17:24:35@401/warn - NetDbReq: O1JKWu1tUqGmhGOiE54qVhtVCbs8QYDD610iwoUTvrI= not found after 5 attempts
+17:24:36@401/info - NetDbReq: Unsolicited or late database search reply for O1JKWu1tUqGmhGOiE54qVhtVCbs8QYDD610iwoUTvrI=
+17:24:36@335/info - NetDb: RouterInfo updated: ffv~Dfpmw~X7vDS~ZVmTFZX60zKsb~Z4PvL5FtgK744=
+17:24:37@335/info - NetDb: RouterInfo updated: iEpmVXdEb6hqRXXFCMqRC7pRWtwY5PC9OJtIcdYSxHY=
+17:24:37@563/info - NTCP2: Not connected in 25 seconds
+17:24:37@563/info - NTCP2: Connect error Операция отменена
+17:24:37@341/info - Transports: No compatible addresses available
+17:24:37@860/warn - SSU2: Session with 201.137.185.214:11961 was not established after 5 seconds
+17:24:38@563/info - NTCP2: Connect error Нет маршрута до узла
+17:24:38@341/info - Transports: No compatible addresses available
+17:24:43@796/warn - Profiling: No profile yet for HwB4hOKs18OIPJIM9H42Ps5xeN~kF-HJs7koQQbcAqI=
+17:24:43@796/warn - Profiling: No profile yet for 76mZBEE0~RsKWP0lCfulfTRiuUJo6NQxGHU0QLtKw4U=
+17:24:46@710/info - Tunnel: Inbound tunnel 1463825921 has been declined
+17:24:46@796/warn - Profiling: No profile yet for 1kiI0g0QavBiAL4Aw5HL0ogu4crnKKksfICxDCeLFM0=
+17:24:47@860/warn - SSU2: Unexpected message type 41 from 206.75.58.144:22027 of 83 bytes
+17:24:48@436/warn - Clients: Local destination qlejoclfm7ln7o3sawowatvwxiarqu3q4kgcp27sxqlqtwknee3a.b32.i2p exists
+17:24:49@563/warn - NTCP2: SessionCreated read error: Операция отменена
+17:24:50@710/warn - Tunnels: Test of tunnel 1702957490 failed
+17:24:51@563/info - NTCP2: Not connected in 25 seconds
+17:24:51@563/info - NTCP2: Connect error Операция отменена
+17:24:51@341/info - Transports: No compatible addresses available
+17:24:55@563/info - NTCP2: Not connected in 25 seconds
+17:24:55@563/info - NTCP2: Connect error Операция отменена
+17:24:55@341/info - Transports: No compatible addresses available
+17:24:56@563/info - NTCP2: Not connected in 25 seconds
+17:24:56@563/info - NTCP2: Connect error Операция отменена
+17:24:58@796/warn - Profiling: No profile yet for rt0Js1j6G8uUKYkQnGrDoMaBB00IpLKhhaj9stfkn0Q=
+17:24:58@796/warn - Profiling: No profile yet for sA0qs-HPIgPPfRITlwWSDMMPqP2egAy-dYgnW4dA6Bk=
+17:24:58@796/warn - Profiling: No profile yet for L3WS69O400AFmvzrOI7EGxlKnujsETrg2EmlhDMBG~k=
+17:24:59@563/info - NTCP2: Not connected in 25 seconds
+17:24:59@563/info - NTCP2: Connect error Операция отменена
+17:24:59@341/info - Transports: No compatible addresses available
+17:25:00@710/info - Tunnel: Inbound tunnel 665040134 has been declined
+17:25:01@710/info - Tunnel: Inbound tunnel 2271869063 has been declined
+17:25:01@860/warn - SSU2: Session with 90.240.65.166:14499 was not established after 5 seconds
+17:25:01@341/info - Transports: No compatible addresses available
+17:25:02@335/info - NetDb: RouterInfo updated: g0fE~XQwptSHusMrlMgQzCWbZ6T5Pf2knGPQIQoktoc=
+17:25:02@341/warn - Transports: Session to peer qEf2BFSCtTPvegg6fOANRojMfg8k-6qbFcdkJN8CEZo= has not been created in 15 seconds
+17:25:02@341/warn - Transports: Session to peer uQg6FirgoTBSqT-5skpGB-l33yFVyv0fLz6Bpqkq2f8= has not been created in 15 seconds
+17:25:02@341/warn - Transports: Session to peer fmhczbNo~cWMk1Uhz5NBS2SEyjoY3zxP-XcPbsg2zHk= has not been created in 15 seconds
+17:25:02@436/warn - Clients: Local destination qlejoclfm7ln7o3sawowatvwxiarqu3q4kgcp27sxqlqtwknee3a.b32.i2p exists
+17:25:04@401/info - NetDbReq: Unsolicited or late database search reply for 4XI5ThG0pZOAzz0p4SW1LtfYxsfX6~IC1Hv~SCCEiis=
+17:25:05@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:05@710/info - Tunnel: Inbound tunnel 745224036 has been created
+17:25:05@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:05@335/info - NetDb: RouterInfo updated: 3xRIiM~B8hF1mLii6z73MKr9ergi0WG1zx2ohK9aaqE=
+17:25:09@335/info - NetDb: RouterInfo updated: cIVXjMJsP6OFD9-GW4y0z~5n5d0nR5DgRI46uJZT02k=
+17:25:10@401/info - NetDbReq: Exploring new 1 routers ...
+17:25:12@796/warn - Profiling: No profile yet for g1EPd~OXiGP1BQKRGq8MyGLnz1irNWpHFGMOptbuuf4=
+17:25:12@563/warn - NTCP2: Session with fmhczbNo~cWMk1Uhz5NBS2SEyjoY3zxP-XcPbsg2zHk= already exists. Dropped
+17:25:12@341/info - Transports: No compatible addresses available
+17:25:13@335/info - NetDb: RouterInfo updated: LUKp9B3v3caffsM7C802eUprJ1u8K6gbl2GvSWw9iXo=
+17:25:13@401/warn - Profiling: No profile yet for AqaZXkGFfV0qhV1CTjNin3VFiAdJgZG35uoV0ijA7vQ=
+17:25:13@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:13@401/warn - Profiling: No profile yet for LuVcelbDEbQUf5OXICwNwJuVbYsNhlsNnep-cu7haik=
+17:25:13@401/warn - Profiling: No profile yet for lpML~Q0RlUN1uaA0AwIDVcvP47r~bdJXl4302hnZyxA=
+17:25:13@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:13@335/warn - Profiling: No profile yet for LNnZArXHWybtkgA5SL9RzQfFzKClAp757IOc5p6zFFw=
+17:25:13@335/info - NetDb: RouterInfo added: LNnZArXHWybtkgA5SL9RzQfFzKClAp757IOc5p6zFFw=
+17:25:13@335/info - NetDb: RouterInfo updated: exJzNHXWBmLoN9LhcKoBXpubxSFZBhgsJpnk6GG~--s=
+17:25:13@335/info - NetDb: RouterInfo updated: 9mO93Fgnmi5Hca8N6g4AmIZ6yHNMFjbaXu1rakpM0y4=
+17:25:13@335/info - NetDb: RouterInfo updated: LuVcelbDEbQUf5OXICwNwJuVbYsNhlsNnep-cu7haik=
+17:25:13@335/info - NetDb: RouterInfo added: sYeV93N~AjEx3uU7lh9UaXKGASrVL5o8XNUOC0wHfgc=
+17:25:13@401/warn - Profiling: No profile yet for -4FrxO1JRMft5BzfP7Lj2knYjrzAKjUCjTcnPPbWAjw=
+17:25:13@401/warn - Profiling: No profile yet for ArQYE6VYdE2KxpUVeaHtmhllB6w0m277sJhZUw7NKfs=
+17:25:13@335/info - NetDb: RouterInfo updated: ~g-JnifH0v-tCusJF3xjS1-ABbue-3HLNnuTk9c8qJc=
+17:25:13@563/info - NTCP2: Connect error В соединении отказано
+17:25:13@335/info - NetDb: RouterInfo added: sth~oTT2dVe~Q7uPsmmTX9oCe40otG1aAo9YEg88QbU=
+17:25:13@401/warn - Profiling: No profile yet for 9o7oUclYxZTr4W0Jz7-RkqhmmkCzGuvhxiEGXlFuHiY=
+17:25:14@563/info - NTCP2: Connect error В соединении отказано
+17:25:14@341/info - Transports: No compatible addresses available
+17:25:14@401/warn - Profiling: No profile yet for A3qbtZds~PX9j-OKrxYIlyUoyKsH7DNIZAlKEu1PDac=
+17:25:14@335/warn - Profiling: No profile yet for LNvTDHMMapKo3oTArcqc32iHcj9R9iTv5bQA~6S7Y8g=
+17:25:14@335/info - NetDb: RouterInfo added: LNvTDHMMapKo3oTArcqc32iHcj9R9iTv5bQA~6S7Y8g=
+17:25:14@335/warn - Profiling: No profile yet for fReXbAjbh0sOuim86NlLR4eXpOnklxMHVAbhqaikvc8=
+17:25:14@335/info - NetDb: RouterInfo added: fReXbAjbh0sOuim86NlLR4eXpOnklxMHVAbhqaikvc8=
+17:25:14@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:14@335/warn - Profiling: No profile yet for 9nikH~x6k6G8Z3-Qwxo4edztcJGxp5xVeXqwUXxWpYY=
+17:25:14@335/info - NetDb: RouterInfo added: 9nikH~x6k6G8Z3-Qwxo4edztcJGxp5xVeXqwUXxWpYY=
+17:25:14@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:14@335/info - NetDb: RouterInfo updated: 9ocyCde3Weao0WiDEjk18zPd6GIrBYNDP-pPNmLK-wA=
+17:25:14@563/info - NTCP2: Connect error Нет маршрута до узла
+17:25:14@341/info - Transports: No compatible addresses available
+17:25:14@401/warn - Profiling: No profile yet for lqYuzxwJ5sHKxQl30gHbYVe4feVu9hKXMOtQmbvAZ20=
+17:25:14@335/info - NetDb: RouterInfo updated: b5OJWq4~56eojs5prYk-NUG6jS1VV54IaWGvdMRI~5M=
+17:25:14@401/warn - NetDbReq: Destination 9nBknAAJUi36QM5soeqwbIlKSBYIq31dRvl7BBZXIMg= is requested already or cached
+17:25:14@401/warn - NetDbReq: Destination 9n3ZTgMaqlujeFMor3yeVwMio5tTsn07Df~pvNt0ShA= is requested already or cached
+17:25:14@335/info - NetDb: RouterInfo updated: -4FrxO1JRMft5BzfP7Lj2knYjrzAKjUCjTcnPPbWAjw=
+17:25:14@401/info - NetDbReq: Unsolicited or late database search reply for sYeV93N~AjEx3uU7lh9UaXKGASrVL5o8XNUOC0wHfgc=
+17:25:14@335/info - NetDb: RouterInfo updated: 9o7oUclYxZTr4W0Jz7-RkqhmmkCzGuvhxiEGXlFuHiY=
+17:25:14@335/info - NetDb: RouterInfo added: vGA9Xut7rNyC1h26FnwhNQsLb0HmrsQlhfzKt4z~kTY=
+17:25:14@335/info - NetDb: RouterInfo updated: xFoTaQE1vnYMZWsYtQdCQuJzTDjAL9tZYdT~jULEpBA=
+17:25:14@335/warn - Profiling: No profile yet for 9n3ZTgMaqlujeFMor3yeVwMio5tTsn07Df~pvNt0ShA=
+17:25:14@335/info - NetDb: RouterInfo added: 9n3ZTgMaqlujeFMor3yeVwMio5tTsn07Df~pvNt0ShA=
+17:25:14@335/warn - Profiling: No profile yet for fQ7XlYF~fVyne2HCo7WA9bGnPTdtFU06ThyoMsgsuKM=
+17:25:14@335/info - NetDb: RouterInfo added: fQ7XlYF~fVyne2HCo7WA9bGnPTdtFU06ThyoMsgsuKM=
+17:25:14@401/warn - Profiling: No profile yet for D7FAUjwxTgzcHyrGGt6nvEgd87j0vTcvzDAxvki3Ko4=
+17:25:14@335/warn - Profiling: No profile yet for 9nBknAAJUi36QM5soeqwbIlKSBYIq31dRvl7BBZXIMg=
+17:25:14@335/info - NetDb: RouterInfo added: 9nBknAAJUi36QM5soeqwbIlKSBYIq31dRvl7BBZXIMg=
+17:25:14@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:14@335/info - NetDb: RouterInfo updated: 9nikH~x6k6G8Z3-Qwxo4edztcJGxp5xVeXqwUXxWpYY=
+17:25:14@563/info - NTCP2: Connect error В соединении отказано
+17:25:14@341/info - Transports: No compatible addresses available
+17:25:14@401/warn - Profiling: No profile yet for D6xnPAcSX~KQf~Zh265A7FSSA6~GAPCdJybBgza69G8=
+17:25:15@563/info - NTCP2: Not connected in 25 seconds
+17:25:15@563/info - NTCP2: Connect error Операция отменена
+17:25:15@401/info - NetDbReq: Unsolicited or late database search reply for fQ7XlYF~fVyne2HCo7WA9bGnPTdtFU06ThyoMsgsuKM=
+17:25:15@401/warn - Profiling: No profile yet for FIkn1q1GVqV8UW3YV6Gu5-V0SSCSturwqjiq7UwjsNA=
+17:25:15@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:15@401/warn - NetDbReq: Destination fguEKAVz4TRbM1StnLpSCBpCRXjuzD5dEth5n6gVOoo= is requested already or cached
+17:25:15@401/warn - NetDbReq: Destination fgRvNYpW2Qg09wsSK-bhqiUPDmOsAN5rK7drHNefmlg= is requested already or cached
+17:25:15@335/info - NetDb: RouterInfo updated: D6xnPAcSX~KQf~Zh265A7FSSA6~GAPCdJybBgza69G8=
+17:25:15@401/warn - Profiling: No profile yet for lreJc-zROccDMbunZhn8pZNKjssmLzrC75ZoentlGaE=
+17:25:15@335/info - NetDb: RouterInfo updated: AAFS0VFG0TGzZ1r2az8UAeeTMXLlZsBYmb97fe8fVo4=
+17:25:15@335/warn - Profiling: No profile yet for fguEKAVz4TRbM1StnLpSCBpCRXjuzD5dEth5n6gVOoo=
+17:25:15@335/info - NetDb: RouterInfo added: fguEKAVz4TRbM1StnLpSCBpCRXjuzD5dEth5n6gVOoo=
+17:25:15@335/info - NetDb: RouterInfo updated: FIkn1q1GVqV8UW3YV6Gu5-V0SSCSturwqjiq7UwjsNA=
+17:25:15@401/warn - Profiling: No profile yet for 1l~ifgIhWtZpcMenf-sPAvTpbqU5-P7ltqUM0Y74USQ=
+17:25:15@335/info - NetDb: RouterInfo added: tnnZHZ5f0bn7FL5WE2GVXcmYMagtF~zaQdDsLJtS89M=
+17:25:15@335/info - NetDb: RouterInfo added: oWtnbJM-z6ZxsCE9VqDwnkXiw4yaJVuIk0vEi2ZKSN0=
+17:25:15@335/warn - Profiling: No profile yet for fktL1IpIXCC8VpWQEc2kIhh7llN03LGBzUExkjG2uzg=
+17:25:15@335/info - NetDb: RouterInfo added: fktL1IpIXCC8VpWQEc2kIhh7llN03LGBzUExkjG2uzg=
+17:25:15@401/warn - Profiling: No profile yet for XH33gq6QOdEjzS1DaAmBO1xWdcz8JCKs9xvDlopTCuA=
+17:25:16@335/info - NetDb: RouterInfo updated: ADi3TIbe5QrtJKOeWn9T8GPQGSFA0ZC~4CLVN7iyGzw=
+17:25:16@710/info - Tunnel: Inbound tunnel 504327337 has been created
+17:25:16@335/info - NetDb: RouterInfo updated: fguEKAVz4TRbM1StnLpSCBpCRXjuzD5dEth5n6gVOoo=
+17:25:16@563/info - NTCP2: Connect error В соединении отказано
+17:25:16@341/info - Transports: No compatible addresses available
+17:25:16@401/warn - Profiling: No profile yet for XHoot3D4lgDl9hiE-oi-qXtNeKNmVKtrNXM7KoqYqwo=
+17:25:16@710/info - Tunnel: Inbound tunnel 826833863 has been declined
+17:25:16@335/info - NetDb: RouterInfo updated: 1l~ifgIhWtZpcMenf-sPAvTpbqU5-P7ltqUM0Y74USQ=
+17:25:16@563/info - NTCP2: Connect error В соединении отказано
+17:25:16@341/info - Transports: No compatible addresses available
+17:25:16@401/warn - Profiling: No profile yet for XC6Vxtev5eJ1QRsaTbVYZvtNevcrcsov1UyJi5dwOzQ=
+17:25:16@563/info - NTCP2: Connect error Нет маршрута до узла
+17:25:16@341/info - Transports: No compatible addresses available
+17:25:16@335/info - NetDb: RouterInfo updated: lreJc-zROccDMbunZhn8pZNKjssmLzrC75ZoentlGaE=
+17:25:16@563/info - NTCP2: Connect error В соединении отказано
+17:25:16@341/info - Transports: No compatible addresses available
+17:25:16@401/warn - Profiling: No profile yet for XQMlb7LX2F44yM32CJeAExBKJnq~SGE6Xme2PFf3F1U=
+17:25:16@401/warn - Profiling: No profile yet for dOr2hEMCnc8dsdocArbAT4SQF6P4e9HzEnygPSPwi1A=
+17:25:16@401/warn - Profiling: No profile yet for D8zXXIGZgeuN3PRFuh8y~6Nwkmn~Ohdm2NcIe4klV9I=
+17:25:16@401/warn - Profiling: No profile yet for G-FMiYx0-DVnYKwSjZorGQpHRHya-Nb0znkUVn10mRc=
+17:25:16@335/warn - Profiling: No profile yet for LNsbXgKzILeqz8j1tw2X9y1TBl7PtQ0kr8~9t907Nf4=
+17:25:16@335/info - NetDb: RouterInfo added: LNsbXgKzILeqz8j1tw2X9y1TBl7PtQ0kr8~9t907Nf4=
+17:25:16@335/info - NetDb: RouterInfo updated: YfUnKC2R5iUonkr--xHIMIz5eU~wne5qENkvZrSZo4g=
+17:25:16@335/info - NetDb: RouterInfo updated: 1kiI0g0QavBiAL4Aw5HL0ogu4crnKKksfICxDCeLFM0=
+17:25:16@401/warn - Profiling: No profile yet for OMm-~FUP~4rbhNijtBibVXS2uWBmE7-1N~edleba5o0=
+17:25:16@335/warn - Profiling: No profile yet for fnCEE4mxMynB0E0Ff9hQu7QxZCuvyGlcp6vp7XHqNVc=
+17:25:16@335/info - NetDb: RouterInfo added: fnCEE4mxMynB0E0Ff9hQu7QxZCuvyGlcp6vp7XHqNVc=
+17:25:16@563/warn - NTCP2: SessionCreated read error: Соединение разорвано другой стороной
+17:25:16@341/info - Transports: No compatible addresses available
+17:25:16@563/info - NTCP2: Connect error В соединении отказано
+17:25:16@341/info - Transports: No compatible addresses available
+17:25:16@401/warn - Profiling: No profile yet for dNBQ9pLrsYCRMZk3EWP7QC5r9kMb-aXevdFknWCdWxo=
+17:25:16@401/warn - NetDbReq: fQXt2-p1FTSMNq0I81Uzho0ogw0AebQKOVE6NXDZfBY= not found after 5 attempts
+17:25:16@335/info - NetDb: RouterInfo updated: xtDdo30ZleoOlSa6g-BFIKDMk7qGCYsJqXTwp4Gnf6Q=
+17:25:16@401/warn - Profiling: No profile yet for I3VmvleBN1NzvJsonLzztN6vQ9uF41xXuWzYYuO~lD0=
+17:25:16@401/warn - Profiling: No profile yet for uSMQIerNAZYo9qcYyydOvW2PGHENMTJTyAhz0DTlw00=
+17:25:16@401/warn - Profiling: No profile yet for juLlpeeCZWMGM-MiazjT6TS3tpazH~dfMgAdwezsIlg=
+17:25:16@401/warn - Profiling: No profile yet for QS0T-fPa7Y5JuZSk8jstUQ6SPaSbNceXDbM7sU8Y3eY=
+17:25:16@563/warn - NTCP2: SessionCreated read error: Соединение разорвано другой стороной
+17:25:16@341/info - Transports: No compatible addresses available
+17:25:16@401/warn - Profiling: No profile yet for XpwcYdKB5aK0HonIlTdy8qWbcqohnMPcWAoV1QJxZwc=
+17:25:16@563/info - NTCP2: Connect error В соединении отказано
+17:25:16@341/info - Transports: No compatible addresses available
+17:25:17@563/info - NTCP2: Connect error В соединении отказано
+17:25:17@341/info - Transports: No compatible addresses available
+17:25:17@401/warn - Profiling: No profile yet for I38VGNnDZJU9jIpwiIzR~LX48DsaUp970JyJH7YaNtg=
+17:25:17@335/warn - Profiling: No profile yet for w3342M1BA83sefWM1KJM2Cx4X-krYNbTUyqjj3zNFZI=
+17:25:17@335/info - NetDb: RouterInfo added: w3342M1BA83sefWM1KJM2Cx4X-krYNbTUyqjj3zNFZI=
+17:25:17@563/info - NTCP2: Connect error В соединении отказано
+17:25:17@341/info - Transports: No compatible addresses available
+17:25:17@401/warn - NetDbReq: oaLkLY76RIi~Z8fZ48b8avSf0h0JVlMpc1bcOseDejU= not found after 5 attempts
+17:25:17@335/info - NetDb: RouterInfo added: oknUKHOxzA41EwsfW538GEmFXHtB6WsQsNFrkMAfcJ4=
+17:25:17@335/info - NetDb: RouterInfo updated: G-FMiYx0-DVnYKwSjZorGQpHRHya-Nb0znkUVn10mRc=
+17:25:17@401/warn - NetDbReq: vVC67ITVM7kqRmix1jxBqCfGiTMj51pj8KRbyDpgxMM= not found after 5 attempts
+17:25:17@335/info - NetDb: RouterInfo updated: fktL1IpIXCC8VpWQEc2kIhh7llN03LGBzUExkjG2uzg=
+17:25:17@335/info - NetDb: RouterInfo updated: d3pJuKHD3ghjxTUuHMeWeQrnJqYmv0GmGqdf9B~fCC0=
+17:25:17@335/info - NetDb: RouterInfo updated: dNBQ9pLrsYCRMZk3EWP7QC5r9kMb-aXevdFknWCdWxo=
+17:25:17@401/warn - Profiling: No profile yet for G8YY8d9TD1u7Yz~5cDt-ll-9lTfTbAwYVGPg25SCo-U=
+17:25:17@401/warn - Profiling: No profile yet for kl1X8Dz2DjbLv9Hp8ZYP0Ozke9vu3AvaRwewcXfcQYs=
+17:25:17@401/warn - Profiling: No profile yet for dMrr0RNZ4GOMRspLGoslJdBf~dhy-fJMgluYUo~iMCc=
+17:25:17@401/warn - Profiling: No profile yet for rVifruAgRuuFmQBySoMNDdjSOhXL~18taf003N0OqT8=
+17:25:17@335/warn - Profiling: No profile yet for fjp5kNum-5pdGMdavcVDZ9srAD5waRWtPLJxnV~Dr2E=
+17:25:17@335/info - NetDb: RouterInfo added: fjp5kNum-5pdGMdavcVDZ9srAD5waRWtPLJxnV~Dr2E=
+17:25:17@335/info - NetDb: RouterInfo updated: IoGLgH~lcNxJWfk7c1KQP2-27hblSYowIm8WIlLHW5o=
+17:25:17@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:17@335/info - NetDb: RouterInfo added: vVC67ITVM7kqRmix1jxBqCfGiTMj51pj8KRbyDpgxMM=
+17:25:17@335/warn - Profiling: No profile yet for GRJa2uGsB9Kg5FYNI5r4sZDLxcF398nTQrdzxqjt43Y=
+17:25:17@335/info - NetDb: RouterInfo added: GRJa2uGsB9Kg5FYNI5r4sZDLxcF398nTQrdzxqjt43Y=
+17:25:17@401/warn - Profiling: No profile yet for 8bKMCrQN1T4ubN9CWtUDpSMyHaLDEQFL~-jkOR0CBdE=
+17:25:17@563/info - NTCP2: Connect error В соединении отказано
+17:25:17@341/info - Transports: No compatible addresses available
+17:25:17@401/warn - Profiling: No profile yet for dLTyuae0zPsDhBR8GiTpAxfRGFIJXV768EccSkjyyMY=
+17:25:17@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:17@563/info - NTCP2: Connect error В соединении отказано
+17:25:17@341/info - Transports: No compatible addresses available
+17:25:17@401/warn - Profiling: No profile yet for QQKDIkTMk~BPxUXWr21Vs3LmgxvKY73dqF8fdNjRQgo=
+17:25:17@401/warn - Profiling: No profile yet for I0~TWHLJx-HZDHuH8ldLPfAdik~ajelwmGq9~qFyxq8=
+17:25:17@401/warn - NetDbReq: oaLkLY76RIi~Z8fZ48b8avSf0h0JVlMpc1bcOseDejU= not found after 5 attempts
+17:25:17@401/warn - Profiling: No profile yet for ju9QQno-7qqtxeigyAHw~CXo2bN3yAWPzoUoxdRn2h4=
+17:25:17@401/warn - Profiling: No profile yet for uTOSH1ZH1E-MnEQ1OlcGU45xP8mWRe6M7WSLkowWPyM=
+17:25:17@335/info - NetDb: RouterInfo updated: kl1X8Dz2DjbLv9Hp8ZYP0Ozke9vu3AvaRwewcXfcQYs=
+17:25:17@335/warn - Profiling: No profile yet for wxMngpi6Nrne1wgbFoKumDyYCtsy5ouPdymBE9wWPX0=
+17:25:17@335/info - NetDb: RouterInfo added: wxMngpi6Nrne1wgbFoKumDyYCtsy5ouPdymBE9wWPX0=
+17:25:17@335/info - NetDb: RouterInfo updated: G8YY8d9TD1u7Yz~5cDt-ll-9lTfTbAwYVGPg25SCo-U=
+17:25:17@335/info - NetDb: RouterInfo updated: L-urD0DCcd3leOW5Sff4JVyWqAMSuLcMYVRicB~8tTY=
+17:25:17@563/warn - NTCP2: SessionCreated read error: End of file
+17:25:17@341/info - Transports: No compatible addresses available
+17:25:17@860/warn - SSU2: Session with 88.244.250.73:14778 was not established after 5 seconds
+17:25:17@335/warn - Profiling: No profile yet for 1qgfJPPRpTz9q0--cvJtPaHumpgRegAN39xrU4287dU=
+17:25:17@335/info - NetDb: RouterInfo added: 1qgfJPPRpTz9q0--cvJtPaHumpgRegAN39xrU4287dU=
+17:25:17@335/warn - Profiling: No profile yet for GXrbmBg3Y-1F~Jje-HkstDzwkKAGKYFVidLU32PG69Y=
+17:25:17@335/info - NetDb: RouterInfo added: GXrbmBg3Y-1F~Jje-HkstDzwkKAGKYFVidLU32PG69Y=
+17:25:17@401/warn - Profiling: No profile yet for rsnsSMC3VcEV-t8rfEet2CzBypHd2g7P7BNo9AQ0uqY=
+17:25:18@563/info - NTCP2: Connect error В соединении отказано
+17:25:18@341/info - Transports: No compatible addresses available
+17:25:18@401/warn - NetDbReq: Destination GUMbhiritBfCTUI26xXQl58-prqn3dkxuwhVV6VATHA= is requested already or cached
+17:25:18@335/warn - Profiling: No profile yet for GUMbhiritBfCTUI26xXQl58-prqn3dkxuwhVV6VATHA=
+17:25:18@335/info - NetDb: RouterInfo added: GUMbhiritBfCTUI26xXQl58-prqn3dkxuwhVV6VATHA=
+17:25:18@335/warn - Profiling: No profile yet for GVStrZ9Vk9XwQh-lGZ-iNU-cXvUzVBUMonFMkx34gJs=
+17:25:18@335/info - NetDb: RouterInfo added: GVStrZ9Vk9XwQh-lGZ-iNU-cXvUzVBUMonFMkx34gJs=
+17:25:18@335/info - NetDb: RouterInfo updated: uSMQIerNAZYo9qcYyydOvW2PGHENMTJTyAhz0DTlw00=
+17:25:18@401/warn - Profiling: No profile yet for rVjyRYq0HMTzVFkoFNNhz9HVE7DgfmxFksOpI48~HMs=
+17:25:18@401/warn - Profiling: No profile yet for oeL1cf9M3sTEU6JVpeptU9bY6UjwleiUwIAkXkdMIQk=
+17:25:18@401/warn - Profiling: No profile yet for dKZe2Cj2I41F9aEaCO5TSukhR9IXqKCuSeRGrPkhGcQ=
+17:25:18@335/info - NetDb: RouterInfo updated: ju9QQno-7qqtxeigyAHw~CXo2bN3yAWPzoUoxdRn2h4=
+17:25:18@335/warn - Profiling: No profile yet for dGk~kqkrrmyHnJQSuIgQD7neF9uMJtfvfkZkMMLqyOE=
+17:25:18@335/info - NetDb: RouterInfo added: dGk~kqkrrmyHnJQSuIgQD7neF9uMJtfvfkZkMMLqyOE=
+17:25:18@335/warn - Profiling: No profile yet for xxg9dNxLkRe0uzSeaDuz1sIHcplk5mvhvWHy1LZiBPE=
+17:25:18@335/info - NetDb: RouterInfo added: xxg9dNxLkRe0uzSeaDuz1sIHcplk5mvhvWHy1LZiBPE=
+17:25:18@401/warn - Profiling: No profile yet for mIJ37xgx-hbW9SRlTD8RXAjhqDPACInV~FU3MRyXLJc=
+17:25:18@335/info - NetDb: RouterInfo updated: rsnsSMC3VcEV-t8rfEet2CzBypHd2g7P7BNo9AQ0uqY=
+17:25:18@563/warn - NTCP2: Session with uQg6FirgoTBSqT-5skpGB-l33yFVyv0fLz6Bpqkq2f8= already exists. Dropped
+17:25:18@341/info - Transports: No compatible addresses available
+17:25:18@335/info - NetDb: RouterInfo updated: GXrbmBg3Y-1F~Jje-HkstDzwkKAGKYFVidLU32PG69Y=
+17:25:18@401/warn - Profiling: No profile yet for 8Rf~Y6vOEFG1qRS6sN7DL3YEpseAKI4xI2Vf~2vV3A8=
+17:25:18@401/warn - Profiling: No profile yet for QyET2plMbBB8xLd3L1JXP4OOtPcM~5~IhesfIRfK~WM=
+17:25:18@401/warn - Profiling: No profile yet for I5PSOlUscsSOPWsljP1vAZrMdXMm81m8sipLV3Rd7QQ=
+17:25:18@401/warn - Profiling: No profile yet for rs3lVuqHrBZ5z1H1gfKaVpYB9TSCOio9QJZzQdRCG7A=
+17:25:18@401/warn - NetDbReq: fgRvNYpW2Qg09wsSK-bhqiUPDmOsAN5rK7drHNefmlg= not found after 5 attempts
+17:25:18@401/warn - Profiling: No profile yet for gL3ZHn1Dhxxl9nrWr13zJiPrmWfgN4k~qUDAHslK~Ks=
+17:25:18@335/info - NetDb: RouterInfo updated: fmhczbNo~cWMk1Uhz5NBS2SEyjoY3zxP-XcPbsg2zHk=
+17:25:18@335/warn - Profiling: No profile yet for fgRvNYpW2Qg09wsSK-bhqiUPDmOsAN5rK7drHNefmlg=
+17:25:18@335/info - NetDb: RouterInfo added: fgRvNYpW2Qg09wsSK-bhqiUPDmOsAN5rK7drHNefmlg=
+17:25:18@401/warn - Profiling: No profile yet for ufDoDiet5MjFIWUAZQW1SMxJsTaN4iC7UbjBSmk8Ilw=
+17:25:18@401/warn - NetDbReq: Destination uH-GpPn8UVj6HI-DBWJ-8FkS~bi32c7IIPEyCc~zEoY= is requested already or cached
+17:25:18@401/warn - NetDbReq: Destination uEYA8H2-W8SqYIsul~v-J0eSIQ0~mngilZzY1JgjHlE= is requested already or cached
+17:25:18@401/warn - Profiling: No profile yet for pCmYQoiri2FaF7E2oHUUeIs4s~Dz29N33Zv-V996jnc=
+17:25:18@563/info - NTCP2: Connect error В соединении отказано
+17:25:18@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:18@563/info - NTCP2: Connect error В соединении отказано
+17:25:18@341/info - Transports: No compatible addresses available
+17:25:18@401/warn - Profiling: No profile yet for 8QN72ZPXUCIrPZ-WlI6PgRGiPjRzQzgTTu9fYrGG~Nk=
+17:25:18@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:18@563/info - NTCP2: Connect error В соединении отказано
+17:25:18@341/info - Transports: No compatible addresses available
+17:25:18@335/info - NetDb: RouterInfo updated: dKZe2Cj2I41F9aEaCO5TSukhR9IXqKCuSeRGrPkhGcQ=
+17:25:18@563/info - NTCP2: Connect error В соединении отказано
+17:25:18@341/info - Transports: No compatible addresses available
+17:25:18@401/warn - Profiling: No profile yet for pDqZbCL36G2IaYIuxXLpd3VNyprJvTBruwBS8t9pk5c=
+17:25:18@860/warn - SSU2: Session with 109.136.173.122:24031 was not established after 5 seconds
+17:25:18@341/info - Transports: No compatible addresses available
+17:25:18@335/warn - Profiling: No profile yet for rryr54QZ5jFM53VM28IEPo~arq3yCBLkvVwvq2eXGiY=
+17:25:18@335/info - NetDb: RouterInfo added: rryr54QZ5jFM53VM28IEPo~arq3yCBLkvVwvq2eXGiY=
+17:25:18@335/info - NetDb: RouterInfo updated: mIJ37xgx-hbW9SRlTD8RXAjhqDPACInV~FU3MRyXLJc=
+17:25:18@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:19@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:19@335/warn - Profiling: No profile yet for rpsNmct3j3UQ022-pHwtkLWZU1eAx9HfnQn9N5UhhwE=
+17:25:19@335/info - NetDb: RouterInfo added: rpsNmct3j3UQ022-pHwtkLWZU1eAx9HfnQn9N5UhhwE=
+17:25:19@401/warn - NetDbReq: 1qGfIelNg0KMoalHhGseHxD-NTL-HlOuFIEOnZy-MvQ= not found after 5 attempts
+17:25:19@401/warn - Profiling: No profile yet for rLof~eypgoT-vrR-xfZkQRlgvPPBKE1vV~-dmPYDxdo=
+17:25:19@401/warn - NetDbReq: Destination dC~1He9lPb7zMyViuU-XZu0BNfZd7BRnoXLvl6M4ItQ= is requested already or cached
+17:25:19@335/info - NetDb: RouterInfo added: pHPQU4~I6t1FwjuNeFPIBG7BbxSEkFCjIEkBp0s7zFE=
+17:25:19@401/warn - Profiling: No profile yet for FrESpfm6C~QunVCDCYXBSF72RsQemFmox8v8gVJG9eg=
+17:25:19@401/warn - Profiling: No profile yet for rUV~XKM~al4H0Jvk3ToPoOxg7zu0Hc-7ftLR5z7YP9A=
+17:25:19@401/warn - Profiling: No profile yet for 3NCAhX8KVC-UPPXPgHq-UdFc-M1~Ea854iwgXtw3BRY=
+17:25:19@335/info - NetDb: RouterInfo updated: I5PSOlUscsSOPWsljP1vAZrMdXMm81m8sipLV3Rd7QQ=
+17:25:19@563/info - NTCP2: Connect error В соединении отказано
+17:25:19@341/info - Transports: No compatible addresses available
+17:25:19@401/warn - Profiling: No profile yet for Fr3MmNKTKUt4oHcGlbiW98Y5WQUES4eSjMdXbIRPeUw=
+17:25:19@335/info - NetDb: RouterInfo updated: EV287F-~4bdf29wQV6FrnGeEY5s6jbKr4oWAha7RTAY=
+17:25:19@563/info - NTCP2: Connect error В соединении отказано
+17:25:19@341/info - Transports: No compatible addresses available
+17:25:19@335/info - NetDb: RouterInfo updated: e2xweOgxM5UbuwZidqpRU59hEb0tNcS2iuIqJd2pP1Q=
+17:25:19@335/warn - Profiling: No profile yet for xz6nMywsfuLNzcep74WghwN~ji-5pP9TNuC6ibnspo0=
+17:25:19@335/info - NetDb: RouterInfo added: xz6nMywsfuLNzcep74WghwN~ji-5pP9TNuC6ibnspo0=
+17:25:19@335/info - NetDb: RouterInfo updated: xp9MYymzKrUjsqUKhTxqD3EQRgtOCIQswI16voACKP4=
+17:25:19@335/warn - Profiling: No profile yet for rqBn1BcYhmp5SptNz0NlDMVZydWt0rs7-MyNIbCcXDA=
+17:25:19@335/info - NetDb: RouterInfo added: rqBn1BcYhmp5SptNz0NlDMVZydWt0rs7-MyNIbCcXDA=
+17:25:19@563/warn - NTCP2: SessionCreated read error: End of file
+17:25:19@341/info - Transports: No compatible addresses available
+17:25:19@335/warn - Profiling: No profile yet for uEYA8H2-W8SqYIsul~v-J0eSIQ0~mngilZzY1JgjHlE=
+17:25:19@335/info - NetDb: RouterInfo added: uEYA8H2-W8SqYIsul~v-J0eSIQ0~mngilZzY1JgjHlE=
+17:25:19@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:19@335/info - NetDb: RouterInfo updated: 3NCAhX8KVC-UPPXPgHq-UdFc-M1~Ea854iwgXtw3BRY=
+17:25:19@335/warn - Profiling: No profile yet for uH-GpPn8UVj6HI-DBWJ-8FkS~bi32c7IIPEyCc~zEoY=
+17:25:19@335/info - NetDb: RouterInfo added: uH-GpPn8UVj6HI-DBWJ-8FkS~bi32c7IIPEyCc~zEoY=
+17:25:19@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:19@335/warn - Profiling: No profile yet for uEKrlNqua3qQDrZzojpKBWMiuCWDSfw2aPl8k6Mh6jY=
+17:25:19@335/info - NetDb: RouterInfo added: uEKrlNqua3qQDrZzojpKBWMiuCWDSfw2aPl8k6Mh6jY=
+17:25:19@401/info - NetDbReq: Unsolicited or late database search reply for fQXt2-p1FTSMNq0I81Uzho0ogw0AebQKOVE6NXDZfBY=
+17:25:19@401/info - NetDbReq: Unsolicited or late database search reply for fgRvNYpW2Qg09wsSK-bhqiUPDmOsAN5rK7drHNefmlg=
+17:25:19@401/warn - Profiling: No profile yet for o2-r9p3jMz5aZgqOb2o9e4LzZ~sdM9rYx2eKsI6IQME=
+17:25:19@401/warn - NetDbReq: xyKjBtPnZ4r8WY5WwD-MlHgWfFMvnxnv-rupCBAaTbo= not found after 5 attempts
+17:25:19@401/warn - Profiling: No profile yet for Qw0KHWn8PVJi2rUF8NTITuqcCpl7-pn5B-0Z039whf0=
+17:25:19@401/warn - Profiling: No profile yet for 8X76vFywlT-s7GWkmG9sNij4Gl1yE9SWC0XV~QYbsoo=
+17:25:19@401/warn - Profiling: No profile yet for p441ei5Tdig4KQIUl0S5PZXw6g3ggPJCThcfcxPXM1M=
+17:25:19@563/warn - NTCP2: SessionCreated read error: Соединение разорвано другой стороной
+17:25:19@341/info - Transports: No compatible addresses available
+17:25:19@401/warn - NetDbReq: 1pVMkC~df2I8XucIrqjH7ZTm9erDheO~x~QhS1t-Pqk= not found after 5 attempts
+17:25:19@335/info - NetDb: RouterInfo updated: obfcRENYZDdPt64sCltzpbipt6DmvqhvKg91Ep0nTDk=
+17:25:19@563/info - NTCP2: Connect error В соединении отказано
+17:25:19@341/info - Transports: No compatible addresses available
+17:25:19@401/warn - NetDbReq: o9Ql5TxMaFcezbqNa6hsmBT7d3bCuR7i-E2ejctXPj0= not found after 5 attempts
+17:25:19@563/warn - NTCP2: SessionCreated read error: End of file
+17:25:19@341/info - Transports: No compatible addresses available
+17:25:19@401/warn - Profiling: No profile yet for rQ5rpAZByXkIyCJgeiSLi0TWl4JuSdsn999gxuIogsM=
+17:25:19@563/info - NTCP2: Connect error В соединении отказано
+17:25:19@341/info - Transports: No compatible addresses available
+17:25:19@401/warn - Profiling: No profile yet for o0wiQFv8Z5FES3-iXzofDR4Ta4XeZhNrOuc8sEdLP9o=
+17:25:19@401/warn - Profiling: No profile yet for tG07QByJiRdzgpspfaLwS1qiA~iJ-LyP2D4MCGkkrVM=
+17:25:20@860/warn - SSU2: Session with 207.153.14.178:30001 was not established after 5 seconds
+17:25:20@341/info - Transports: No compatible addresses available
+17:25:20@341/info - I2NP: Tunnel 3018278249 request was not sent
+17:25:20@341/info - I2NP: Tunnel 2643158798 request was not sent
+17:25:20@335/warn - Profiling: No profile yet for dCO-isAVUm9MfPf5ZjzFMVq9bXwgIjaATo7nJScoXUM=
+17:25:20@335/info - NetDb: RouterInfo added: dCO-isAVUm9MfPf5ZjzFMVq9bXwgIjaATo7nJScoXUM=
+17:25:20@335/info - NetDb: RouterInfo updated: rNZkDV5BzkjivKQJRqWfc45ms9IK13UmY5MtWvxVvio=
+17:25:20@335/info - NetDb: RouterInfo updated: Qw0KHWn8PVJi2rUF8NTITuqcCpl7-pn5B-0Z039whf0=
+17:25:20@335/info - NetDb: RouterInfo added: o4T5VQTwHaEaGamh1v~gNYq66fCGvcMT84DhHG0Wv2w=
+17:25:20@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:20@335/info - NetDb: RouterInfo updated: rQ5rpAZByXkIyCJgeiSLi0TWl4JuSdsn999gxuIogsM=
+17:25:20@335/warn - Profiling: No profile yet for w2J0q~1p47G9h2xQXA2le17zWwZjTKUYHkQStN3bl9A=
+17:25:20@335/info - NetDb: RouterInfo added: w2J0q~1p47G9h2xQXA2le17zWwZjTKUYHkQStN3bl9A=
+17:25:20@860/warn - SSU2: Session with 143.92.161.161:14442 was not established after 5 seconds
+17:25:20@401/warn - Profiling: No profile yet for Xpu5ytCJD3tGA5UJ6~798qku7iZttZoJAYpvdxaVang=
+17:25:20@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:20@401/warn - NetDbReq: dC~1He9lPb7zMyViuU-XZu0BNfZd7BRnoXLvl6M4ItQ= not found after 5 attempts
+17:25:20@401/warn - Profiling: No profile yet for VZiJnVp8IEVRy8nIHoZ2nzJRVBLghyr9LP~AH8DyfN8=
+17:25:20@335/info - NetDb: RouterInfo updated: tG07QByJiRdzgpspfaLwS1qiA~iJ-LyP2D4MCGkkrVM=
+17:25:20@710/info - Tunnel: Inbound tunnel 3506679979 has been declined
+17:25:20@401/warn - Profiling: No profile yet for tEK~d6DoRU7iC1CYAL7-B12bcu~UJBubjJwVB2FDz-E=
+17:25:20@401/warn - NetDbReq: o9Ql5TxMaFcezbqNa6hsmBT7d3bCuR7i-E2ejctXPj0= not found after 5 attempts
+17:25:20@401/warn - NetDbReq: 1pVMkC~df2I8XucIrqjH7ZTm9erDheO~x~QhS1t-Pqk= not found after 5 attempts
+17:25:20@335/warn - Profiling: No profile yet for dETH-wq1gtzbM-A1xm7MbBK5lUXT6T3LxzdkKWDwD0A=
+17:25:20@335/info - NetDb: RouterInfo added: dETH-wq1gtzbM-A1xm7MbBK5lUXT6T3LxzdkKWDwD0A=
+17:25:20@335/info - NetDb: RouterInfo updated: rFYuWwKnPGsETNfr1PODnZvfAYeVOazpsH-WRNx7pHg=
+17:25:20@563/info - NTCP2: Connect error В соединении отказано
+17:25:20@341/info - Transports: No compatible addresses available
+17:25:21@563/warn - NTCP2: SessionCreated read error: End of file
+17:25:21@341/info - Transports: No compatible addresses available
+17:25:21@401/warn - Profiling: No profile yet for tCQA0mXXH5zhoIRWEDA2vrrGUw8tdSvBwA05Pcl8Dsw=
+17:25:21@335/warn - Profiling: No profile yet for rTz3BQybrqiZiGgH8I1fdDclCTz4NI2WqLL1Yp9ezcM=
+17:25:21@335/info - NetDb: RouterInfo added: rTz3BQybrqiZiGgH8I1fdDclCTz4NI2WqLL1Yp9ezcM=
+17:25:21@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:21@335/warn - Profiling: No profile yet for rL4iO4cA8Xxz-364m3vV0O-OyAh7I96t6X-b3MWTnKA=
+17:25:21@335/info - NetDb: RouterInfo added: rL4iO4cA8Xxz-364m3vV0O-OyAh7I96t6X-b3MWTnKA=
+17:25:21@563/info - NTCP2: Connect error Нет маршрута до узла
+17:25:21@341/info - Transports: No compatible addresses available
+17:25:21@335/info - NetDb: RouterInfo added: qb1N4xwRQ4nU-jxTg62K2AMlgmOYRDqUKa7u1k0i3SM=
+17:25:21@401/warn - Profiling: No profile yet for 6k9wNISifM6ntD96jQOX0Q8sEHNOgjQCROEtJQczjtE=
+17:25:21@401/warn - Profiling: No profile yet for 4GxLSxzFGu9eKgdl6bKj3DWPCnKSTDkDTm-ulN2TpjI=
+17:25:21@710/info - Tunnel: Outbound tunnel 1585904243 has been declined
+17:25:21@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:21@335/warn - Profiling: No profile yet for rKifVfZn6JEhaXem6gg1g7mGXgM3aO9J1oHo8GiL6Ik=
+17:25:21@335/info - NetDb: RouterInfo added: rKifVfZn6JEhaXem6gg1g7mGXgM3aO9J1oHo8GiL6Ik=
+17:25:21@563/warn - NTCP2: SessionCreated read error: Операция отменена
+17:25:21@401/warn - Profiling: No profile yet for XocvOeUe-lIaoaBcdEYjGQF1I-Q6oqKjH3GfubuPndQ=
+17:25:21@335/info - NetDb: RouterInfo updated: tCQA0mXXH5zhoIRWEDA2vrrGUw8tdSvBwA05Pcl8Dsw=
+17:25:21@335/info - NetDb: RouterInfo updated: pwnmJNFjNT6cGOQq9902ZeE8xeQ2BH41ouph9g4sjfc=
+17:25:21@335/info - NetDb: RouterInfo updated: 6k9wNISifM6ntD96jQOX0Q8sEHNOgjQCROEtJQczjtE=
+17:25:21@335/warn - Profiling: No profile yet for dxsthbFrZJInJM97KWy30ZOi-v68Cc4AjECiB~WLoRo=
+17:25:21@335/info - NetDb: RouterInfo added: dxsthbFrZJInJM97KWy30ZOi-v68Cc4AjECiB~WLoRo=
+17:25:21@563/info - NTCP2: Connect error Нет маршрута до узла
+17:25:21@341/info - Transports: No compatible addresses available
+17:25:21@401/warn - Profiling: No profile yet for naoBvjN4NmNbTgkysEuY4BdA1MnzGd8LUNOBiphoGXY=
+17:25:21@335/info - NetDb: RouterInfo added: q~qwCBRE832dBGzGANK~MmE38XbYvOOhGeDgcccDMAI=
+17:25:21@335/info - NetDb: RouterInfo updated: 4GxLSxzFGu9eKgdl6bKj3DWPCnKSTDkDTm-ulN2TpjI=
+17:25:21@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:21@335/warn - Profiling: No profile yet for 6qR8JBBbhZvusDQu7IcfrxejBllRtnYV50kkoK0iOAY=
+17:25:21@335/info - NetDb: RouterInfo added: 6qR8JBBbhZvusDQu7IcfrxejBllRtnYV50kkoK0iOAY=
+17:25:21@335/warn - Profiling: No profile yet for 6rZ0z8X8BHvcQKsrucHyoqBfSvUz8S5WofQ3Iw2zoUU=
+17:25:21@335/info - NetDb: RouterInfo added: 6rZ0z8X8BHvcQKsrucHyoqBfSvUz8S5WofQ3Iw2zoUU=
+17:25:21@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:21@335/warn - Profiling: No profile yet for rV2BbASRAsB7P7WJjvgkiPFRnyzFqnN2-Tsr3yPhBno=
+17:25:21@335/info - NetDb: RouterInfo added: rV2BbASRAsB7P7WJjvgkiPFRnyzFqnN2-Tsr3yPhBno=
+17:25:21@563/info - NTCP2: Connect error В соединении отказано
+17:25:21@335/warn - Profiling: No profile yet for uEoNGXJKTHsHYbq3Pnk2~apT0JcMn9thjzKrmxzRH98=
+17:25:21@335/info - NetDb: RouterInfo added: uEoNGXJKTHsHYbq3Pnk2~apT0JcMn9thjzKrmxzRH98=
+17:25:21@335/info - NetDb: RouterInfo updated: TWyXHFovW7VbvUuAWTWznEZddpsRUZC9Mv3EuJfxNkE=
+17:25:21@335/warn - Profiling: No profile yet for CwA4Byz8-9f9Vnb6GJWOC1iUh-VTodBbpsVArHiYj0Q=
+17:25:21@335/info - NetDb: RouterInfo added: CwA4Byz8-9f9Vnb6GJWOC1iUh-VTodBbpsVArHiYj0Q=
+17:25:21@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:22@335/info - NetDb: RouterInfo updated: XocvOeUe-lIaoaBcdEYjGQF1I-Q6oqKjH3GfubuPndQ=
+17:25:22@335/info - NetDb: RouterInfo updated: pr2Hg~U0-kYL780GGcGrBMeHAAR0DhiatvG1rGaP4VU=
+17:25:22@335/info - NetDb: RouterInfo added: pDPYiHX4MLKmZS-If3AlrkZoKiOSmH79-2mkSYP~JVU=
+17:25:22@335/info - NetDb: RouterInfo updated: -hcShL6ZYVqMblVFd-B2SfTZEDPlj1fzTkrhqdY8Xt8=
+17:25:22@563/info - NTCP2: Connect error В соединении отказано
+17:25:22@341/info - Transports: No compatible addresses available
+17:25:22@401/warn - Profiling: No profile yet for na9cECEivWoHrxQFOX9fhjXIYyzRS9E5kH6NsmE0N4k=
+17:25:22@335/info - NetDb: RouterInfo added: q5rURYPfXN3yK~UDi~JXY8a9R4qJ2a6cu3-stkueX8g=
+17:25:22@335/warn - Profiling: No profile yet for rLwjyEtidxNk33l3gtmNJIMyfiluvbinglC65EDGpjo=
+17:25:22@335/info - NetDb: RouterInfo added: rLwjyEtidxNk33l3gtmNJIMyfiluvbinglC65EDGpjo=
+17:25:22@335/info - NetDb: RouterInfo updated: uEoNGXJKTHsHYbq3Pnk2~apT0JcMn9thjzKrmxzRH98=
+17:25:22@563/info - NTCP2: Connect error В соединении отказано
+17:25:22@341/info - Transports: No compatible addresses available
+17:25:22@401/warn - Profiling: No profile yet for nYjEsOwyyvSmkLzBqtbbpmSgGbrC7PjxLLpFC2rD5Dc=
+17:25:22@335/warn - Profiling: No profile yet for dwVZQRkHo2dWehZ2885ZCHxc7j-Ue8PH4d76wg~bX-A=
+17:25:22@335/info - NetDb: RouterInfo added: dwVZQRkHo2dWehZ2885ZCHxc7j-Ue8PH4d76wg~bX-A=
+17:25:22@335/warn - Profiling: No profile yet for dwamniB~Et~U2ctaWpKnM6BYy8PFHYEWav9bvFImApM=
+17:25:22@335/info - NetDb: RouterInfo added: dwamniB~Et~U2ctaWpKnM6BYy8PFHYEWav9bvFImApM=
+17:25:22@563/info - NTCP2: Connect error Нет маршрута до узла
+17:25:22@341/info - Transports: No compatible addresses available
+17:25:22@335/info - NetDb: RouterInfo updated: hZsj0OOYVjazp2AB8iGLPH3kGN3rwNLKluunmKcXAnU=
+17:25:22@401/warn - Profiling: No profile yet for hG9ek25J3SwXUWYmLI8dlJZ5qEV6LMmhSlvS8frHRBg=
+17:25:22@335/info - NetDb: RouterInfo updated: Vefa5oVzBi8edFqubUhcPeMLGRZu5EcWiBg6zK6POHo=
+17:25:22@335/info - NetDb: RouterInfo updated: xDCgmFSvzoEGprn6EVPaOYvci75D~PJ4GyAWNsRMmf0=
+17:25:22@563/info - NTCP2: Connect error В соединении отказано
+17:25:22@341/info - Transports: No compatible addresses available
+17:25:22@401/warn - Profiling: No profile yet for nZKBFXTyigIASecH2BFCQ9keFQSbJFrRBMycJnej4Bs=
+17:25:22@335/info - NetDb: RouterInfo updated: uQg6FirgoTBSqT-5skpGB-l33yFVyv0fLz6Bpqkq2f8=
+17:25:22@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:22@401/info - NetDbReq: Unsolicited or late database search reply for fQXt2-p1FTSMNq0I81Uzho0ogw0AebQKOVE6NXDZfBY=
+17:25:22@335/info - NetDb: RouterInfo added: qy1hL-2NU9idkGUwavEIpxLvZsJSl8~rfwxkoanLJzI=
+17:25:22@401/warn - Profiling: No profile yet for VLc8uidQI8j3PXRniOGA3Yy4Ic3HoPMhSC5ftm72FCM=
+17:25:22@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:22@860/warn - SSU2: Session with 173.67.181.106:27683 was not established after 5 seconds
+17:25:22@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:22@335/warn - Profiling: No profile yet for VccX9S2MucbGaiy3Mn6kGex9aWQmHEtNU1UU7MkvkLQ=
+17:25:22@335/info - NetDb: RouterInfo added: VccX9S2MucbGaiy3Mn6kGex9aWQmHEtNU1UU7MkvkLQ=
+17:25:22@335/warn - Profiling: No profile yet for FG-XSf5Im90yXo8zkPEkAkiV5Hg-ap9VHMuajmk8SoU=
+17:25:22@335/info - NetDb: RouterInfo added: FG-XSf5Im90yXo8zkPEkAkiV5Hg-ap9VHMuajmk8SoU=
+17:25:23@335/info - NetDb: RouterInfo updated: 2UTbjhMevve5Ay2awdavaLcD93XPEq3lA-FHjcxij0U=
+17:25:23@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:23@335/info - NetDb: RouterInfo updated: hG9ek25J3SwXUWYmLI8dlJZ5qEV6LMmhSlvS8frHRBg=
+17:25:23@335/info - NetDb: RouterInfo updated: WpCbMySk47fSMzJm42kQax~ajaHq6OpLRICKnIcsTVw=
+17:25:23@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:23@401/warn - Profiling: No profile yet for 2SQ7PLmfNob7bh8QR~a09aUh1lGBhQAo~RTqkUcMxMo=
+17:25:23@335/info - NetDb: RouterInfo updated: y3ZMfREPwWELDmUZKonz0b5O2EN5FU2xGxm4cHT9rTY=
+17:25:23@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:23@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:23@335/warn - Profiling: No profile yet for VYLI0CxM9r48yYuTFfzCsDPUwivKhX8Yohyxgppm93I=
+17:25:23@335/info - NetDb: RouterInfo added: VYLI0CxM9r48yYuTFfzCsDPUwivKhX8Yohyxgppm93I=
+17:25:23@401/info - NetDbReq: Unsolicited or late database search reply for qy1hL-2NU9idkGUwavEIpxLvZsJSl8~rfwxkoanLJzI=
+17:25:23@563/info - NTCP2: Connect error В соединении отказано
+17:25:23@341/info - Transports: No compatible addresses available
+17:25:23@401/warn - Profiling: No profile yet for 2QgKFL3y~7jIfsIpx8TDcst7Ho2bAJ2gQ4dqpZ3tkiY=
+17:25:23@335/info - NetDb: RouterInfo updated: dwamniB~Et~U2ctaWpKnM6BYy8PFHYEWav9bvFImApM=
+17:25:23@335/info - NetDb: RouterInfo updated: Bzx47oj6RmX8LPZqQxWinX7uRVBBN364S0-AAGubF04=
+17:25:23@335/info - NetDb: RouterInfo updated: HRlDVH9w0H7YYxczTTanCEYE6qITqurncZRQOEZo-1M=
+17:25:23@335/warn - Profiling: No profile yet for Cz9CuhMepRsOMT60UbrZb3fSmQ7RiEPQVdejwPPFkHY=
+17:25:23@335/info - NetDb: RouterInfo added: Cz9CuhMepRsOMT60UbrZb3fSmQ7RiEPQVdejwPPFkHY=
+17:25:23@335/warn - Profiling: No profile yet for FH9i6e0cc7Z5kCmQnUC2DE~T9KLGslR8JQHHkoxf0-c=
+17:25:23@335/info - NetDb: RouterInfo added: FH9i6e0cc7Z5kCmQnUC2DE~T9KLGslR8JQHHkoxf0-c=
+17:25:23@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:23@401/warn - Profiling: No profile yet for nf~28ifXkPngSHiMcE7wdNZyKUJj6GEOKc0Oq7sqMng=
+17:25:23@401/warn - Profiling: No profile yet for H4UR-cOELBO7cWoebP1LvgK1eqSssDzGRMPaLetRs7g=
+17:25:23@401/warn - NetDbReq: 6rzSbImvQU22bK2LSV1jDS15xBkpI~X8sD52VtI1TV0= not found after 5 attempts
+17:25:23@335/warn - Profiling: No profile yet for Vau2RydO~s~2CYaDm6O04uRxApze6XnTY1FP4WgFpxY=
+17:25:23@335/info - NetDb: RouterInfo added: Vau2RydO~s~2CYaDm6O04uRxApze6XnTY1FP4WgFpxY=
+17:25:23@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:23@335/info - NetDb: RouterInfo updated: 2U2mQLF7kitG1xAL4ICqEWCWzx7W5ZGdGmb7N7Q2WTc=
+17:25:23@335/info - NetDb: RouterInfo updated: y3ryT91UCrRi49iIBVlxVyjJI0qetGgGzK5c9mN-6pk=
+17:25:23@401/warn - Profiling: No profile yet for kIQFPyAeKs49qQMGOlISF4T56omyD2zh9dRMs9f5szs=
+17:25:23@401/warn - Profiling: No profile yet for oz5eiUg3Zof13XcW0PUVPOp2BegxFAvb3QESBe~QJ-w=
+17:25:23@335/warn - Profiling: No profile yet for 2dvxHPp3wMkX5tEN~EdF3W6qVR246MTcY0gdhbOgNWs=
+17:25:23@335/info - NetDb: RouterInfo added: 2dvxHPp3wMkX5tEN~EdF3W6qVR246MTcY0gdhbOgNWs=
+17:25:23@563/info - NTCP2: Connect error В соединении отказано
+17:25:23@341/info - Transports: No compatible addresses available
+17:25:23@401/warn - NetDbReq: FGff1eH~X~-Eor7u-5rxNcUQbbVOAuuZAjqp1kFoC84= not found after 5 attempts
+17:25:23@860/warn - SSU2: Session with 88.160.33.49:17192 was not established after 5 seconds
+17:25:23@341/info - Transports: No compatible addresses available
+17:25:23@335/warn - Profiling: No profile yet for CyjV6Moz-hG7wYlqnTH3vGyV8QmRkH3Fb6LXB-V42~I=
+17:25:23@335/info - NetDb: RouterInfo added: CyjV6Moz-hG7wYlqnTH3vGyV8QmRkH3Fb6LXB-V42~I=
+17:25:23@335/warn - Profiling: No profile yet for kv6QulhKIO7wS1Jh1Wsh0EOIw1ouWcQ-oSrbybzLitY=
+17:25:23@335/info - NetDb: RouterInfo added: kv6QulhKIO7wS1Jh1Wsh0EOIw1ouWcQ-oSrbybzLitY=
+17:25:23@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:23@563/info - NTCP2: Connect error В соединении отказано
+17:25:23@341/info - Transports: No compatible addresses available
+17:25:23@401/warn - Profiling: No profile yet for ozXJonTfb1yLlQ-n9NAa-g~TYcEq3m~jA8u8PpqVQYQ=
+17:25:24@335/info - NetDb: RouterInfo updated: H4UR-cOELBO7cWoebP1LvgK1eqSssDzGRMPaLetRs7g=
+17:25:24@401/warn - Profiling: No profile yet for P7n-mJEVPg9zv4kaN9ByV-ZgR1HGw955SQrGwnKXsDk=
+17:25:24@860/warn - SSU2: Session with 172.249.22.169:18713 was not established after 5 seconds
+17:25:24@335/warn - Profiling: No profile yet for rVFhDOLBcEoDkM2fc2UGRASQ4lifXeORUBuGb09rHC8=
+17:25:24@335/info - NetDb: RouterInfo added: rVFhDOLBcEoDkM2fc2UGRASQ4lifXeORUBuGb09rHC8=
+17:25:24@563/info - NTCP2: Connect error В соединении отказано
+17:25:24@341/info - Transports: No compatible addresses available
+17:25:24@401/warn - Profiling: No profile yet for P9jsKdxVMnKxRKJ-Ap92ytFECbgC-ztjQUbvm38Sj0M=
+17:25:24@563/info - NTCP2: Connect error В соединении отказано
+17:25:24@341/info - Transports: No compatible addresses available
+17:25:24@335/info - NetDb: RouterInfo updated: PBaJBMnnx9BsWyVpciJ9xVEbjrPehXEFaIp5OcuaTVY=
+17:25:24@335/warn - Profiling: No profile yet for 2eQJ-PTO2YXieXoKd6volh0vztKO~wytgCqZ~3zyj18=
+17:25:24@335/info - NetDb: RouterInfo added: 2eQJ-PTO2YXieXoKd6volh0vztKO~wytgCqZ~3zyj18=
+17:25:24@401/warn - NetDbReq: FGff1eH~X~-Eor7u-5rxNcUQbbVOAuuZAjqp1kFoC84= not found after 5 attempts
+17:25:24@401/warn - Profiling: No profile yet for nfySSU-O7VP7scyad3ZciRvPrR4Ag58jDQbOHIupH6E=
+17:25:24@401/warn - Profiling: No profile yet for Qx4fyDXs4b5DGZKc-V1lC~pGLkrGMOleXa3KO7xrjbc=
+17:25:24@401/warn - Profiling: No profile yet for NSRb2-UzcWqXrTWOzMNbeL1YnQZegoeLfGi~ydONZ~g=
+17:25:24@563/info - NTCP2: Connect error В соединении отказано
+17:25:24@341/info - Transports: No compatible addresses available
+17:25:24@401/warn - Profiling: No profile yet for nLiQoVtcV-PeHRBQnfKMpnUFcwQelqZl1nAedqfkIG8=
+17:25:25@335/warn - Profiling: No profile yet for QqD-VGRwJJvy0lnlYwXsxOwO2Rt4IvLxKAU5bwSiEUM=
+17:25:25@335/info - NetDb: RouterInfo added: QqD-VGRwJJvy0lnlYwXsxOwO2Rt4IvLxKAU5bwSiEUM=
+17:25:25@335/warn - Profiling: No profile yet for QqFiLYJ0l5KBjbVsAhpimPwddLL09HGy~Nv3z6glM3o=
+17:25:25@335/info - NetDb: RouterInfo added: QqFiLYJ0l5KBjbVsAhpimPwddLL09HGy~Nv3z6glM3o=
+17:25:25@563/info - NTCP2: Connect error В соединении отказано
+17:25:25@341/info - Transports: No compatible addresses available
+17:25:25@401/warn - Profiling: No profile yet for nLFZcjiilsxNsjCEeiDe3novy~eMikZKs9shkyA6Glc=
+17:25:25@563/info - NTCP2: Connect error В соединении отказано
+17:25:25@341/info - Transports: No compatible addresses available
+17:25:25@401/warn - Profiling: No profile yet for nLPfvwjBI26lgPPvzOpnMCS4WTRpSWk7pcocF7D1uF0=
+17:25:25@335/info - NetDb: RouterInfo updated: Qx4fyDXs4b5DGZKc-V1lC~pGLkrGMOleXa3KO7xrjbc=
+17:25:25@335/info - NetDb: Saved 161 new/updated routers
+17:25:25@335/info - NetDb: Deleting 57 unreachable routers
+17:25:25@401/warn - NetDbReq: Destination Qq6rKFNO53vg3wgB~XF~6TjnhpX5ccLtAcgxqJJOqwk= is requested already or cached
+17:25:25@335/info - NetDb: RouterInfo updated: nLPfvwjBI26lgPPvzOpnMCS4WTRpSWk7pcocF7D1uF0=
+17:25:26@401/warn - Profiling: No profile yet for kJT1HhnibQPP0444lBBgqXmuGVcj3N2HM~gvAfV50Do=
+17:25:26@401/warn - Profiling: No profile yet for NRbcwwiXfhx62KrHDUKynCohEYkgnSvmWNCLpjNnKZA=
+17:25:26@401/warn - NetDbReq: kr~0XUgCyHmDj9U6KHG4kBJPQDA3LNBc16uzS4WZusA= not found after 5 attempts
+17:25:26@335/warn - Profiling: No profile yet for kr~0XUgCyHmDj9U6KHG4kBJPQDA3LNBc16uzS4WZusA=
+17:25:26@335/info - NetDb: RouterInfo added: kr~0XUgCyHmDj9U6KHG4kBJPQDA3LNBc16uzS4WZusA=
+17:25:26@335/warn - Profiling: No profile yet for ku-JVxto9kry8e6E1wd~JZN6aejqvWnr2jt2GUOrPKY=
+17:25:26@335/info - NetDb: RouterInfo added: ku-JVxto9kry8e6E1wd~JZN6aejqvWnr2jt2GUOrPKY=
+17:25:26@335/info - NetDb: RouterInfo updated: QqD-VGRwJJvy0lnlYwXsxOwO2Rt4IvLxKAU5bwSiEUM=
+17:25:26@401/warn - Profiling: No profile yet for NRKJLGFU5LGQVHNcU0X1-65WejkD4-~Hk3XqaTPUft8=
+17:25:26@401/warn - NetDbReq: dxkd-yzzBYhKwouWLMXgPhHP2Urpkd1JYsRG0emtaXQ= not found after 5 attempts
+17:25:26@401/warn - NetDbReq: Destination Qq6rKFNO53vg3wgB~XF~6TjnhpX5ccLtAcgxqJJOqwk= is requested already or cached
+17:25:26@335/info - NetDb: RouterInfo updated: kJT1HhnibQPP0444lBBgqXmuGVcj3N2HM~gvAfV50Do=
+17:25:26@335/info - NetDb: RouterInfo updated: Xpu5ytCJD3tGA5UJ6~798qku7iZttZoJAYpvdxaVang=
+17:25:26@335/warn - Profiling: No profile yet for Qr4HGEJO3cYc--~XIPKlSFwBXvLl73VQYv9Vq-MhuiU=
+17:25:26@335/info - NetDb: RouterInfo added: Qr4HGEJO3cYc--~XIPKlSFwBXvLl73VQYv9Vq-MhuiU=
+17:25:26@860/warn - SSU2: Session with 88.234.1.96:16847 was not established after 5 seconds
+17:25:26@341/info - Transports: No compatible addresses available
+17:25:27@401/warn - NetDbReq: 2cbNl8aXTo03FaC1Nl5S4LG5gV7ow-bgW134Wlpl6ao= not found after 5 attempts
+17:25:27@563/info - NTCP2: Connect error Нет маршрута до узла
+17:25:27@341/info - Transports: No compatible addresses available
+17:25:27@860/warn - SSU2: Session with 76.191.175.124:30595 was not established after 5 seconds
+17:25:27@335/warn - Profiling: No profile yet for 2cbNl8aXTo03FaC1Nl5S4LG5gV7ow-bgW134Wlpl6ao=
+17:25:27@335/info - NetDb: RouterInfo added: 2cbNl8aXTo03FaC1Nl5S4LG5gV7ow-bgW134Wlpl6ao=
+17:25:27@401/warn - Profiling: No profile yet for X~kksPbhNkKJbIipaueAeJi-QIyu0ceQQjLOprI9Swo=
+17:25:27@401/warn - Profiling: No profile yet for NWnic3OGc4rs9J5wFqORLQLWuZUgxbyO6iadTUYHQuI=
+17:25:27@563/info - NTCP2: Connect error В соединении отказано
+17:25:27@341/info - Transports: No compatible addresses available
+17:25:28@335/info - NetDb: RouterInfo updated: NWnic3OGc4rs9J5wFqORLQLWuZUgxbyO6iadTUYHQuI=
+17:25:28@335/warn - Profiling: No profile yet for Qq6rKFNO53vg3wgB~XF~6TjnhpX5ccLtAcgxqJJOqwk=
+17:25:28@335/info - NetDb: RouterInfo added: Qq6rKFNO53vg3wgB~XF~6TjnhpX5ccLtAcgxqJJOqwk=
+17:25:29@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:29@335/info - NetDb: RouterInfo updated: VLc8uidQI8j3PXRniOGA3Yy4Ic3HoPMhSC5ftm72FCM=
+17:25:29@335/warn - Profiling: No profile yet for ktz5ljA4AvaB-D6Okh4whp37R~q8Sn2VkUA7DQ~3t3U=
+17:25:29@335/info - NetDb: RouterInfo added: ktz5ljA4AvaB-D6Okh4whp37R~q8Sn2VkUA7DQ~3t3U=
+17:25:29@401/info - NetDbReq: Unsolicited or late database search reply for rVFhDOLBcEoDkM2fc2UGRASQ4lifXeORUBuGb09rHC8=
+17:25:29@401/info - NetDbReq: Unsolicited or late database search reply for ktz5ljA4AvaB-D6Okh4whp37R~q8Sn2VkUA7DQ~3t3U=
+17:25:30@563/info - NTCP2: Not connected in 25 seconds
+17:25:30@563/info - NTCP2: Connect error Операция отменена
+17:25:30@563/info - NTCP2: Not connected in 25 seconds
+17:25:30@563/info - NTCP2: Connect error Операция отменена
+17:25:30@341/info - Transports: No compatible addresses available
+17:25:30@341/info - I2NP: Tunnel 3763746509 request was not sent
+17:25:31@710/info - Tunnel: Outbound tunnel 3510384179 has been declined
+17:25:31@335/info - NetDb: RouterInfo updated: 8Y0widy7f0rk~r6gW6kYWjt1mMuFibKjyOCuf4WHgiM=
+17:25:32@860/warn - SSU2: Session with 104.230.114.95:16427 was not established after 5 seconds
+17:25:32@335/info - NetDb: RouterInfo added: o9Ql5TxMaFcezbqNa6hsmBT7d3bCuR7i-E2ejctXPj0=
+17:25:32@563/info - NTCP2: Connect error В соединении отказано
+17:25:32@341/info - Transports: No compatible addresses available
+17:25:32@335/info - NetDb: RouterInfo updated: pDqZbCL36G2IaYIuxXLpd3VNyprJvTBruwBS8t9pk5c=
+17:25:32@860/warn - SSU2: Session with 188.125.205.0:9590 was not established after 5 seconds
+17:25:33@563/info - NTCP2: Connect error В соединении отказано
+17:25:33@341/info - Transports: No compatible addresses available
+17:25:34@860/warn - SSU2: Unexpected message type 80 from 76.191.175.124:30595 of 130 bytes
+17:25:34@335/info - NetDb: RouterInfo updated: rVjyRYq0HMTzVFkoFNNhz9HVE7DgfmxFksOpI48~HMs=
+17:25:35@860/warn - SSU2: Session with 88.147.174.198:1119 was not established after 5 seconds
+17:25:35@341/info - Transports: No compatible addresses available
+17:25:35@341/info - I2NP: Tunnel 2510499940 request was not sent
+17:25:35@563/warn - NTCP2: Receive length read error: End of file
+17:25:35@335/warn - Profiling: No profile yet for dC~1He9lPb7zMyViuU-XZu0BNfZd7BRnoXLvl6M4ItQ=
+17:25:35@335/info - NetDb: RouterInfo added: dC~1He9lPb7zMyViuU-XZu0BNfZd7BRnoXLvl6M4ItQ=
+17:25:36@710/info - Tunnel: Outbound tunnel 659702765 has been declined
+17:25:36@710/info - Tunnel: Outbound tunnel 3657752182 has been created
+17:25:36@710/info - Tunnel: Outbound tunnel 2563211618 has been declined
+17:25:36@710/info - Tunnel: Outbound tunnel 4102420889 has been declined
+17:25:38@341/warn - Transports: Session to peer nZKBFXTyigIASecH2BFCQ9keFQSbJFrRBMycJnej4Bs= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer B7gLmK8Vv2HXlKl6UGVgsOtUU-NxFhoUOEpO9FGVw~8= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer CQYUYOM-2CLiuH-xZLwwZ7H~FZj066qQ-qYbfMoL9dY= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer Tg167KBw2~lOyR5AAlr4i3ioqBtwjS0MMCY9SfQdBIM= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer o0wiQFv8Z5FES3-iXzofDR4Ta4XeZhNrOuc8sEdLP9o= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer p441ei5Tdig4KQIUl0S5PZXw6g3ggPJCThcfcxPXM1M= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer TyBy6f1p-0axvSE6xuQQgk36h4gEPYqW36U0oa78odo= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer ufDoDiet5MjFIWUAZQW1SMxJsTaN4iC7UbjBSmk8Ilw= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer rs3lVuqHrBZ5z1H1gfKaVpYB9TSCOio9QJZzQdRCG7A= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer oeL1cf9M3sTEU6JVpeptU9bY6UjwleiUwIAkXkdMIQk= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer 2Zuj808kmyAeVk7Rlnkk19jWovynnvJ2nmeycCbJDIY= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer VdtGPFaFNEfPxOI0fq9-PmuTiiemoxOpj70HMLBydk8= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer GVStrZ9Vk9XwQh-lGZ-iNU-cXvUzVBUMonFMkx34gJs= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer offT0ZcOwwzlYvjYHuwFNCoZnRrq2ps8V3L~TixdP9M= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer uTOSH1ZH1E-MnEQ1OlcGU45xP8mWRe6M7WSLkowWPyM= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer QS0T-fPa7Y5JuZSk8jstUQ6SPaSbNceXDbM7sU8Y3eY= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer dwVZQRkHo2dWehZ2885ZCHxc7j-Ue8PH4d76wg~bX-A= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer rVifruAgRuuFmQBySoMNDdjSOhXL~18taf003N0OqT8= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer 3tDtG9zjDP7XQ9Ggrh91Mc3qPDRJAg0vxzN2yh~OWgk= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer AqaZXkGFfV0qhV1CTjNin3VFiAdJgZG35uoV0ijA7vQ= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer lqYuzxwJ5sHKxQl30gHbYVe4feVu9hKXMOtQmbvAZ20= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer D8zXXIGZgeuN3PRFuh8y~6Nwkmn~Ohdm2NcIe4klV9I= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer juLlpeeCZWMGM-MiazjT6TS3tpazH~dfMgAdwezsIlg= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer ZvZdJkcFNxOot8llRQ4LBMPlMUYB3ukoe0FeKJzpVLA= has not been created in 15 seconds
+17:25:38@341/warn - Transports: Session to peer QRbIdWrPvAp58Qf~asFdm1s-oz9NDmwimu61pndVpNY= has not been created in 15 seconds
+17:25:40@335/info - NetDb: RouterInfo updated: kIQFPyAeKs49qQMGOlISF4T56omyD2zh9dRMs9f5szs=
+17:25:40@335/info - NetDb: RouterInfo updated: dLTyuae0zPsDhBR8GiTpAxfRGFIJXV768EccSkjyyMY=
+17:25:40@401/info - NetDbReq: Unsolicited or late database search reply for 2cbNl8aXTo03FaC1Nl5S4LG5gV7ow-bgW134Wlpl6ao=
+17:25:41@335/warn - Profiling: No profile yet for 1qGfIelNg0KMoalHhGseHxD-NTL-HlOuFIEOnZy-MvQ=
+17:25:41@335/info - NetDb: RouterInfo added: 1qGfIelNg0KMoalHhGseHxD-NTL-HlOuFIEOnZy-MvQ=
+17:25:41@563/info - NTCP2: Not connected in 25 seconds
+17:25:41@563/info - NTCP2: Connect error Операция отменена
+17:25:42@335/info - NetDb: RouterInfo updated: 3tzpUVtMPURRpVwY12r~U6zpHDLyIn0nDmKOWplpc~s=
+17:25:42@563/info - NTCP2: Not connected in 25 seconds
+17:25:42@563/info - NTCP2: Connect error Операция отменена
+17:25:42@563/info - NTCP2: Not connected in 25 seconds
+17:25:42@563/info - NTCP2: Connect error Операция отменена
+17:25:42@563/warn - NTCP2: SessionCreated read error: End of file
+17:25:43@563/info - NTCP2: Not connected in 25 seconds
+17:25:43@563/info - NTCP2: Connect error Операция отменена
+17:25:43@563/info - NTCP2: Not connected in 25 seconds
+17:25:43@563/info - NTCP2: Connect error Операция отменена
+17:25:43@563/warn - NTCP2: SessionCreated read error: End of file
+17:25:44@335/info - NetDb: RouterInfo updated: QyET2plMbBB8xLd3L1JXP4OOtPcM~5~IhesfIRfK~WM=
+17:25:44@401/info - NetDbReq: Unsolicited or late database search reply for dxkd-yzzBYhKwouWLMXgPhHP2Urpkd1JYsRG0emtaXQ=
+17:25:44@563/info - NTCP2: Not connected in 25 seconds
+17:25:44@563/info - NTCP2: Connect error Операция отменена
+17:25:44@563/info - NTCP2: Not connected in 25 seconds
+17:25:44@563/info - NTCP2: Connect error Операция отменена
+17:25:44@563/info - NTCP2: Not connected in 25 seconds
+17:25:44@563/info - NTCP2: Connect error Операция отменена
+17:25:45@563/warn - NTCP2: SessionCreated read error: End of file
+17:25:45@563/warn - NTCP2: Receive length read error: End of file
+17:25:45@563/info - NTCP2: Not connected in 25 seconds
+17:25:45@563/info - NTCP2: Connect error Операция отменена
+17:25:46@335/info - NetDb: RouterInfo updated: B7gLmK8Vv2HXlKl6UGVgsOtUU-NxFhoUOEpO9FGVw~8=
+17:25:46@563/info - NTCP2: Not connected in 25 seconds
+17:25:46@563/info - NTCP2: Connect error Операция отменена
+17:25:46@563/warn - NTCP2: Receive length read error: End of file
+17:25:46@563/info - NTCP2: Not connected in 25 seconds
+17:25:46@563/info - NTCP2: Connect error Операция отменена
+17:25:47@401/info - NetDbReq: Exploring new 1 routers ...
+17:25:47@401/warn - Profiling: No profile yet for 3I~mvaZUpZhLLV5EtkXorVt7DNuuU37F006JQdeN67A=
+17:25:47@563/info - NTCP2: Not connected in 25 seconds
+17:25:47@563/info - NTCP2: Connect error Операция отменена
+17:25:47@563/info - NTCP2: Not connected in 25 seconds
+17:25:47@563/info - NTCP2: Connect error Операция отменена
+17:25:48@563/info - NTCP2: Not connected in 25 seconds
+17:25:48@341/info - Transports: No compatible addresses available
+17:25:48@563/info - NTCP2: Connect error Операция отменена
+17:25:48@563/info - NTCP2: Not connected in 25 seconds
+17:25:48@563/info - NTCP2: Connect error Операция отменена
+17:25:48@341/info - Transports: No compatible addresses available
+17:25:48@335/info - NetDb: RouterInfo updated: uEKrlNqua3qQDrZzojpKBWMiuCWDSfw2aPl8k6Mh6jY=
+17:25:48@563/warn - NTCP2: Receive length read error: End of file
+17:25:49@563/info - NTCP2: Not connected in 25 seconds
+17:25:49@563/info - NTCP2: Connect error Операция отменена
+17:25:49@341/info - Transports: No compatible addresses available
+17:25:50@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:51@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:25:51@563/info - NTCP2: Not connected in 25 seconds
+17:25:51@341/info - Transports: No compatible addresses available
+17:25:51@563/info - NTCP2: Connect error Операция отменена
+17:25:51@335/info - NetDb: RouterInfo updated: VdtGPFaFNEfPxOI0fq9-PmuTiiemoxOpj70HMLBydk8=
+17:25:51@335/info - NetDb: RouterInfo updated: RaGUK5AqqBmKfBAmhzcy5Bs3JzYntD6J~tugOaYvuS4=
+17:25:51@341/warn - Profiling: No profile yet for bJ7Gtv7ESIKa20iteilFJMg~1yauNf4xwZf2E0vYda8=
+17:25:51@335/info - NetDb: RouterInfo updated: bJ7Gtv7ESIKa20iteilFJMg~1yauNf4xwZf2E0vYda8=
+17:25:51@710/info - Tunnel: Inbound tunnel 1198228472 has been declined
+17:25:51@710/info - Tunnel: Inbound tunnel 4128028262 has been declined
+17:25:52@341/info - Transports: RouterInfo for x1jYO~iFbg9NU2fAoyb9~yNdENRDL1ITYN5i~az~i50= not found, requested
+17:25:53@563/info - NetDb: RouterInfo updated: FF0mg8fnzBROUmOxxC31Xrp6TpXWGDZhGJChDmE~JbU=
+17:25:53@335/info - NetDb: RouterInfo updated: Lm9rMRU-cF5dEKv11-NI0nPQ0EP9JZJ4vKN20ng0rMQ=
+17:25:53@335/warn - Profiling: No profile yet for x1jYO~iFbg9NU2fAoyb9~yNdENRDL1ITYN5i~az~i50=
+17:25:53@335/info - NetDb: RouterInfo added: x1jYO~iFbg9NU2fAoyb9~yNdENRDL1ITYN5i~az~i50=
+17:25:53@563/warn - NTCP2: SessionCreated read error: End of file
+17:25:53@341/info - Transports: No compatible addresses available
+17:25:55@401/info - NetDbReq: Unsolicited or late database search reply for dxkd-yzzBYhKwouWLMXgPhHP2Urpkd1JYsRG0emtaXQ=
+17:25:55@335/info - NetDb: RouterInfo updated: NRKJLGFU5LGQVHNcU0X1-65WejkD4-~Hk3XqaTPUft8=
+17:25:56@796/warn - Profiling: No profile yet for sth~oTT2dVe~Q7uPsmmTX9oCe40otG1aAo9YEg88QbU=
+17:26:01@710/info - Tunnel: Inbound tunnel 1138092028 has been declined
+17:26:05@436/warn - Clients: Local destination qlejoclfm7ln7o3sawowatvwxiarqu3q4kgcp27sxqlqtwknee3a.b32.i2p exists
+17:26:05@710/info - Tunnel: Inbound tunnel 2320099571 has been declined
+17:26:13@341/warn - Transports: Session to peer ozXJonTfb1yLlQ-n9NAa-g~TYcEq3m~jA8u8PpqVQYQ= has not been created in 15 seconds
+17:26:14@335/info - NetDb: RouterInfo updated: juLlpeeCZWMGM-MiazjT6TS3tpazH~dfMgAdwezsIlg=
+17:26:15@563/warn - NTCP2: SessionCreated read error: Соединение разорвано другой стороной
+17:26:18@563/warn - NTCP2: SessionCreated read error: Операция отменена
+17:26:18@563/warn - NTCP2: SessionCreated read error: Операция отменена
+17:26:18@563/warn - NTCP2: SessionCreated read error: Операция отменена
+17:26:20@710/info - Tunnel: Inbound tunnel 3461461336 has been declined
+17:26:23@401/info - NetDbReq: Exploring new 1 routers ...
+17:26:25@335/warn - Profiling: No profile yet for Btd6E9swa2cVFBcZrd-ehYHyEWc1pSKZTYoE-tV2Kqc=
+17:26:25@335/info - NetDb: RouterInfo added: Btd6E9swa2cVFBcZrd-ehYHyEWc1pSKZTYoE-tV2Kqc=
+17:26:26@401/warn - Profiling: No profile yet for ez7vx7IUJX2rmkj7nOerqCjGTegkaJ4ND~mjNjtshFg=
+17:26:26@401/warn - Profiling: No profile yet for aDTM0lhc9T5prw0aGTP5F3I9YMYhAMSX9P5p~ZaTuCM=
+17:26:26@335/info - NetDb: Saved 33 new/updated routers
+17:26:26@335/info - NetDb: Deleting 11 unreachable routers
+17:26:26@335/warn - Profiling: No profile yet for es-ANw64Qmk385j62mmfcXDLVWZqYf4dx1DAvNXipJM=
+17:26:26@335/info - NetDb: RouterInfo added: es-ANw64Qmk385j62mmfcXDLVWZqYf4dx1DAvNXipJM=
+17:26:26@418/warn - NTCP2: SessionCreated AEAD verification failed 
+17:26:26@341/info - Transports: No compatible addresses available
+17:26:26@335/warn - Profiling: No profile yet for BscAmYHk4prv4gunV~DZ8sB18DBLnQDGoHncH-ZTxVg=
+17:26:26@335/info - NetDb: RouterInfo added: BscAmYHk4prv4gunV~DZ8sB18DBLnQDGoHncH-ZTxVg=
+17:26:27@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:26:27@401/warn - Profiling: No profile yet for hB5UlKRg09B5XyNIqORkDAFmqf4oDpiEHci1CWiZ4yY=
+17:26:27@335/warn - Profiling: No profile yet for erfNpqra5Y6wW0kWpDo-y1pNvlPeBilCQEd2AdSuj4E=
+17:26:27@335/info - NetDb: RouterInfo added: erfNpqra5Y6wW0kWpDo-y1pNvlPeBilCQEd2AdSuj4E=
+17:26:27@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:26:27@335/info - NetDb: RouterInfo updated: aDlgYjEdnUfTIBvhPMsp8cVNj~xoDxcgu00MkfGpeRI=
+17:26:27@335/warn - Profiling: No profile yet for hUupTVKMebfpWAi4bq4ik4nGvB-MQdrtHu5z5HedUVo=
+17:26:27@335/info - NetDb: RouterInfo added: hUupTVKMebfpWAi4bq4ik4nGvB-MQdrtHu5z5HedUVo=
+17:26:27@335/warn - Profiling: No profile yet for hUcSZWbzPYrpvj9APoPUdKXndFsK2P0-PWZky6-qsTE=
+17:26:27@335/info - NetDb: RouterInfo added: hUcSZWbzPYrpvj9APoPUdKXndFsK2P0-PWZky6-qsTE=
+17:26:27@335/warn - Profiling: No profile yet for etewEYV4x5VSBTavHNXiMrA69gQhCIScfeA1S5-xBKo=
+17:26:27@335/info - NetDb: RouterInfo added: etewEYV4x5VSBTavHNXiMrA69gQhCIScfeA1S5-xBKo=
+17:26:27@335/info - NetDb: RouterInfo updated: aDTM0lhc9T5prw0aGTP5F3I9YMYhAMSX9P5p~ZaTuCM=
+17:26:27@335/info - NetDb: RouterInfo updated: etewEYV4x5VSBTavHNXiMrA69gQhCIScfeA1S5-xBKo=
+17:26:28@563/warn - NTCP2: SessionCreated read error: End of file
+17:26:28@341/info - Transports: No compatible addresses available
+17:26:28@335/info - NetDb: RouterInfo updated: hB5UlKRg09B5XyNIqORkDAFmqf4oDpiEHci1CWiZ4yY=
+17:26:28@335/warn - Profiling: No profile yet for hWvWdfOnzVk87-O165StEB~KDZI2VZ~MucYIjHVwT1w=
+17:26:28@335/info - NetDb: RouterInfo added: hWvWdfOnzVk87-O165StEB~KDZI2VZ~MucYIjHVwT1w=
+17:26:28@401/warn - NetDbReq: Bth3fhy7ObxGlP2UR2ECgN6PB6qbi6g4EBae8copBGo= not found after 5 attempts
+17:26:35@710/info - Tunnel: Inbound tunnel 1029097555 has been declined
+17:26:35@860/info - NetDb: RouterInfo updated: Mu-f6tVZUAE7Y2a7Mn54QZ--gp8SeFYsSR6NCp0ZzrQ=
+17:26:36@710/info - Tunnel: Outbound tunnel 675178472 has been declined
+17:26:36@710/info - Tunnel: Outbound tunnel 439101742 has been declined
+17:26:36@860/info - SSU2: Relay intro nonce 3502635466 already exists. Ignore
+17:26:37@860/info - SSU2: Relay intro nonce 3502635466 already exists. Ignore
+17:26:39@860/info - SSU2: Relay intro nonce 3502635466 already exists. Ignore
+17:26:41@796/warn - Profiling: No profile yet for oWtnbJM-z6ZxsCE9VqDwnkXiw4yaJVuIk0vEi2ZKSN0=
+17:26:41@860/info - SSU2: Relay intro nonce 3502635466 already exists. Ignore
+17:26:43@341/warn - Transports: Session to peer fjp5kNum-5pdGMdavcVDZ9srAD5waRWtPLJxnV~Dr2E= has not been created in 15 seconds
+17:26:43@341/warn - Transports: Session to peer es-ANw64Qmk385j62mmfcXDLVWZqYf4dx1DAvNXipJM= has not been created in 15 seconds
+17:26:44@860/info - SSU2: Relay intro nonce 3502635466 already exists. Ignore
+17:26:46@710/info - Tunnel: Inbound tunnel 1556820043 has been declined
+17:26:47@860/info - SSU2: Relay intro nonce 3502635466 already exists. Ignore
+17:26:50@710/info - Tunnel: Inbound tunnel 3387144736 has been declined
+17:26:50@710/info - Tunnel: Inbound tunnel 1987962981 has been declined
+17:26:51@563/info - NTCP2: Not connected in 25 seconds
+17:26:51@563/info - NTCP2: Connect error Операция отменена
+17:26:52@563/info - NTCP2: Not connected in 25 seconds
+17:26:52@563/info - NTCP2: Connect error Операция отменена
+17:26:53@563/info - NTCP2: Not connected in 25 seconds
+17:26:53@341/info - Transports: No compatible addresses available
+17:26:53@563/info - NTCP2: Connect error Операция отменена
+17:26:54@436/warn - Clients: Local destination qlejoclfm7ln7o3sawowatvwxiarqu3q4kgcp27sxqlqtwknee3a.b32.i2p exists
+17:26:55@401/info - NetDbReq: Exploring new 1 routers ...
+17:26:55@401/warn - Profiling: No profile yet for 4x0ThTxIiSsW0mNRdiV6CPsb1u2Z7DpozFJ~fY-16GY=
+17:26:56@796/warn - Profiling: No profile yet for o4T5VQTwHaEaGamh1v~gNYq66fCGvcMT84DhHG0Wv2w=
+17:26:56@401/warn - Profiling: No profile yet for RYBKc4iI44NzWRaDzngAA3VnZckIbxw4EzGEW~U-LKo=
+17:26:56@563/info - NTCP2: Connect error В соединении отказано
+17:26:56@341/info - Transports: No compatible addresses available
+17:26:57@335/info - NetDb: RouterInfo added: 5hF9UzRmM~5gTH8N9uqGFH-C8M~PK~NKvunFD~5B4Gk=
+17:26:57@401/warn - Profiling: No profile yet for UOeYNHRv~GwFHksV~S6euVFJy8oM653io8zEKkV1VhA=
+17:26:58@335/info - NetDb: RouterInfo updated: UOeYNHRv~GwFHksV~S6euVFJy8oM653io8zEKkV1VhA=
+17:26:58@401/warn - Profiling: No profile yet for 4xEawDPzuQi51CYhitQ8YBdkvXShFiF4u3Nusc4mgjE=
+17:26:58@401/warn - Profiling: No profile yet for UebbDQmDdgljMMvwh7odSCagWErTugRe~K7ZRhwwVaM=
+17:26:58@335/info - NetDb: RouterInfo added: 5pQl5Cx4PsnCnxodYAU4qDtivpXop2RCOvt2X8GuDDo=
+17:26:58@563/info - NTCP2: Connect error В соединении отказано
+17:26:58@341/info - Transports: No compatible addresses available
+17:26:58@335/info - NetDb: RouterInfo updated: 4x0ThTxIiSsW0mNRdiV6CPsb1u2Z7DpozFJ~fY-16GY=
+17:26:59@335/info - NetDb: RouterInfo updated: 75IqCqbXP83Avl1xK8w9ZWeqJ9AaZJRkc-zSEdhGCew=
+17:26:59@335/info - NetDb: RouterInfo added: 5tySArkjfHEUPUeHrmL1DItw2yKt52l7Q9EqGTpYHqw=
+17:26:59@335/info - NetDb: RouterInfo added: 5vABBmBJbGnAwdWiAfCrNiTVSMUN4SB6vyqmu2Yeu6s=
+17:26:59@401/warn - Profiling: No profile yet for 4yOF26FGR-lozNs7skVAqq0FUGxDQuhPsRKGomXDd5A=
+17:26:59@335/info - NetDb: RouterInfo updated: 4yOF26FGR-lozNs7skVAqq0FUGxDQuhPsRKGomXDd5A=
+17:27:00@401/warn - Profiling: No profile yet for nsCw2U0GTb20RWdPOMd15017rFvMiyptrlx1QhipZnc=
+17:27:00@563/warn - NTCP2: SessionCreated read error: End of file
+17:27:00@341/info - Transports: No compatible addresses available
+17:27:00@401/warn - Profiling: No profile yet for HwFxvTZ-MrqpIDH6bGp9ZksjdSKj1ejkPelIr~qMFwI=
+17:27:00@335/info - NetDb: RouterInfo added: 5BfxWH~B9jrS0JKhf597cZzu68eyhVlUtThTovC5N94=
+17:27:00@335/warn - Profiling: No profile yet for -ItfSVosjXztCOgilYLBbcEyWziHWvh4Ub-HnGm5tV0=
+17:27:00@335/info - NetDb: RouterInfo added: -ItfSVosjXztCOgilYLBbcEyWziHWvh4Ub-HnGm5tV0=
+17:27:00@710/info - Tunnel: Inbound tunnel 781646630 has been declined
+17:27:00@563/info - NTCP2: Connect error В соединении отказано
+17:27:00@401/warn - Profiling: No profile yet for n0aa0LiGyeSK0c0BC0WcoMr2LE1ILqqnHOWdRduI0n4=
+17:27:00@335/info - NetDb: RouterInfo updated: nsCw2U0GTb20RWdPOMd15017rFvMiyptrlx1QhipZnc=
+17:27:00@401/warn - Profiling: No profile yet for jGagodxYc1~KR4gLogZqnn64mHpQOSxV1jFemSdedUs=
+17:27:00@335/warn - Profiling: No profile yet for 53q7xSFSB0gGeECxg5ZgbkdscJVtsVUI2lZe90dTeUg=
+17:27:00@335/info - NetDb: RouterInfo added: 53q7xSFSB0gGeECxg5ZgbkdscJVtsVUI2lZe90dTeUg=
+17:27:01@401/warn - Profiling: No profile yet for HwTPqEqhwx59pEH-SXq1GxXyhvlqQj0bdRgy5jF-FyI=
+17:27:01@335/info - NetDb: RouterInfo updated: n0aa0LiGyeSK0c0BC0WcoMr2LE1ILqqnHOWdRduI0n4=
+17:27:01@335/warn - Profiling: No profile yet for 51~InIs5nptoLjHYmI-74LkWou2u7M54UpMa0BB~WOA=
+17:27:01@335/info - NetDb: RouterInfo added: 51~InIs5nptoLjHYmI-74LkWou2u7M54UpMa0BB~WOA=
+17:27:01@401/warn - Profiling: No profile yet for BZ-Lr07JM-wPrjjAeATUYK16e0V79bLxKSCpNI5YiSM=
+17:27:01@335/info - NetDb: RouterInfo updated: 53q7xSFSB0gGeECxg5ZgbkdscJVtsVUI2lZe90dTeUg=
+17:27:01@401/warn - NetDbReq: Destination -KlTjvLYV6QkkZnJGGNuu6Z4M9fMaSbxWKaNTLiBxAo= is requested already or cached
+17:27:01@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:01@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:01@335/warn - Profiling: No profile yet for -LjtGlMxio3WH8Q1NQyJhlW42kpoqzKnVA93WxUl2Pk=
+17:27:01@335/info - NetDb: RouterInfo added: -LjtGlMxio3WH8Q1NQyJhlW42kpoqzKnVA93WxUl2Pk=
+17:27:01@401/warn - NetDbReq: Destination eCmrKtBsqGeeP1ZcMeqHzKnP8clv7QfrshbN3LY9oPs= is requested already or cached
+17:27:01@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:01@335/warn - Profiling: No profile yet for eAiImpyASNZQ3OY-d2V40Cse8PjJq6niEbj~WBBlKOs=
+17:27:01@335/info - NetDb: RouterInfo added: eAiImpyASNZQ3OY-d2V40Cse8PjJq6niEbj~WBBlKOs=
+17:27:01@335/warn - Profiling: No profile yet for 52C9sUKjnxD0qPq4P-GkCO5GN2aUUMgmykhvyMa9Iq0=
+17:27:01@335/info - NetDb: RouterInfo added: 52C9sUKjnxD0qPq4P-GkCO5GN2aUUMgmykhvyMa9Iq0=
+17:27:01@401/warn - NetDbReq: Destination eCmrKtBsqGeeP1ZcMeqHzKnP8clv7QfrshbN3LY9oPs= is requested already or cached
+17:27:01@401/warn - NetDbReq: Destination eCND6SB42yUcjcXJqh-m6r-gwfHNHr9TCBdR7DHpFjQ= is requested already or cached
+17:27:01@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:01@335/warn - Profiling: No profile yet for eGP5xjIdl6bP4bebpx-aB6qaraq0hfy1aHqbPYH~kFE=
+17:27:01@335/info - NetDb: RouterInfo added: eGP5xjIdl6bP4bebpx-aB6qaraq0hfy1aHqbPYH~kFE=
+17:27:01@335/info - NetDb: RouterInfo added: 4gvwC8Z0A-~PFHZ5sPZLjd03FKMmHtX4NgYHzQ4OO1Y=
+17:27:01@401/warn - Profiling: No profile yet for M8RpBpzz~TdQWtzE2x5rpUvy3vrncSJTs-5Dp0jQd6c=
+17:27:02@335/info - NetDb: RouterInfo updated: jGagodxYc1~KR4gLogZqnn64mHpQOSxV1jFemSdedUs=
+17:27:02@335/info - NetDb: RouterInfo updated: SqKjaYsFR7Qexuh4p3inviQj8Yih4SPEFOmM5Qdl9L4=
+17:27:02@335/warn - Profiling: No profile yet for F2hCOT-ok4XgOaebpAaprtm9n8oZMExtF8~vezXf0w0=
+17:27:02@335/info - NetDb: RouterInfo added: F2hCOT-ok4XgOaebpAaprtm9n8oZMExtF8~vezXf0w0=
+17:27:02@335/warn - Profiling: No profile yet for F1nY-fG11THsAR5PRl9~bGuHAD6Jhjib8Kb5Uw~rZds=
+17:27:02@335/info - NetDb: RouterInfo added: F1nY-fG11THsAR5PRl9~bGuHAD6Jhjib8Kb5Uw~rZds=
+17:27:02@335/info - NetDb: RouterInfo added: 5GbQqRE1OSh1VsFqcvbSYrKZtFh6aTZTTjl7AnmgZo8=
+17:27:02@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:02@335/info - NetDb: RouterInfo updated: 51~InIs5nptoLjHYmI-74LkWou2u7M54UpMa0BB~WOA=
+17:27:02@401/warn - Profiling: No profile yet for S5Vb6Bo-q0U~rwh6wPeJ9oJVPQ1Ms7YaPyorKxMsGa8=
+17:27:02@401/warn - Profiling: No profile yet for H-0kHABpMPQtFcYfiSmfXfLVPgZw95Xw4E3bs2~SiUs=
+17:27:02@335/warn - Profiling: No profile yet for cnLvGit3PtTbot13ntsbK~7eaZeV3w5ur2K5pa11fZs=
+17:27:02@335/info - NetDb: RouterInfo added: cnLvGit3PtTbot13ntsbK~7eaZeV3w5ur2K5pa11fZs=
+17:27:02@335/info - NetDb: RouterInfo updated: eAiImpyASNZQ3OY-d2V40Cse8PjJq6niEbj~WBBlKOs=
+17:27:02@335/warn - Profiling: No profile yet for -KlTjvLYV6QkkZnJGGNuu6Z4M9fMaSbxWKaNTLiBxAo=
+17:27:02@335/info - NetDb: RouterInfo added: -KlTjvLYV6QkkZnJGGNuu6Z4M9fMaSbxWKaNTLiBxAo=
+17:27:02@401/warn - Profiling: No profile yet for Gn51ws5t9DylXp1RBzNsX5N32ijVHX4A~pmF~If1FNQ=
+17:27:02@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:02@401/warn - Profiling: No profile yet for Ux8-KduIs5naPdUqpqpRDWYg0pCVaBxwA~Pqp~3E7-U=
+17:27:02@563/info - NTCP2: Connect error В соединении отказано
+17:27:02@335/info - NetDb: RouterInfo updated: jEA1VEzNzZzhbjS731Q8k-VNhynik4NJs-ouEn38BSE=
+17:27:02@335/warn - Profiling: No profile yet for -Ke4SusoXMXKHk9QanAI9nfs5pDc2FO5rGlu7GGF95U=
+17:27:02@335/info - NetDb: RouterInfo added: -Ke4SusoXMXKHk9QanAI9nfs5pDc2FO5rGlu7GGF95U=
+17:27:02@335/warn - Profiling: No profile yet for F2MMtwJ0bQw4HSDrqw6oqB16hn-r7w8r3g0F7pMDHbs=
+17:27:02@335/info - NetDb: RouterInfo added: F2MMtwJ0bQw4HSDrqw6oqB16hn-r7w8r3g0F7pMDHbs=
+17:27:02@335/warn - Profiling: No profile yet for F09ew-Qk9o3PhEP9RADaaYwx-CXKSx-xoHStn4OY68k=
+17:27:02@335/info - NetDb: RouterInfo added: F09ew-Qk9o3PhEP9RADaaYwx-CXKSx-xoHStn4OY68k=
+17:27:02@335/info - NetDb: RouterInfo updated: H-0kHABpMPQtFcYfiSmfXfLVPgZw95Xw4E3bs2~SiUs=
+17:27:02@335/info - NetDb: RouterInfo updated: z-5zCqo4SQCmfve7Ebw21ftLx0WRe5Oyz~eDOs7SkhU=
+17:27:02@335/info - NetDb: RouterInfo updated: q~rKtE6IDeUu1lZUw5-AhaBkV-9gQuwT41vvINxy3Vw=
+17:27:02@335/warn - Profiling: No profile yet for -L~Ca5bHto792kD3GRQZiaqCuvRvHQBk4iNBPHKelWc=
+17:27:02@335/info - NetDb: RouterInfo added: -L~Ca5bHto792kD3GRQZiaqCuvRvHQBk4iNBPHKelWc=
+17:27:03@335/info - NetDb: RouterInfo updated: NAiS6xCn5tHjHzbhSxfsBOofP5feKZUyGFjJ3QnDi5w=
+17:27:03@341/info - Transports: RouterInfo for sDlEP~-l4udU-ABWsaUMIgyaT9ZBZycUFw8m2hGf390= not found, requested
+17:27:03@335/info - NetDb: RouterInfo added: 5E7bKcZF1YuPZAQf5L1opyQO7dJY2o1FKPek6-Rv4CE=
+17:27:03@335/warn - Profiling: No profile yet for clvqra2-W4i8VxPwrpHijGtgnWiXlhYHw66rkrNRLR4=
+17:27:03@335/info - NetDb: RouterInfo added: clvqra2-W4i8VxPwrpHijGtgnWiXlhYHw66rkrNRLR4=
+17:27:03@335/warn - Profiling: No profile yet for G8XHh3oQxhH0EOpGPumR~l9IK~apAJKhQZQ3hgphoxY=
+17:27:03@335/info - NetDb: RouterInfo added: G8XHh3oQxhH0EOpGPumR~l9IK~apAJKhQZQ3hgphoxY=
+17:27:03@335/warn - Profiling: No profile yet for jWUKbgNTWYy9ub2r5FGU1ukq0p-Aor3rezbWVtvX0gA=
+17:27:03@335/info - NetDb: RouterInfo added: jWUKbgNTWYy9ub2r5FGU1ukq0p-Aor3rezbWVtvX0gA=
+17:27:03@335/info - NetDb: RouterInfo updated: 5E7bKcZF1YuPZAQf5L1opyQO7dJY2o1FKPek6-Rv4CE=
+17:27:03@335/warn - Profiling: No profile yet for jV5NtZ4UlDolNGK87RhS6EmQyPuv~OXtQbz04Rpunk0=
+17:27:03@335/info - NetDb: RouterInfo added: jV5NtZ4UlDolNGK87RhS6EmQyPuv~OXtQbz04Rpunk0=
+17:27:03@335/warn - Profiling: No profile yet for ckEdhdHi~EfWQXmJe0QCf-bchHIGad-JrcQ5e1wmqpk=
+17:27:03@335/info - NetDb: RouterInfo added: ckEdhdHi~EfWQXmJe0QCf-bchHIGad-JrcQ5e1wmqpk=
+17:27:03@335/info - NetDb: RouterInfo updated: Gn51ws5t9DylXp1RBzNsX5N32ijVHX4A~pmF~If1FNQ=
+17:27:03@335/warn - Profiling: No profile yet for G9Nm9caGu5oV8OrMRhonSRZ35AVg6BpVUlD7hSIIoak=
+17:27:03@335/info - NetDb: RouterInfo added: G9Nm9caGu5oV8OrMRhonSRZ35AVg6BpVUlD7hSIIoak=
+17:27:03@563/info - NTCP2: Connect error Нет маршрута до узла
+17:27:03@341/info - Transports: No compatible addresses available
+17:27:03@335/info - NetDb: RouterInfo added: sDlEP~-l4udU-ABWsaUMIgyaT9ZBZycUFw8m2hGf390=
+17:27:03@341/warn - Profiling: No profile yet for sDlEP~-l4udU-ABWsaUMIgyaT9ZBZycUFw8m2hGf390=
+17:27:03@335/info - NetDb: RouterInfo updated: z8Rdy8cHu5gDc0NIsrH3me5sJ~oxaYExGwlSeOAOb0s=
+17:27:03@335/info - NetDb: RouterInfo updated: jWUKbgNTWYy9ub2r5FGU1ukq0p-Aor3rezbWVtvX0gA=
+17:27:03@401/warn - Profiling: No profile yet for vC-wvUN-KkUIInbd51nqM67WHNqymGsHl5u3trUrF~E=
+17:27:03@335/info - NetDb: RouterInfo added: 4n90pmiMDnnjC0aI1IzKjpkoWlObbx1fcV3a-LUd7~o=
+17:27:03@335/warn - Profiling: No profile yet for ds0ncseieGVRnyqBuIcUcuZ2BmE07rX-Q0T60WxBrjM=
+17:27:03@335/info - NetDb: RouterInfo added: ds0ncseieGVRnyqBuIcUcuZ2BmE07rX-Q0T60WxBrjM=
+17:27:03@335/info - NetDb: RouterInfo added: 4SsHuijDIP3UfWFPVi8NnrORg1MjWWUTV9kobwb7Vv4=
+17:27:03@401/warn - Profiling: No profile yet for UxcsDlDOVfRmyZ5tDYvbMH6d5sFcZ7yXyoPhFdP2Jys=
+17:27:03@401/warn - NetDbReq: eCND6SB42yUcjcXJqh-m6r-gwfHNHr9TCBdR7DHpFjQ= not found after 5 attempts
+17:27:04@335/info - NetDb: RouterInfo updated: G9Nm9caGu5oV8OrMRhonSRZ35AVg6BpVUlD7hSIIoak=
+17:27:04@335/info - NetDb: RouterInfo added: 4siJIWTiA1HOXaAKqNVAaRtI2bhCzgAgHud3j-vhBCs=
+17:27:04@335/warn - Profiling: No profile yet for G8UB2Zu2ek6hgyN-ivuievk3oAXuN2EBHZf5xDRFbgs=
+17:27:04@335/info - NetDb: RouterInfo added: G8UB2Zu2ek6hgyN-ivuievk3oAXuN2EBHZf5xDRFbgs=
+17:27:04@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:04@335/warn - Profiling: No profile yet for eCND6SB42yUcjcXJqh-m6r-gwfHNHr9TCBdR7DHpFjQ=
+17:27:04@335/info - NetDb: RouterInfo added: eCND6SB42yUcjcXJqh-m6r-gwfHNHr9TCBdR7DHpFjQ=
+17:27:04@335/info - NetDb: RouterInfo updated: UxcsDlDOVfRmyZ5tDYvbMH6d5sFcZ7yXyoPhFdP2Jys=
+17:27:04@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:04@335/warn - Profiling: No profile yet for G~A-vcZNyXOp5aCHdKrQ7yAHNivyCoITJGtZcl5w5EM=
+17:27:04@335/info - NetDb: RouterInfo added: G~A-vcZNyXOp5aCHdKrQ7yAHNivyCoITJGtZcl5w5EM=
+17:27:04@401/warn - NetDbReq: eDAFYRbRB5ocOdNEjNCTzkYoIofYpqpVMog17shoV3A= not found after 5 attempts
+17:27:04@401/warn - Profiling: No profile yet for BxhAh36Jq573dWPPgPHlHoBYccTGGhHonObqzO2cTZ8=
+17:27:04@335/info - NetDb: RouterInfo updated: ckEdhdHi~EfWQXmJe0QCf-bchHIGad-JrcQ5e1wmqpk=
+17:27:04@335/warn - Profiling: No profile yet for G8OS7iIg9fUe0GlyqD4pVE9hsZj4iLXODMdyK1xiDP0=
+17:27:04@335/info - NetDb: RouterInfo added: G8OS7iIg9fUe0GlyqD4pVE9hsZj4iLXODMdyK1xiDP0=
+17:27:04@335/warn - Profiling: No profile yet for eCmrKtBsqGeeP1ZcMeqHzKnP8clv7QfrshbN3LY9oPs=
+17:27:04@335/info - NetDb: RouterInfo added: eCmrKtBsqGeeP1ZcMeqHzKnP8clv7QfrshbN3LY9oPs=
+17:27:04@335/info - NetDb: RouterInfo updated: 83UWVgiJXW5-ShsF21n8vrtrBRz-GwKI4O124-H2kZ0=
+17:27:05@335/info - NetDb: RouterInfo updated: clvqra2-W4i8VxPwrpHijGtgnWiXlhYHw66rkrNRLR4=
+17:27:05@335/info - NetDb: RouterInfo updated: uZNNbgCCEjvdb88aNp7wxv48X9g9s-h6Pj7NPTPgsrQ=
+17:27:05@401/warn - NetDbReq: jVDCLDcZwhTNRLBvZG~EGvj72MfLlIBesLdFcz9Ail0= not found after 5 attempts
+17:27:05@401/warn - Profiling: No profile yet for iL4HudGOs7kOqWQ81aazxgW10dDW1ocHAU3xHl6P~Ow=
+17:27:05@401/info - NetDbReq: Unsolicited or late database search reply for jVDCLDcZwhTNRLBvZG~EGvj72MfLlIBesLdFcz9Ail0=
+17:27:05@335/warn - Profiling: No profile yet for dsUGxFImCukw8rZrd4v~5HsUdWk7AVkljtfjiVPbA6A=
+17:27:05@335/info - NetDb: RouterInfo added: dsUGxFImCukw8rZrd4v~5HsUdWk7AVkljtfjiVPbA6A=
+17:27:05@401/warn - Profiling: No profile yet for RQgmFUmoDE45qveuQ5HeI8HdfYuewtzFM4J5R~pl5aY=
+17:27:05@335/info - NetDb: RouterInfo updated: OKcvylmujpOKcJyiIsDWZbbCzft3PKMJvM1AzbYhju0=
+17:27:05@401/info - NetDbReq: Unsolicited or late database search reply for G8OS7iIg9fUe0GlyqD4pVE9hsZj4iLXODMdyK1xiDP0=
+17:27:05@710/info - Tunnel: Inbound tunnel 2768841589 has been declined
+17:27:05@710/info - Tunnel: Inbound tunnel 3038620450 has been declined
+17:27:05@860/warn - SSU2: Session with 76.87.191.194:25197 was not established after 5 seconds
+17:27:05@341/info - Transports: No compatible addresses available
+17:27:05@401/warn - Profiling: No profile yet for 1KerhG8lKdLnEU8dyBDILlFVqq7kUw7wtF8VWBIeds0=
+17:27:05@860/info - SSU2: Relay intro nonce 3407135056 already exists. Ignore
+17:27:06@335/info - NetDb: RouterInfo updated: RQgmFUmoDE45qveuQ5HeI8HdfYuewtzFM4J5R~pl5aY=
+17:27:06@335/info - NetDb: RouterInfo added: 4KG6-O7gq4jiZiQwZQWh7IwdWnVtW0opn70xLmyPHvg=
+17:27:06@401/warn - Profiling: No profile yet for iLWgqvry-e5TCbH~C2fbITc1WZUzRf~4z5Vkdzb57lw=
+17:27:06@563/info - NTCP2: Connect error В соединении отказано
+17:27:06@341/info - Transports: No compatible addresses available
+17:27:06@335/warn - Profiling: No profile yet for QN6gy-BnonZTDcFhw3PDHMMA6yumRtK5XCyz6DUkP7k=
+17:27:06@335/info - NetDb: RouterInfo added: QN6gy-BnonZTDcFhw3PDHMMA6yumRtK5XCyz6DUkP7k=
+17:27:06@335/warn - Profiling: No profile yet for du1eLE-HUvTyZwpNz8zJhI30UI1kICFOtSKq1rbLYSg=
+17:27:06@335/info - NetDb: RouterInfo added: du1eLE-HUvTyZwpNz8zJhI30UI1kICFOtSKq1rbLYSg=
+17:27:07@860/info - SSU2: Relay intro nonce 3407135056 already exists. Ignore
+17:27:07@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:07@335/info - NetDb: RouterInfo updated: ObnDQ7wNTGdDGtuxsGtFr3XF9rkstBk1K~SRRJligXY=
+17:27:07@335/warn - Profiling: No profile yet for 1NgT9N~ySC~UTWnqha1AbH5orhKgKKZIxjFY6L9Ln-Q=
+17:27:07@335/info - NetDb: RouterInfo added: 1NgT9N~ySC~UTWnqha1AbH5orhKgKKZIxjFY6L9Ln-Q=
+17:27:07@335/warn - Profiling: No profile yet for 1MArYctKi~X2w0z7IOp9o9ik2mNl9seHWErEWzdJtI4=
+17:27:07@335/info - NetDb: RouterInfo added: 1MArYctKi~X2w0z7IOp9o9ik2mNl9seHWErEWzdJtI4=
+17:27:07@335/warn - Profiling: No profile yet for 1NrG5~xCKX09e~aZwV1xctAIiSsiKa7MqUkoJm1bVoM=
+17:27:07@335/info - NetDb: RouterInfo added: 1NrG5~xCKX09e~aZwV1xctAIiSsiKa7MqUkoJm1bVoM=
+17:27:07@860/warn - SSU2: Session with 172.113.236.152:25634 was not established after 5 seconds
+17:27:07@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:07@335/info - NetDb: RouterInfo added: 7Q1PCKuh5Bet1FDcleVBZVWj8LDnbWRsg~U1ct7tUmQ=
+17:27:07@335/warn - Profiling: No profile yet for jVDCLDcZwhTNRLBvZG~EGvj72MfLlIBesLdFcz9Ail0=
+17:27:07@335/info - NetDb: RouterInfo added: jVDCLDcZwhTNRLBvZG~EGvj72MfLlIBesLdFcz9Ail0=
+17:27:07@335/info - NetDb: RouterInfo updated: 1KerhG8lKdLnEU8dyBDILlFVqq7kUw7wtF8VWBIeds0=
+17:27:07@401/warn - Profiling: No profile yet for ikz6GXfb1iGIA0IfCDP3Cmj03I-Z1Non1Ra9~wPeVzc=
+17:27:07@335/warn - Profiling: No profile yet for QMk8vIzOWQT40oVc5HQ0Wh~FLriX4K8lVr~Kx5bKfWk=
+17:27:07@335/info - NetDb: RouterInfo added: QMk8vIzOWQT40oVc5HQ0Wh~FLriX4K8lVr~Kx5bKfWk=
+17:27:07@860/warn - SSU2: Session with 68.111.152.133:18293 was not established after 5 seconds
+17:27:07@341/info - Transports: No compatible addresses available
+17:27:07@335/info - NetDb: RouterInfo updated: QN6gy-BnonZTDcFhw3PDHMMA6yumRtK5XCyz6DUkP7k=
+17:27:07@563/warn - NTCP2: SessionCreated read error: Соединение разорвано другой стороной
+17:27:07@341/info - Transports: No compatible addresses available
+17:27:07@401/warn - Profiling: No profile yet for ZwF44bsQ3B846PUINuXqI-W1wnOv4c9yxiNuGQJMyaE=
+17:27:07@401/warn - NetDbReq: Destination 1NdrQGl8TXzHB83XWMvsF2Z-dF2kgx8y68DvOPO8L3Q= is requested already or cached
+17:27:07@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:07@401/warn - NetDbReq: 4UQmUEuvFf0CYq9moFwTUnTWlDsIDke2xHd3yGBMQoo= not found after 5 attempts
+17:27:07@401/warn - NetDbReq: Destination QdtFfN8mFlP0EaERt9AJHSI4JJaZZSOd9vfuz6XupHc= is requested already or cached
+17:27:07@401/warn - NetDbReq: Destination QcoAnR9FbiQ7zr2rzRNd7eglR6-QxlHpLXz4DYNTFfM= is requested already or cached
+17:27:07@335/warn - Profiling: No profile yet for QO1FkekHhN0yBwwYFmRbMvVEl6ICIfoS-hZsiB0t4WA=
+17:27:07@335/info - NetDb: RouterInfo added: QO1FkekHhN0yBwwYFmRbMvVEl6ICIfoS-hZsiB0t4WA=
+17:27:07@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:08@335/info - NetDb: RouterInfo updated: r3J0ju5ayCL74JqV-Vchm70Y9LEkmMqd5HA3lZ8tGn0=
+17:27:08@335/warn - Profiling: No profile yet for l7AibhKFXb3~N4dpZF6r93i2uBa95CQTm9k-PMPXsOU=
+17:27:08@335/info - NetDb: RouterInfo added: l7AibhKFXb3~N4dpZF6r93i2uBa95CQTm9k-PMPXsOU=
+17:27:08@335/info - NetDb: RouterInfo updated: 1NrG5~xCKX09e~aZwV1xctAIiSsiKa7MqUkoJm1bVoM=
+17:27:08@335/info - NetDb: RouterInfo updated: 1MArYctKi~X2w0z7IOp9o9ik2mNl9seHWErEWzdJtI4=
+17:27:08@335/info - NetDb: RouterInfo updated: MGWGnf6Jv-xs9-Jev5FFTZ~eU4J9gAHsfey93GGiog4=
+17:27:08@335/warn - Profiling: No profile yet for QdtFfN8mFlP0EaERt9AJHSI4JJaZZSOd9vfuz6XupHc=
+17:27:08@335/info - NetDb: RouterInfo added: QdtFfN8mFlP0EaERt9AJHSI4JJaZZSOd9vfuz6XupHc=
+17:27:08@335/info - NetDb: RouterInfo added: 7zix3YqBvwAIB6Ul8H5I4L72Upv8iLbFPOEKdyIfV2o=
+17:27:08@335/info - NetDb: RouterInfo updated: QMk8vIzOWQT40oVc5HQ0Wh~FLriX4K8lVr~Kx5bKfWk=
+17:27:08@335/info - NetDb: RouterInfo updated: ikz6GXfb1iGIA0IfCDP3Cmj03I-Z1Non1Ra9~wPeVzc=
+17:27:08@335/warn - Profiling: No profile yet for l-IF-29MuGNjQhrp~amZcjG5k8z1axqrNVEP52ZUusY=
+17:27:08@335/info - NetDb: RouterInfo added: l-IF-29MuGNjQhrp~amZcjG5k8z1axqrNVEP52ZUusY=
+17:27:08@335/info - NetDb: RouterInfo added: 4UQmUEuvFf0CYq9moFwTUnTWlDsIDke2xHd3yGBMQoo=
+17:27:08@335/warn - Profiling: No profile yet for l7PhrHfogV6WKyyU~K-QSmaAUY0AOE45CCBeLWa6I-c=
+17:27:08@335/info - NetDb: RouterInfo added: l7PhrHfogV6WKyyU~K-QSmaAUY0AOE45CCBeLWa6I-c=
+17:27:08@860/info - SSU2: Relay intro nonce 3407135056 already exists. Ignore
+17:27:08@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:08@335/warn - Profiling: No profile yet for QeFtyT78WbPcCpxf~Kz7E-DXJIPJJBttEdRfYAxZpYE=
+17:27:08@335/info - NetDb: RouterInfo added: QeFtyT78WbPcCpxf~Kz7E-DXJIPJJBttEdRfYAxZpYE=
+17:27:09@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:09@401/warn - NetDbReq: Destination wjtyC83AydJ8E7C6H7c7DgsHlr5de881eJcmRKpxgeU= is requested already or cached
+17:27:09@401/warn - NetDbReq: Destination wj5rVT51Syr~03tmCsMKD9IlMe~IcLzN1etjWZhoxgo= is requested already or cached
+17:27:09@401/warn - NetDbReq: Destination wiM-igyLm-686tFgJEmWS9WXi~bjNCuf2OWll~i96g0= is requested already or cached
+17:27:09@335/warn - Profiling: No profile yet for wiM-igyLm-686tFgJEmWS9WXi~bjNCuf2OWll~i96g0=
+17:27:09@335/info - NetDb: RouterInfo added: wiM-igyLm-686tFgJEmWS9WXi~bjNCuf2OWll~i96g0=
+17:27:09@335/info - NetDb: RouterInfo added: 7cmOgZy3DIogL2TK24e72benrB5fr3r9iuYdxYvM9z8=
+17:27:09@335/warn - Profiling: No profile yet for QcoAnR9FbiQ7zr2rzRNd7eglR6-QxlHpLXz4DYNTFfM=
+17:27:09@335/info - NetDb: RouterInfo added: QcoAnR9FbiQ7zr2rzRNd7eglR6-QxlHpLXz4DYNTFfM=
+17:27:09@335/warn - Profiling: No profile yet for cgLlNifFC0EVAY9H1~hHKwv5c8XEmflbdvDu4WKWJL0=
+17:27:09@335/info - NetDb: RouterInfo added: cgLlNifFC0EVAY9H1~hHKwv5c8XEmflbdvDu4WKWJL0=
+17:27:10@401/warn - Profiling: No profile yet for Bxs~oNLyPEnyioSstVJgzWvxpxmTP1VAFixwwkMJlHQ=
+17:27:10@335/warn - Profiling: No profile yet for Zxmu6XFVx81IFEFCKMhEyMydFgLfGNa2gZ5i-1GQ3NE=
+17:27:10@335/info - NetDb: RouterInfo added: Zxmu6XFVx81IFEFCKMhEyMydFgLfGNa2gZ5i-1GQ3NE=
+17:27:10@335/warn - Profiling: No profile yet for 1NdrQGl8TXzHB83XWMvsF2Z-dF2kgx8y68DvOPO8L3Q=
+17:27:10@335/info - NetDb: RouterInfo added: 1NdrQGl8TXzHB83XWMvsF2Z-dF2kgx8y68DvOPO8L3Q=
+17:27:10@335/warn - Profiling: No profile yet for wj5rVT51Syr~03tmCsMKD9IlMe~IcLzN1etjWZhoxgo=
+17:27:10@335/info - NetDb: RouterInfo added: wj5rVT51Syr~03tmCsMKD9IlMe~IcLzN1etjWZhoxgo=
+17:27:10@335/warn - Profiling: No profile yet for Z0YqgsNQRdNzw04MjLLsj3mvaEnYZQ6A23zkOa-PigE=
+17:27:10@335/info - NetDb: RouterInfo added: Z0YqgsNQRdNzw04MjLLsj3mvaEnYZQ6A23zkOa-PigE=
+17:27:10@860/info - SSU2: Relay intro nonce 3407135056 already exists. Ignore
+17:27:11@401/warn - NetDbReq: QbjSYO9Y4zGwcUW9lLvEZL~2eRLsGcowwbebJ10s3Eg= not found after 5 attempts
+17:27:11@335/warn - Profiling: No profile yet for Z2OaTPYzfTuuQ03C23wGK0lNe2-W45IgszhHyOwl0OA=
+17:27:11@335/info - NetDb: RouterInfo added: Z2OaTPYzfTuuQ03C23wGK0lNe2-W45IgszhHyOwl0OA=
+17:27:12@335/warn - Profiling: No profile yet for QbjSYO9Y4zGwcUW9lLvEZL~2eRLsGcowwbebJ10s3Eg=
+17:27:12@335/info - NetDb: RouterInfo added: QbjSYO9Y4zGwcUW9lLvEZL~2eRLsGcowwbebJ10s3Eg=
+17:27:12@860/warn - SSU2: Session with 35.140.122.70:30243 was not established after 5 seconds
+17:27:12@335/warn - Profiling: No profile yet for wjtyC83AydJ8E7C6H7c7DgsHlr5de881eJcmRKpxgeU=
+17:27:12@335/info - NetDb: RouterInfo added: wjtyC83AydJ8E7C6H7c7DgsHlr5de881eJcmRKpxgeU=
+17:27:13@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:13@860/info - SSU2: Relay intro nonce 3407135056 already exists. Ignore
+17:27:13@860/warn - SSU2: Session with 91.169.107.216:16482 was not established after 5 seconds
+17:27:13@860/warn - SSU2: Session with 108.29.51.81:21168 was not established after 5 seconds
+17:27:15@860/warn - SSU2: Session with 47.154.169.134:13117 was not established after 5 seconds
+17:27:16@860/warn - SSU2: Unexpected message type 172 from 108.29.51.81:21168 of 92 bytes
+17:27:16@860/info - SSU2: Relay intro nonce 3407135056 already exists. Ignore
+17:27:17@335/info - NetDb: RouterInfo updated: 4n90pmiMDnnjC0aI1IzKjpkoWlObbx1fcV3a-LUd7~o=
+17:27:17@860/warn - SSU2: Unexpected message type 185 instead 9
+17:27:18@563/warn - NTCP2: Receive length read error: End of file
+17:27:18@860/warn - SSU2: Unexpected message type 12 from 172.113.236.152:25634 of 92 bytes
+17:27:18@860/warn - SSU2: Unexpected message type 13 from 91.169.107.216:16482 of 131 bytes
+17:27:19@335/warn - Profiling: No profile yet for eDAFYRbRB5ocOdNEjNCTzkYoIofYpqpVMog17shoV3A=
+17:27:19@335/info - NetDb: RouterInfo added: eDAFYRbRB5ocOdNEjNCTzkYoIofYpqpVMog17shoV3A=
+17:27:21@335/info - NetDb: RouterInfo updated: -KlTjvLYV6QkkZnJGGNuu6Z4M9fMaSbxWKaNTLiBxAo=
+17:27:21@710/info - Tunnel: Inbound tunnel 2650316988 has been declined
+17:27:21@335/info - NetDb: RouterInfo updated: -LjtGlMxio3WH8Q1NQyJhlW42kpoqzKnVA93WxUl2Pk=
+17:27:21@860/warn - SSU2: Unexpected message type 185 instead 9
+17:27:21@860/info - SSU2: Packet was not Acked after 6 attempts. Terminate session
+17:27:23@563/info - NTCP2: Not connected in 25 seconds
+17:27:23@563/info - NTCP2: Connect error Операция отменена
+17:27:23@341/info - Transports: No compatible addresses available
+17:27:25@563/info - NTCP2: Not connected in 25 seconds
+17:27:25@563/info - NTCP2: Connect error Операция отменена
+17:27:25@341/info - Transports: No compatible addresses available
+17:27:26@563/info - NTCP2: Not connected in 25 seconds
+17:27:26@563/info - NTCP2: Connect error Операция отменена
+17:27:26@341/info - Transports: No compatible addresses available
+17:27:26@563/info - NTCP2: Not connected in 25 seconds
+17:27:26@563/info - NTCP2: Connect error Операция отменена
+17:27:26@335/info - NetDb: Saved 105 new/updated routers
+17:27:26@335/info - NetDb: Deleting 11 unreachable routers
+17:27:26@563/info - NTCP2: Not connected in 25 seconds
+17:27:26@341/info - Transports: No compatible addresses available
+17:27:26@563/info - NTCP2: Connect error Операция отменена
+17:27:27@563/info - NTCP2: Not connected in 25 seconds
+17:27:27@563/info - NTCP2: Connect error Операция отменена
+17:27:27@341/info - Transports: No compatible addresses available
+17:27:27@563/info - NTCP2: Not connected in 25 seconds
+17:27:27@563/info - NTCP2: Connect error Операция отменена
+17:27:27@563/info - NTCP2: Not connected in 25 seconds
+17:27:27@341/info - Transports: No compatible addresses available
+17:27:27@563/info - NTCP2: Connect error Операция отменена
+17:27:27@341/info - Transports: No compatible addresses available
+17:27:27@341/warn - Transports: Session to peer y3fDU4A6yxJ0nJ5LMJdVKROKvuXioN-WqzJrtN3stt4= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer -Ke4SusoXMXKHk9QanAI9nfs5pDc2FO5rGlu7GGF95U= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer Bxs~oNLyPEnyioSstVJgzWvxpxmTP1VAFixwwkMJlHQ= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer ZwF44bsQ3B846PUINuXqI-W1wnOv4c9yxiNuGQJMyaE= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer o0wiQFv8Z5FES3-iXzofDR4Ta4XeZhNrOuc8sEdLP9o= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer lqYuzxwJ5sHKxQl30gHbYVe4feVu9hKXMOtQmbvAZ20= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer BxhAh36Jq573dWPPgPHlHoBYccTGGhHonObqzO2cTZ8= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer QRbIdWrPvAp58Qf~asFdm1s-oz9NDmwimu61pndVpNY= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer UxAz5ep5Kn1qULHJUejbOZ~vPnnNKimL2gNSnCa8u4Q= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer wxMngpi6Nrne1wgbFoKumDyYCtsy5ouPdymBE9wWPX0= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer 65RR8He~KnTdyxTLvRtR36OX~mBXcWrVMTm8uJ9m9oU= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer SrMJ4wYj~zJVATFZ~qLtP5qGrfyCSSWE0kut4Nw1VU0= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer iL4HudGOs7kOqWQ81aazxgW10dDW1ocHAU3xHl6P~Ow= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer CyjV6Moz-hG7wYlqnTH3vGyV8QmRkH3Fb6LXB-V42~I= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer ZqWVwtqxAepL7OLv8bJA6K37iCZlBXgczU~TdLrph8Q= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer cnLvGit3PtTbot13ntsbK~7eaZeV3w5ur2K5pa11fZs= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer vC-wvUN-KkUIInbd51nqM67WHNqymGsHl5u3trUrF~E= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer QS0T-fPa7Y5JuZSk8jstUQ6SPaSbNceXDbM7sU8Y3eY= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer Btd6E9swa2cVFBcZrd-ehYHyEWc1pSKZTYoE-tV2Kqc= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer 4adweGA6UQtea0UXCWE1fZbJABE9YE99Xu2SvLLayGE= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer Ux8-KduIs5naPdUqpqpRDWYg0pCVaBxwA~Pqp~3E7-U= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer ozXJonTfb1yLlQ-n9NAa-g~TYcEq3m~jA8u8PpqVQYQ= has not been created in 15 seconds
+17:27:27@341/warn - Transports: Session to peer ZvZdJkcFNxOot8llRQ4LBMPlMUYB3ukoe0FeKJzpVLA= has not been created in 15 seconds
+17:27:27@563/info - NTCP2: Not connected in 25 seconds
+17:27:27@563/info - NTCP2: Connect error Операция отменена
+17:27:27@860/warn - SSU2: Unexpected message type 242 from 172.75.27.175:24141 of 64 bytes
+17:27:27@563/info - NTCP2: Not connected in 25 seconds
+17:27:27@563/info - NTCP2: Connect error Операция отменена
+17:27:28@563/info - NTCP2: Not connected in 25 seconds
+17:27:28@563/info - NTCP2: Connect error Операция отменена
+17:27:28@563/info - NTCP2: Not connected in 25 seconds
+17:27:28@563/info - NTCP2: Connect error Операция отменена
+17:27:28@563/warn - NTCP2: SessionCreated read error: End of file
+17:27:29@563/info - NTCP2: Not connected in 25 seconds
+17:27:29@563/info - NTCP2: Connect error Операция отменена
+17:27:29@563/warn - NTCP2: SessionCreated read error: End of file
+17:27:30@860/info - SSU2: Packet was not Acked after 6 attempts. Terminate session
+17:27:30@563/info - NTCP2: Not connected in 25 seconds
+17:27:30@563/info - NTCP2: Connect error Операция отменена
+17:27:30@710/info - Tunnel: Inbound tunnel 1785052361 has been declined
+17:27:30@563/warn - NTCP2: SessionCreated read error: End of file
+17:27:31@860/warn - SSU2: Session with 47.148.208.194:13247 was not established after 5 seconds
+17:27:32@563/info - NTCP2: Not connected in 25 seconds
+17:27:32@563/info - NTCP2: Connect error Операция отменена
+17:27:32@563/info - NTCP2: Not connected in 25 seconds
+17:27:32@563/info - NTCP2: Connect error Операция отменена
+17:27:33@563/info - NTCP2: Not connected in 25 seconds
+17:27:33@563/info - NTCP2: Connect error Операция отменена
+17:27:33@563/info - NTCP2: Not connected in 25 seconds
+17:27:33@563/info - NTCP2: Connect error Операция отменена
+17:27:34@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:34@401/info - NetDbReq: Exploring new 1 routers ...
+17:27:37@341/info - Transports: RouterInfo for gQhFHmKHo1BXUeF86l0EtOatBQALQ~uFhz3lQo6RGeI= not found, requested
+17:27:38@335/info - NetDb: RouterInfo updated: qEq12ReocoxP4xDxgiU4GkgchFYQLGvpBPvnwywZHRo=
+17:27:38@401/warn - Profiling: No profile yet for uwxKsmDeGR9KRjnXANmOnWUA9EgX3461G9GrlF-pe-0=
+17:27:38@563/info - NTCP2: Not connected in 25 seconds
+17:27:38@563/info - NTCP2: Connect error Операция отменена
+17:27:38@563/info - NTCP2: Connect error В соединении отказано
+17:27:38@563/warn - NTCP2: SessionCreated read error: End of file
+17:27:38@341/info - Transports: No compatible addresses available
+17:27:38@341/info - Transports: No compatible addresses available
+17:27:38@401/warn - Profiling: No profile yet for uwS6lnfq0PsV9EVPWOn0YiwCN71RIpOQjEY4J7S7v1E=
+17:27:38@401/warn - NetDbReq: Destination qfom4vWcqzfpooNGpK2o7bCwpir~ld9nYDMdwbYQMwA= is requested already or cached
+17:27:38@401/warn - NetDbReq: Destination qcV-LQEgPgzXOmcfajCnuhfzgJpYbxpBQZ1R7bOXX1Y= is requested already or cached
+17:27:38@335/warn - Profiling: No profile yet for qfom4vWcqzfpooNGpK2o7bCwpir~ld9nYDMdwbYQMwA=
+17:27:38@335/info - NetDb: RouterInfo added: qfom4vWcqzfpooNGpK2o7bCwpir~ld9nYDMdwbYQMwA=
+17:27:39@335/info - NetDb: RouterInfo updated: uwS6lnfq0PsV9EVPWOn0YiwCN71RIpOQjEY4J7S7v1E=
+17:27:39@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:39@335/warn - Profiling: No profile yet for qdniR9rlEviCIashylWojME7zgiqj107OmVepdonBdo=
+17:27:39@335/info - NetDb: RouterInfo added: qdniR9rlEviCIashylWojME7zgiqj107OmVepdonBdo=
+17:27:39@341/info - Transports: RouterInfo for XpOOL7PXr-4yQF1O4b392hzQUKukdPPya9AgrV2ZX-w= not found, requested
+17:27:39@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:27:39@335/warn - Profiling: No profile yet for XpOOL7PXr-4yQF1O4b392hzQUKukdPPya9AgrV2ZX-w=
+17:27:39@335/info - NetDb: RouterInfo added: XpOOL7PXr-4yQF1O4b392hzQUKukdPPya9AgrV2ZX-w=
+17:27:39@335/warn - Profiling: No profile yet for qd9cB6LRzibJn1R5lZxDBmm5U08tzvlEwrg5b2oAD2Q=
+17:27:39@335/info - NetDb: RouterInfo added: qd9cB6LRzibJn1R5lZxDBmm5U08tzvlEwrg5b2oAD2Q=
+17:27:39@335/info - NetDb: RouterInfo updated: q~VaelgmKxxm-~q2mAduMPGL4W4ORFySYiybpBr4LyE=
+17:27:39@401/warn - NetDbReq: gQhFHmKHo1BXUeF86l0EtOatBQALQ~uFhz3lQo6RGeI= not found after 5 attempts
+17:27:39@341/info - Transports: RouterInfo not found, failed to send messages
+17:27:40@335/warn - Profiling: No profile yet for cIOcN4fZeLd1zRitcj7Loju4qt0t-IpvwJPVPNuwzmw=
+17:27:40@335/info - NetDb: RouterInfo added: cIOcN4fZeLd1zRitcj7Loju4qt0t-IpvwJPVPNuwzmw=
+17:27:40@335/warn - Profiling: No profile yet for qdJpx9tjl-ApsdAuKrigzMUQgdgPiYr9M5g-7M44Hmo=
+17:27:40@335/info - NetDb: RouterInfo added: qdJpx9tjl-ApsdAuKrigzMUQgdgPiYr9M5g-7M44Hmo=
+17:27:40@335/info - NetDb: RouterInfo updated: 4adweGA6UQtea0UXCWE1fZbJABE9YE99Xu2SvLLayGE=
+17:27:40@401/warn - Profiling: No profile yet for TIi7ud13ZQXr2JLIYp0xlwN3gdgWEIp6cObcASeGs6I=
+17:27:41@335/info - NetDb: RouterInfo updated: TIi7ud13ZQXr2JLIYp0xlwN3gdgWEIp6cObcASeGs6I=
+17:27:41@563/warn - NTCP2: SessionCreated read error: End of file
+17:27:41@335/warn - Profiling: No profile yet for qcV-LQEgPgzXOmcfajCnuhfzgJpYbxpBQZ1R7bOXX1Y=
+17:27:41@335/info - NetDb: RouterInfo added: qcV-LQEgPgzXOmcfajCnuhfzgJpYbxpBQZ1R7bOXX1Y=
+17:27:41@401/warn - Profiling: No profile yet for ud0BOSdc8mhBNreKnGZZ7TkSLPtbV--vabml8HVVmj4=
+17:27:42@401/warn - Profiling: No profile yet for udfzOAHbi3aZHxa4ktjzGuhF3AFdTct7cvO4rZu0CiU=
+17:27:42@335/warn - Profiling: No profile yet for cIKPOuv8EHovxkdT0Xon3fVsCOeTQooIi2L7utzOo6o=
+17:27:42@335/info - NetDb: RouterInfo added: cIKPOuv8EHovxkdT0Xon3fVsCOeTQooIi2L7utzOo6o=
+17:27:42@335/info - NetDb: RouterInfo updated: udfzOAHbi3aZHxa4ktjzGuhF3AFdTct7cvO4rZu0CiU=
+17:27:43@335/warn - Profiling: No profile yet for cIFMhy~xZfcS-YHN4Y3uznXBB8neLlsA~gBXMgM0wHA=
+17:27:43@335/info - NetDb: RouterInfo added: cIFMhy~xZfcS-YHN4Y3uznXBB8neLlsA~gBXMgM0wHA=
+17:27:43@335/info - NetDb: RouterInfo updated: y3fDU4A6yxJ0nJ5LMJdVKROKvuXioN-WqzJrtN3stt4=
+17:27:43@860/warn - SSU2: Unexpected message type 144 from 47.148.208.194:13247 of 72 bytes
+17:27:43@860/warn - SSU2: Unexpected message type 191 from 47.148.208.194:13247 of 83 bytes
+17:27:44@860/warn - SSU2: Unexpected message type 47 from 47.148.208.194:13247 of 78 bytes
+17:27:45@710/info - Tunnel: Inbound tunnel 2948225893 has been declined
+17:27:48@335/info - NetDb: RouterInfo updated: ud0BOSdc8mhBNreKnGZZ7TkSLPtbV--vabml8HVVmj4=
+17:27:48@335/info - NetDb: RouterInfo updated: cIFMhy~xZfcS-YHN4Y3uznXBB8neLlsA~gBXMgM0wHA=
+17:27:54@563/warn - NTCP2: Receive length read error: End of file
+17:27:55@613/warn - Profiling: No profile yet for o9Ql5TxMaFcezbqNa6hsmBT7d3bCuR7i-E2ejctXPj0=
+17:27:55@613/warn - Profiling: No profile yet for ILo~5xn0Xyjt0ZX8t~rctY1qeQODDT~h9Pa81C4uvk8=
+17:28:00@563/warn - NTCP2: Receive length read error: End of file
+17:28:04@563/info - NTCP2: Not connected in 25 seconds
+17:28:04@563/info - NTCP2: Connect error Операция отменена
+17:28:05@563/info - NTCP2: Not connected in 25 seconds
+17:28:05@563/info - NTCP2: Connect error Операция отменена
+17:28:05@563/info - NTCP2: Not connected in 25 seconds
+17:28:05@563/info - NTCP2: Connect error Операция отменена
+17:28:05@341/info - Transports: No compatible addresses available
+17:28:05@341/info - Transports: No compatible addresses available
+17:28:06@563/info - NTCP2: Not connected in 25 seconds
+17:28:06@563/info - NTCP2: Connect error Операция отменена
+17:28:06@341/info - Transports: No compatible addresses available
+17:28:08@563/warn - NTCP2: SessionCreated read error: End of file
+17:28:09@860/warn - SSU2: Session with 173.53.69.66:26114 was not established after 5 seconds
+17:28:09@341/info - Transports: No compatible addresses available
+17:28:10@613/warn - Profiling: No profile yet for 4n90pmiMDnnjC0aI1IzKjpkoWlObbx1fcV3a-LUd7~o=
+17:28:11@341/warn - Transports: Session to peer Tg167KBw2~lOyR5AAlr4i3ioqBtwjS0MMCY9SfQdBIM= has not been created in 15 seconds
+17:28:11@341/warn - Transports: Session to peer qEf2BFSCtTPvegg6fOANRojMfg8k-6qbFcdkJN8CEZo= has not been created in 15 seconds
+17:28:11@563/warn - NTCP2: SessionCreated read error: Операция отменена
+17:28:11@563/warn - NTCP2: SessionCreated read error: Операция отменена
+17:28:23@335/info - NetDb: RouterInfo updated: Tg167KBw2~lOyR5AAlr4i3ioqBtwjS0MMCY9SfQdBIM=
+17:28:23@401/info - NetDbReq: Exploring new 1 routers ...
+17:28:24@335/info - NetDb: RouterInfo updated: jVDCLDcZwhTNRLBvZG~EGvj72MfLlIBesLdFcz9Ail0=
+17:28:25@401/warn - Profiling: No profile yet for kZmMJ~w6RQIuqxL36dE1e0ryKO~GcDhBvNd1b3iHlCo=
+17:28:25@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:25@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:25@335/info - NetDb: RouterInfo updated: gIrQye74AsojH3OXsd32HkMcydao4w5yvuDldz~WGHM=
+17:28:25@613/warn - Profiling: No profile yet for ra37h9nmT4rlRkFw~ARBsQFQep4r55ewlbGyllIt4BA=
+17:28:25@613/warn - Profiling: No profile yet for 5hF9UzRmM~5gTH8N9uqGFH-C8M~PK~NKvunFD~5B4Gk=
+17:28:25@401/warn - Profiling: No profile yet for 3Hdn1CHMQapjZYMQIgCYpNs1eWLJbgwIXZG5PiXKlhM=
+17:28:25@401/warn - NetDbReq: Destination jenZLFi-e198ohxXsfd~udWRqlVfbXNCtuCnPZo3nNA= is requested already or cached
+17:28:25@401/warn - Profiling: No profile yet for JYwaDh1UOEcwdcvfBww3kJ76-klZMYDJxJJ3rpbxtaY=
+17:28:26@563/info - NTCP2: Connect error В соединении отказано
+17:28:26@341/info - Transports: No compatible addresses available
+17:28:26@335/info - NetDb: RouterInfo updated: kZmMJ~w6RQIuqxL36dE1e0ryKO~GcDhBvNd1b3iHlCo=
+17:28:26@401/warn - NetDbReq: Destination gMcUdrhzuwY6vxoGKK1SUwrdbSVK-UxHwAHcDpSe3lc= is requested already or cached
+17:28:26@335/warn - Profiling: No profile yet for q5D2spG5Ppy8UpNv0cO4cd3scXdP2yLMpPRW1BJrwqU=
+17:28:26@335/info - NetDb: RouterInfo added: q5D2spG5Ppy8UpNv0cO4cd3scXdP2yLMpPRW1BJrwqU=
+17:28:26@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:26@401/warn - Profiling: No profile yet for kZUxmYBAnBi2ehKdPWpYqUFp94n-nyQX9kU~omisnGY=
+17:28:26@335/info - NetDb: RouterInfo updated: gIBStJpm-puvFngf46ZJ46gwKjGK48nC6QAcOVXC138=
+17:28:26@335/warn - Profiling: No profile yet for gMcUdrhzuwY6vxoGKK1SUwrdbSVK-UxHwAHcDpSe3lc=
+17:28:26@335/info - NetDb: RouterInfo added: gMcUdrhzuwY6vxoGKK1SUwrdbSVK-UxHwAHcDpSe3lc=
+17:28:26@563/info - NTCP2: Connect error В соединении отказано
+17:28:26@341/info - Transports: No compatible addresses available
+17:28:26@401/warn - Profiling: No profile yet for 3LCUCCEAMPoP8YUGv-UmtexiCwR-niR9Zoy3TCY~MPE=
+17:28:26@401/warn - Profiling: No profile yet for kdIu9IrX~YzE0DU0e3m7yyF~PVe-iHiQBbgPCalRhfc=
+17:28:26@335/info - NetDb: RouterInfo updated: JYwaDh1UOEcwdcvfBww3kJ76-klZMYDJxJJ3rpbxtaY=
+17:28:26@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:26@563/info - NTCP2: Connect error В соединении отказано
+17:28:26@341/info - Transports: No compatible addresses available
+17:28:26@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:26@335/warn - Profiling: No profile yet for kYbeV7349fxvkDciHHBZjhIZafaom7CQrCYCibPKJOo=
+17:28:26@335/info - NetDb: RouterInfo added: kYbeV7349fxvkDciHHBZjhIZafaom7CQrCYCibPKJOo=
+17:28:26@335/warn - Profiling: No profile yet for jaPm8DT74PIpdoNUqk1X7a3b8z4o5NLDuC-U5PMz7W4=
+17:28:26@335/info - NetDb: RouterInfo added: jaPm8DT74PIpdoNUqk1X7a3b8z4o5NLDuC-U5PMz7W4=
+17:28:26@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:26@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:26@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:26@335/info - NetDb: RouterInfo updated: kdIu9IrX~YzE0DU0e3m7yyF~PVe-iHiQBbgPCalRhfc=
+17:28:26@335/info - NetDb: RouterInfo updated: gMcUdrhzuwY6vxoGKK1SUwrdbSVK-UxHwAHcDpSe3lc=
+17:28:26@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:26@401/warn - Profiling: No profile yet for P3q01~NyQyN0ddd0iNzxtR-MnLcYkfI6SHMuBC~bD0w=
+17:28:26@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:26@335/warn - Profiling: No profile yet for jenZLFi-e198ohxXsfd~udWRqlVfbXNCtuCnPZo3nNA=
+17:28:26@335/info - NetDb: RouterInfo added: jenZLFi-e198ohxXsfd~udWRqlVfbXNCtuCnPZo3nNA=
+17:28:26@335/info - NetDb: Saved 29 new/updated routers
+17:28:26@335/info - NetDb: Deleting 13 unreachable routers
+17:28:26@335/warn - Profiling: No profile yet for jZRh0uKAEc~O3orm4hGWL2qkcm-UfuBBb5HWVp5-~-4=
+17:28:26@335/info - NetDb: RouterInfo added: jZRh0uKAEc~O3orm4hGWL2qkcm-UfuBBb5HWVp5-~-4=
+17:28:26@401/warn - Profiling: No profile yet for gH7m~Qbdv4xN8q5dDJeL0YXDkQs2p-fqNYiPzkB5gaM=
+17:28:26@401/warn - NetDbReq: Destination gMzoYVU5kdRzp23LVJVvInX35FxawvkPZ1L2S3Mk~s4= is requested already or cached
+17:28:26@401/warn - NetDbReq: Destination gNdynVpYwARvCfxzNmaT1SrOYl6lttiLYVt-ljr0U-Y= is requested already or cached
+17:28:27@335/info - NetDb: RouterInfo updated: kJT1HhnibQPP0444lBBgqXmuGVcj3N2HM~gvAfV50Do=
+17:28:27@401/warn - Profiling: No profile yet for 3LeKnejzB1uw~0iun4c1G-3naUIabJ8b-O2mUcer8M4=
+17:28:27@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:27@401/warn - Profiling: No profile yet for 9ruxrPDTI6Tfq4al371d6KtQ4a0MLOp~9Kg0PpTmMeE=
+17:28:27@401/warn - NetDbReq: Destination 9~dBTsr2kq~QCSrqIWcnspr6977zF~xrMQfA7hUGqsM= is requested already or cached
+17:28:27@335/warn - Profiling: No profile yet for gMzoYVU5kdRzp23LVJVvInX35FxawvkPZ1L2S3Mk~s4=
+17:28:27@335/info - NetDb: RouterInfo added: gMzoYVU5kdRzp23LVJVvInX35FxawvkPZ1L2S3Mk~s4=
+17:28:27@335/info - NetDb: RouterInfo updated: LNnZArXHWybtkgA5SL9RzQfFzKClAp757IOc5p6zFFw=
+17:28:27@401/warn - Profiling: No profile yet for ZpxUnMweXQKzv7QbP4uvHz6eQWRwVPgrb-g6ao9MOK4=
+17:28:27@401/warn - Profiling: No profile yet for OetBjyUb70QvYlNWsq2YnrtXGizLitJ3Wp~6aiZ4~gQ=
+17:28:27@401/warn - NetDbReq: jYA9l8N7R9ZUkTkwEN0s2QFTb9wI0xqYAhHMQq8AUl4= not found after 5 attempts
+17:28:27@335/info - NetDb: RouterInfo updated: 3LeKnejzB1uw~0iun4c1G-3naUIabJ8b-O2mUcer8M4=
+17:28:27@335/warn - Profiling: No profile yet for q4O8d9KlP-sYWxPTO~7VXbqzr7ifciM-H8QsvXjZd54=
+17:28:27@335/info - NetDb: RouterInfo added: q4O8d9KlP-sYWxPTO~7VXbqzr7ifciM-H8QsvXjZd54=
+17:28:27@335/warn - Profiling: No profile yet for 95VlxLpqvG5o2NJI~UlSqPZP5K3GJ5PY3XYEx0VB-HE=
+17:28:27@335/info - NetDb: RouterInfo added: 95VlxLpqvG5o2NJI~UlSqPZP5K3GJ5PY3XYEx0VB-HE=
+17:28:27@335/warn - Profiling: No profile yet for kZ-~khztLQdJambZnyl4GUHyWz1MiKcBAHhpLxWkl34=
+17:28:27@335/info - NetDb: RouterInfo added: kZ-~khztLQdJambZnyl4GUHyWz1MiKcBAHhpLxWkl34=
+17:28:27@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:27@335/warn - Profiling: No profile yet for 9~XfUqy0vDReNiKHUjo-A9B1DuuceOnSt4aI2uq9kpE=
+17:28:27@335/info - NetDb: RouterInfo added: 9~XfUqy0vDReNiKHUjo-A9B1DuuceOnSt4aI2uq9kpE=
+17:28:27@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:28@335/warn - Profiling: No profile yet for gNdynVpYwARvCfxzNmaT1SrOYl6lttiLYVt-ljr0U-Y=
+17:28:28@335/info - NetDb: RouterInfo added: gNdynVpYwARvCfxzNmaT1SrOYl6lttiLYVt-ljr0U-Y=
+17:28:28@335/info - NetDb: RouterInfo updated: OetBjyUb70QvYlNWsq2YnrtXGizLitJ3Wp~6aiZ4~gQ=
+17:28:28@335/info - NetDb: RouterInfo updated: ZpxUnMweXQKzv7QbP4uvHz6eQWRwVPgrb-g6ao9MOK4=
+17:28:28@335/info - NetDb: RouterInfo updated: ByO-OCgyRETJgpCK0fCUZ4mnnQClKBEli0mOSYJ98nU=
+17:28:28@335/warn - Profiling: No profile yet for jfEZf7D1Q~8IKUvxt815OF~WARH8JpQiAp3KXDPAdS8=
+17:28:28@335/info - NetDb: RouterInfo added: jfEZf7D1Q~8IKUvxt815OF~WARH8JpQiAp3KXDPAdS8=
+17:28:28@335/warn - Profiling: No profile yet for 97XDeq2OFMAt2l0~X~dCj29Yob41fWGrxSZMHEwiyCg=
+17:28:28@335/info - NetDb: RouterInfo added: 97XDeq2OFMAt2l0~X~dCj29Yob41fWGrxSZMHEwiyCg=
+17:28:28@335/info - NetDb: RouterInfo updated: q4O8d9KlP-sYWxPTO~7VXbqzr7ifciM-H8QsvXjZd54=
+17:28:28@335/info - NetDb: RouterInfo updated: 53q7xSFSB0gGeECxg5ZgbkdscJVtsVUI2lZe90dTeUg=
+17:28:28@335/warn - Profiling: No profile yet for 9-G5Vpqvjaz1r8uoKV8pUH0LFgKa~RUGfo01HITnesw=
+17:28:28@335/info - NetDb: RouterInfo added: 9-G5Vpqvjaz1r8uoKV8pUH0LFgKa~RUGfo01HITnesw=
+17:28:28@860/info - SSU2: Our external address is 109.194.162.67:4472
+17:28:28@860/info - SSU2: Our port 4472 received from 162.244.74.183:21362 is different from 26965
+17:28:29@335/warn - Profiling: No profile yet for 9~dBTsr2kq~QCSrqIWcnspr6977zF~xrMQfA7hUGqsM=
+17:28:29@335/info - NetDb: RouterInfo added: 9~dBTsr2kq~QCSrqIWcnspr6977zF~xrMQfA7hUGqsM=
+17:28:29@335/info - NetDb: RouterInfo updated: 9ruxrPDTI6Tfq4al371d6KtQ4a0MLOp~9Kg0PpTmMeE=
+17:28:29@335/warn - Profiling: No profile yet for gP~AfYouwKKuti3ToYg3kHw3PWwkRmSqcl7HkeJA9UU=
+17:28:29@335/info - NetDb: RouterInfo added: gP~AfYouwKKuti3ToYg3kHw3PWwkRmSqcl7HkeJA9UU=
+17:28:29@335/info - NetDb: RouterInfo updated: gP~AfYouwKKuti3ToYg3kHw3PWwkRmSqcl7HkeJA9UU=
+17:28:29@335/info - NetDb: RouterInfo updated: gH7m~Qbdv4xN8q5dDJeL0YXDkQs2p-fqNYiPzkB5gaM=
+17:28:29@401/info - NetDbReq: Unsolicited or late database search reply for jYA9l8N7R9ZUkTkwEN0s2QFTb9wI0xqYAhHMQq8AUl4=
+17:28:30@710/warn - Tunnels: Test of tunnel 3414002905 failed
+17:28:30@860/warn - SSU2: Session with 47.229.82.148:27294 was not established after 5 seconds
+17:28:30@710/info - Tunnel: Inbound tunnel 3135310601 has been declined
+17:28:30@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:31@860/warn - SSU2: Session with 47.154.169.134:13117 was not established after 5 seconds
+17:28:31@860/info - NetDb: RouterInfo updated: BZ-Lr07JM-wPrjjAeATUYK16e0V79bLxKSCpNI5YiSM=
+17:28:33@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:33@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:34@335/info - NetDb: RouterInfo updated: P3q01~NyQyN0ddd0iNzxtR-MnLcYkfI6SHMuBC~bD0w=
+17:28:34@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:35@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:35@710/info - Tunnel: Inbound tunnel 3731238615 has been declined
+17:28:35@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:36@710/info - Tunnel: Inbound tunnel 1104083881 has been declined
+17:28:36@860/info - SSU2: Our external address is 109.194.162.67:26965
+17:28:38@860/warn - SSU2: Unexpected message type 180 instead 9

@@ -236,7 +236,7 @@
                     <div class="reply-author-name">Ответ для {replyingTo.IsOutgoing ? 'Меня' : (selectedContact.Nickname || 'Unknown')}</div>
                     <div class="reply-text-preview">{replyingTo.Content}</div>
                 </div>
-                <button class="btn-cancel-reply" on:click={onCancelReply}>
+                <button class="btn-cancel-reply" on:click={() => { replyingTo = null; if (onCancelReply) onCancelReply(); }}>
                     <div class="icon-svg-xs">{@html Icons.Plus}</div>
                 </button>
             </div>

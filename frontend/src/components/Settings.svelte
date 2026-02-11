@@ -212,7 +212,13 @@
 </div>
 
 <style>
-    .settings-panel { flex: 1; display: flex; flex-direction: column; height: 100%; background: var(--bg-primary); }
+    .settings-panel { flex: 1; display: flex; flex-direction: column; height: 100dvh; background: var(--bg-primary); overflow: hidden; }
+    @media (max-width: 768px) {
+        .settings-header { padding: 12px 16px; height: 60px; }
+        .settings-header h2 { font-size: 20px; }
+        .settings-content-area { padding: 20px; }
+        .profile-avatar-large { width: 90px; height: 90px; margin-bottom: 24px; }
+    }
     .settings-header { padding: 20px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); height: 80px; }
     .settings-header h2 { font-size: 24px; font-weight: 700; margin: 0; color: white; display: flex; align-items: center; }
     

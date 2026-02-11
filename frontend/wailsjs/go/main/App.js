@@ -174,6 +174,14 @@ export function SendText(arg1, arg2, arg3) {
   return window['go']['main']['App']['SendText'](arg1, arg2, arg3);
 }
 
+export function SetActiveChat(arg1) {
+  return window['go']['main']['App']['SetActiveChat'](arg1);
+}
+
+export function SetAppFocus(arg1) {
+  return window['go']['main']['App']['SetAppFocus'](arg1);
+}
+
 export function ShowInFolder(arg1) {
   return window['go']['main']['App']['ShowInFolder'](arg1);
 }

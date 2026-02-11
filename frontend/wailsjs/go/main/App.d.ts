@@ -89,6 +89,10 @@ export function SendFileMessage(arg1:string,arg2:string,arg3:string,arg4:Array<s
 
 export function SendText(arg1:string,arg2:string,arg3:string):Promise<void>;
 
+export function SetActiveChat(arg1:string):Promise<void>;
+
+export function SetAppFocus(arg1:boolean):Promise<void>;
+
 export function ShowInFolder(arg1:string):Promise<void>;
 
 export function ShowWindow():Promise<void>;

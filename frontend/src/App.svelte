@@ -585,7 +585,10 @@
           settingsView = 'details'; 
           if (id === 'about') loadAboutInfo();
       },
-      onClose: () => { showSettings = false; },
+      onClose: () => { 
+          showSettings = false; 
+          if (isMobile) mobileView.set('list');
+      },
       onShowSeed: () => { showSeedModal = true; },
       onCheckUpdates: async () => {
           const res = await AppActions.CheckForUpdates();
@@ -727,8 +730,8 @@
                         <Chat 
                             {selectedContact} {messages} bind:newMessage bind:selectedFiles {filePreviews}
                             {editingMessageId} {editMessageContent} bind:isCompressed {previewImage}
-                            {replyingTo} {isMobile}
-                            onBack={() => { selectedContact = null; messages = []; mobileView.set('list'); }}
+                            bind:replyingTo {isMobile}
+                            onBack={() => { selectContact(null); mobileView.set('list'); }}
                             {...chatHandlers}
                         />
                     </div>
@@ -787,7 +790,7 @@
                         <Chat 
                             {selectedContact} {messages} bind:newMessage bind:selectedFiles {filePreviews}
                             {editingMessageId} {editMessageContent} bind:isCompressed {previewImage}
-                            {replyingTo} isMobile={false}
+                            bind:replyingTo isMobile={false}
                             {...chatHandlers}
                         />
                     {:else}
@@ -928,7 +931,7 @@
         font-family: 'Inter', -apple-system, sans-serif;
     }
 
-    .main-screen { display: flex; height: 100vh; overflow: hidden; }
+    .main-screen { display: flex; height: 100dvh; overflow: hidden; }
     .content-area { flex: 1; display: flex; flex-direction: column; position: relative; }
     
     .no-chat { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; opacity: 0.7; }
