@@ -312,6 +312,28 @@ func (s *Service) SendProfileRequest(destination string) error {
 	return s.SendMessage(destination, packet)
 }
 
+// SendProfileUpdate отправляет обновление нашего профиля получателю
+func (s *Service) SendProfileUpdate(destination, nickname, bio string, avatar []byte) error {
+	update := &pb.ProfileUpdate{
+		Nickname: nickname,
+		Bio:      bio,
+		Avatar:   avatar,
+	}
+
+	payload, err := proto.Marshal(update)
+	if err != nil {
+		return fmt.Errorf("marshal profile update failed: %w", err)
+	}
+
+	packet := &pb.Packet{
+		Type:    pb.PacketType_PROFILE_UPDATE,
+		Payload: payload,
+	}
+
+	log.Printf("[Messenger] Sending profile update to %s...", destination[:min(32, len(destination))])
+	return s.SendMessage(destination, packet)
+}
+
 // getOrCreateConnection получает существующее или создаёт новое соединение
 func (s *Service) getOrCreateConnection(destination string) (net.Conn, error) {
 	s.connMu.RLock()

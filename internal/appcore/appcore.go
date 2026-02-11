@@ -247,12 +247,25 @@ func (a *AppCore) UpdateMyProfile(nickname, bio, avatar string) error {
 		avatarPath := avatar
 		// Если avatar - это base64 или пришел новый путь, сохраняем его локально
 		if len(avatar) > 30 && (strings.HasPrefix(avatar, "data:image") || strings.HasPrefix(avatar, "image")) {
-			// Пытаемся сохранить base64 в файл медиа пользователя
-			newPath, err := a.SaveAttachment("my_avatar.png", []byte(avatar))
+			// Пытаемся декодировать base64 в байты
+			var data []byte
+			var err error
+			if idx := strings.Index(avatar, ","); idx != -1 {
+				data, err = base64.StdEncoding.DecodeString(avatar[idx+1:])
+			} else {
+				data, err = base64.StdEncoding.DecodeString(avatar)
+			}
+
 			if err == nil {
-				avatarPath = newPath
-				// Также обновляем в БД путь на локальный, а не base64
-				a.Repo.UpdateMyProfile(a.Ctx, nickname, bio, avatarPath)
+				// Сохраняем байты в файл медиа пользователя
+				newPath, err := a.SaveAttachment("my_avatar.png", data)
+				if err == nil {
+					avatarPath = newPath
+					// Также обновляем в БД путь на локальный, а не base64
+					a.Repo.UpdateMyProfile(a.Ctx, nickname, bio, avatarPath)
+				}
+			} else {
+				log.Printf("[AppCore] Failed to decode base64 avatar: %v", err)
 			}
 		}
 
@@ -400,6 +413,8 @@ func (a *AppCore) ConnectToI2P() {
 	a.Messenger.SetContactHandler(a.OnContactRequest)
 	a.Messenger.SetFileOfferHandler(a.onFileOffer)
 	a.Messenger.SetFileResponseHandler(a.onFileResponse)
+	a.Messenger.SetProfileUpdateHandler(a.onProfileUpdate)
+	a.Messenger.SetProfileRequestHandler(a.onProfileRequest)
 
 	if err := a.Messenger.Start(a.Ctx); err != nil {
 		a.SetNetworkStatus(StatusError)
@@ -407,6 +422,71 @@ func (a *AppCore) ConnectToI2P() {
 	}
 
 	a.SetNetworkStatus(StatusOnline)
+}
+
+// formatAvatarURL преобразует локальный путь в URL для фронтенда
+func (a *AppCore) formatAvatarURL(path string) string {
+	if path == "" {
+		return ""
+	}
+	if strings.HasPrefix(path, "data:") {
+		return path
+	}
+	// Если это абсолютный путь, берем только имя файла и добавляем префикс /secure/
+	// который обрабатывается MediaHandler
+	return "/secure/" + filepath.Base(path)
+}
+
+// onProfileUpdate обрабатывает входящее обновление профиля от контакта
+func (a *AppCore) onProfileUpdate(senderPubKey, nickname, bio string, avatar []byte) {
+	if a.Repo == nil {
+		return
+	}
+
+	contact, _ := a.Repo.GetContactByPublicKey(a.Ctx, senderPubKey)
+	if contact == nil {
+		return
+	}
+
+	contact.Nickname = nickname
+	contact.Bio = bio
+
+	if len(avatar) > 0 {
+		// Сохраняем аватар
+		filename := fmt.Sprintf("avatar_%s.png", senderPubKey[:8])
+		path, err := a.SaveAttachment(filename, avatar)
+		if err == nil {
+			contact.Avatar = path
+		}
+	}
+
+	a.Repo.SaveContact(a.Ctx, contact)
+	a.Emitter.Emit("contact_updated")
+}
+
+// onProfileRequest обрабатывает запрос нашего профиля
+func (a *AppCore) onProfileRequest(requestorPubKey string) {
+	if a.Repo == nil || a.Messenger == nil {
+		return
+	}
+
+	user, _ := a.Repo.GetMyProfile(a.Ctx)
+	if user == nil {
+		return
+	}
+
+	var avatarData []byte
+	if user.Avatar != "" {
+		avatarData, _ = os.ReadFile(user.Avatar)
+	}
+
+	// Отправляем наш профиль в ответ
+	// Нам нужен адрес контакта, чтобы отправить сообщение.
+	// Но у нас есть только PubKey. Ищем контакт в БД.
+	contact, _ := a.Repo.GetContactByPublicKey(a.Ctx, requestorPubKey)
+	if contact != nil {
+		a.Messenger.SendProfileUpdate(contact.I2PAddress, user.Nickname, user.Bio, avatarData)
+	}
 }
 
 // ─── Обработчики входящих сообщений ─────────────────────────────────────────

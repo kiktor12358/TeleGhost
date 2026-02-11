@@ -26,7 +26,7 @@ func (a *AppCore) GetContacts() ([]*ContactInfo, error) {
 			ID:         c.ID,
 			Nickname:   c.Nickname,
 			Bio:        c.Bio,
-			Avatar:     c.Avatar,
+			Avatar:     a.formatAvatarURL(c.Avatar),
 			I2PAddress: c.I2PAddress,
 			PublicKey:  c.PublicKey,
 			ChatID:     c.ChatID,

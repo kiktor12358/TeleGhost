@@ -28,7 +28,13 @@ func (a *App) GetAppAboutInfo() *AppAboutInfo {
 
 // GetNetworkStatus возвращает статус сети.
 func (a *App) GetNetworkStatus() string {
-	return a.core.GetNetworkStatus()
+	status := a.core.GetNetworkStatus()
+	if status == "offline" && a.embeddedRouter != nil {
+		if !a.embeddedRouter.IsReady() {
+			return "starting"
+		}
+	}
+	return status
 }
 
 // SaveRouterSettings сохраняет настройки роутера.

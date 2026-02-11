@@ -200,7 +200,7 @@ func (a *AppCore) GetMyInfo() map[string]interface{} {
 	if a.Repo != nil {
 		if u, err := a.Repo.GetMyProfile(a.Ctx); err == nil && u != nil {
 			res["Nickname"] = u.Nickname
-			res["Avatar"] = u.Avatar
+			res["Avatar"] = a.formatAvatarURL(u.Avatar)
 			res["Bio"] = u.Bio
 		}
 	}

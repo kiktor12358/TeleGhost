@@ -38,6 +38,7 @@ export function getStatusColor(status) {
     switch (status) {
         case 'online': return '#4CAF50';
         case 'connecting': return '#FFC107';
+        case 'starting': return '#9C27B0';
         case 'error': return '#F44336';
         default: return '#9E9E9E';
     }
@@ -47,6 +48,7 @@ export function getStatusText(status) {
     switch (status) {
         case 'online': return 'В сети';
         case 'connecting': return 'Подключение...';
+        case 'starting': return 'Запуск I2P...';
         case 'error': return 'Ошибка I2P';
         default: return 'Оффлайн';
     }
