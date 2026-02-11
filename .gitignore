@@ -60,3 +60,4 @@ android/.gradle/
 android/app/build/
 android/app/libs/*.aar
 *.aar
+mobile/dist/*

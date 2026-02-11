@@ -152,7 +152,7 @@ class TeleGhostService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.notification_title))
             .setContentText(getString(R.string.notification_text))
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // TODO: заменить на кастомную иконку
+            .setSmallIcon(R.mipmap.ic_launcher_foreground) // TODO: заменить на кастомную иконку
             .setContentIntent(openPending)
             .setOngoing(true)          // Не смахивается
             .setSilent(true)           // Без звука

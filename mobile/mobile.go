@@ -20,9 +20,14 @@ import (
 	"net/http"
 	"sync"
 	"time"
+	"embed"
+	"io/fs"
 
 	"teleghost/internal/appcore"
 )
+
+//go:embed all:dist
+var frontendAssets embed.FS
 
 // ─── SSE EventEmitter (реализация интерфейса appcore.EventEmitter) ──────────
 
@@ -139,6 +144,14 @@ func Start(dataDir string) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	})
+
+	// Раздача статических файлов фронтенда
+	subFS, err := fs.Sub(frontendAssets, "dist")
+	if err != nil {
+		log.Printf("[Mobile] Failed to create sub FS: %v", err)
+	} else {
+		mux.Handle("/", http.FileServer(http.FS(subFS)))
+	}
 
 	server = &http.Server{
 		Addr:    "127.0.0.1:8080",
