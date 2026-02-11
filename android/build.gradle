@@ -15,10 +15,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        // Для .aar артефакта, сгенерированного gomobile
-        flatDir {
-            dirs 'libs'
-        }
     }
 }
 
