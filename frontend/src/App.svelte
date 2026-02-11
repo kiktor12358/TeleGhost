@@ -503,6 +503,7 @@
   const settingsHandlers = {
       onSaveProfile: async () => {
           await AppActions.UpdateMyProfile(profileNickname, profileBio, profileAvatar);
+          await loadMyInfo(); // Refresh state
           showToast("Профиль сохранен", "success");
       },
       onSaveRouterSettings: async () => {
@@ -736,7 +737,10 @@
                 <div class="content-area">
                     {#if showSettings}
                         <Settings 
-                            {profileNickname} {profileBio} {profileAvatar} {routerSettings} 
+                            bind:profileNickname={profileNickname} 
+                            bind:profileBio={profileBio} 
+                            bind:profileAvatar={profileAvatar} 
+                            {routerSettings} 
                             settingsCategories={[
                                 {id: 'profile', name: 'Профиль', icon: Icons.User},
                                 {id: 'privacy', name: 'Приватность', icon: Icons.Lock},
@@ -785,19 +789,40 @@
     {#if contextMenu.show}
         <div class="context-menu" style="top: {contextMenu.y}px; left: {contextMenu.x}px">
             {#if folders.length > 0}
-                <div class="context-item submenu-parent">
-                    Добавить в папку
-                    <div class="context-submenu">
-                        {#each folders as folder}
-                            <div class="context-item" on:click={async () => {
-                                await AppActions.AddChatToFolder(folder.ID, contextMenu.contact.ID);
-                                loadFolders();
-                                contextMenu.show = false;
-                                showToast(`Добавлено в папку "${folder.Name}"`, 'success');
-                            }}>{folder.Icon} {folder.Name}</div>
-                        {/each}
+                {@const inFolders = folders.filter(f => (f.ChatIDs || f.chat_ids || []).includes(contextMenu.contact.ID))}
+                {@const notInFolders = folders.filter(f => !(f.ChatIDs || f.chat_ids || []).includes(contextMenu.contact.ID))}
+
+                {#if notInFolders.length > 0}
+                    <div class="context-item submenu-parent">
+                        Добавить в папку
+                        <div class="context-submenu">
+                            {#each notInFolders as folder}
+                                <div class="context-item" on:click={async () => {
+                                    await AppActions.AddChatToFolder(folder.ID || folder.id, contextMenu.contact.ID);
+                                    loadFolders();
+                                    contextMenu.show = false;
+                                    showToast(`Добавлено в папку "${folder.Name || folder.name}"`, 'success');
+                                }}>{folder.Icon || folder.icon} {folder.Name || folder.name}</div>
+                            {/each}
+                        </div>
                     </div>
-                </div>
+                {/if}
+
+                {#if inFolders.length > 0}
+                    <div class="context-item submenu-parent">
+                        Удалить из папки
+                        <div class="context-submenu">
+                            {#each inFolders as folder}
+                                <div class="context-item" on:click={async () => {
+                                    await AppActions.RemoveChatFromFolder(folder.ID || folder.id, contextMenu.contact.ID);
+                                    loadFolders();
+                                    contextMenu.show = false;
+                                    showToast(`Удалено из папки "${folder.Name || folder.name}"`, 'success');
+                                }}>{folder.Icon || folder.icon} {folder.Name || folder.name}</div>
+                            {/each}
+                        </div>
+                    </div>
+                {/if}
             {/if}
             <div class="context-item danger" on:click={() => { 
                 AppActions.DeleteContact(contextMenu.contact.ID); 

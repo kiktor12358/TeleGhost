@@ -101,22 +101,22 @@
             {#each uiFolders as folder}
                 <div 
                     class="folder-item" 
-                    class:active={!showSettings && activeFolderId === folder.ID && folder.ID !== 'add'} 
+                    class:active={!showSettings && activeFolderId === (folder.ID || folder.id) && (folder.ID || folder.id) !== 'add'} 
                     role="button"
                     tabindex="0"
                     on:click={() => handleFolderClick(folder)}
                     on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && handleFolderClick(folder)}
-                    on:contextmenu|preventDefault={(e) => folder.ID !== 'all' && folder.ID !== 'add' && onFolderContextMenu(e, folder)}
-                    on:touchstart={(e) => folder.ID !== 'all' && folder.ID !== 'add' && handleTouchStart(folder, 'folder', e)}
+                    on:contextmenu|preventDefault={(e) => (folder.ID || folder.id) !== 'all' && (folder.ID || folder.id) !== 'add' && onFolderContextMenu(e, folder)}
+                    on:touchstart={(e) => (folder.ID || folder.id) !== 'all' && (folder.ID || folder.id) !== 'add' && handleTouchStart(folder, 'folder', e)}
                     on:touchend={handleTouchEnd}
                     on:touchmove={handleTouchEnd}
-                    title={folder.Name}
-                    style={folder.ID === 'add' ? 'margin-top: 10px; opacity: 0.7;' : 'position: relative;'}
+                    title={folder.Name || folder.name}
+                    style={(folder.ID || folder.id) === 'add' ? 'margin-top: 10px; opacity: 0.7;' : 'position: relative;'}
                 >
-                    <div class="folder-icon">{@html folder.Icon}</div>
-                    <div class="folder-name">{folder.Name}</div>
-                    {#if folder.UnreadCount > 0 && folder.ID !== 'add'}
-                        <div class="folder-unread-badge">{folder.UnreadCount > 99 ? '99+' : folder.UnreadCount}</div>
+                    <div class="folder-icon">{@html folder.Icon || folder.icon}</div>
+                    <div class="folder-name">{folder.Name || folder.name}</div>
+                    {#if (folder.UnreadCount || folder.unread_count) > 0 && (folder.ID || folder.id) !== 'add'}
+                        <div class="folder-unread-badge">{(folder.UnreadCount || folder.unread_count) > 99 ? '99+' : (folder.UnreadCount || folder.unread_count)}</div>
                     {/if}
                 </div>
             {/each}
@@ -224,16 +224,16 @@
             {#each uiFolders as folder}
                 <button 
                     class="mobile-folder-chip"
-                    class:active={activeFolderId === folder.ID && folder.ID !== 'add'}
+                    class:active={activeFolderId === (folder.ID || folder.id) && (folder.ID || folder.id) !== 'add'}
                     on:click={() => handleFolderClick(folder)}
-                    on:touchstart={(e) => folder.ID !== 'all' && folder.ID !== 'add' && handleTouchStart(folder, 'folder', e)}
+                    on:touchstart={(e) => (folder.ID || folder.id) !== 'all' && (folder.ID || folder.id) !== 'add' && handleTouchStart(folder, 'folder', e)}
                     on:touchend={handleTouchEnd}
                     style="position: relative;"
                 >
-                    <span class="mobile-folder-icon">{@html folder.Icon}</span>
-                    <span>{folder.Name}</span>
-                    {#if folder.UnreadCount > 0 && folder.ID !== 'add'}
-                        <span class="mobile-folder-badge">{folder.UnreadCount > 99 ? '99+' : folder.UnreadCount}</span>
+                    <span class="mobile-folder-icon">{@html folder.Icon || folder.icon}</span>
+                    <span>{folder.Name || folder.name}</span>
+                    {#if (folder.UnreadCount || folder.unread_count) > 0 && (folder.ID || folder.id) !== 'add'}
+                        <span class="mobile-folder-badge">{(folder.UnreadCount || folder.unread_count) > 99 ? '99+' : (folder.UnreadCount || folder.unread_count)}</span>
                     {/if}
                 </button>
             {/each}
