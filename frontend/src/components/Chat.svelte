@@ -210,7 +210,7 @@
                                             use:startLoadingImage={att.LocalPath} 
                                             alt="attachment" 
                                             class="msg-img" 
-                                            style="height: {msg.Attachments.length === 1 ? 'auto' : '120px'}" 
+                                            style="height: {msg.Attachments.length === 1 ? 'auto' : '120px'}; min-height: 100px;" 
                                             role="button"
                                             tabindex="0"
                                             on:click={() => onPreviewImage(att.LocalPath)}
