@@ -114,7 +114,9 @@ func (s *Service) Start(ctx context.Context) error {
 	s.wg.Add(1)
 	go s.heartbeatLoop()
 
-	log.Printf("[Messenger] Started. My destination: %s...", s.router.GetDestination()[:32])
+	dest := s.router.GetDestination()
+	showLen := min(32, len(dest))
+	log.Printf("[Messenger] Started. My destination: %s...", dest[:showLen])
 
 	return nil
 }
@@ -165,10 +167,11 @@ func (s *Service) SendMessage(destination string, packet *pb.Packet) error {
 	}
 
 	// Получаем или создаём соединение
-	log.Printf("[Messenger] Getting connection for %s...", destination[:16])
+	showDest := destination[:min(16, len(destination))]
+	log.Printf("[Messenger] Getting connection for %s...", showDest)
 	conn, err := s.getOrCreateConnection(destination)
 	if err != nil {
-		log.Printf("[Messenger] ERROR: connection failed for %s: %v", destination[:16], err)
+		log.Printf("[Messenger] ERROR: connection failed for %s: %v", showDest, err)
 		return fmt.Errorf("connection failed: %w", err)
 	}
 
@@ -178,16 +181,16 @@ func (s *Service) SendMessage(destination string, packet *pb.Packet) error {
 		return fmt.Errorf("marshal failed: %w", err)
 	}
 
-	log.Printf("[Messenger] Sending packet type %v (%d bytes) to %s...", packet.Type, len(data), destination[:16])
+	log.Printf("[Messenger] Sending packet type %v (%d bytes) to %s...", packet.Type, len(data), showDest)
 	// Отправляем: 4 байта размер + данные
 	if err := s.writePacket(conn, data); err != nil {
-		log.Printf("[Messenger] ERROR: write failed for %s: %v", destination[:16], err)
+		log.Printf("[Messenger] ERROR: write failed for %s: %v", showDest, err)
 		// При ошибке удаляем соединение из пула
 		s.removeConnection(destination)
 		return fmt.Errorf("send failed: %w", err)
 	}
 
-	log.Printf("[Messenger] Packet sent successfully to %s", destination[:16])
+	log.Printf("[Messenger] Packet sent successfully to %s", showDest)
 	return nil
 }
 
@@ -236,7 +239,7 @@ func (s *Service) SendFileOffer(destination, chatID, messageID string, filenames
 		Payload: payload,
 	}
 
-	log.Printf("[Messenger] Sending file offer (id=%s) to %s...", messageID[:8], destination[:32])
+	log.Printf("[Messenger] Sending file offer (id=%s) to %s...", messageID[:min(8, len(messageID))], destination[:min(32, len(destination))])
 	return s.SendMessage(destination, packet)
 }
 
@@ -258,7 +261,7 @@ func (s *Service) SendFileResponse(destination, chatID, messageID string, accept
 		Payload: payload,
 	}
 
-	log.Printf("[Messenger] Sending file response (accepted=%v) to %s...", accepted, destination[:32])
+	log.Printf("[Messenger] Sending file response (accepted=%v) to %s...", accepted, destination[:min(32, len(destination))])
 	return s.SendMessage(destination, packet)
 }
 
@@ -293,7 +296,7 @@ func (s *Service) SendHandshake(destination string) error {
 		Payload: payload,
 	}
 
-	log.Printf("[Messenger] Sending handshake to %s...", destination[:32])
+	log.Printf("[Messenger] Sending handshake to %s...", destination[:min(32, len(destination))])
 	return s.SendMessage(destination, packet)
 }
 
@@ -304,7 +307,7 @@ func (s *Service) SendProfileRequest(destination string) error {
 		Payload: []byte{}, // Empty payload
 	}
 
-	log.Printf("[Messenger] Sending profile request to %s...", destination[:32])
+	log.Printf("[Messenger] Sending profile request to %s...", destination[:min(32, len(destination))])
 	return s.SendMessage(destination, packet)
 }
 
@@ -319,7 +322,7 @@ func (s *Service) getOrCreateConnection(destination string) (net.Conn, error) {
 	}
 
 	// Dial с таймаутом БЕЗ блокировки всего пула
-	log.Printf("[Messenger] Dialing %s...", destination[:16])
+	log.Printf("[Messenger] Dialing %s...", destination[:min(16, len(destination))])
 	newConn, err := s.router.Dial(destination)
 	if err != nil {
 		return nil, err
@@ -336,7 +339,7 @@ func (s *Service) getOrCreateConnection(destination string) (net.Conn, error) {
 	}
 
 	s.connections[destination] = newConn
-	log.Printf("[Messenger] Connected to %s...", destination[:16])
+	log.Printf("[Messenger] Connected to %s...", destination[:min(16, len(destination))])
 
 	return newConn, nil
 }
@@ -527,7 +530,7 @@ func (s *Service) handlePacket(packet *pb.Packet, remoteAddr string) {
 
 // handleProfileRequest обрабатывает запрос на обновление профиля
 func (s *Service) handleProfileRequest(packet *pb.Packet, senderPubKey string) {
-	log.Printf("[Messenger] Profile request from %s", senderPubKey[:16])
+	log.Printf("[Messenger] Profile request from %s", senderPubKey[:min(16, len(senderPubKey))])
 
 	// Получаем текущий профиль (или используем дефолтные значения из s.myNickname)
 	// В идеале сервис должен иметь доступ к репозиторию, но сейчас у нас есть s.profileHandler
@@ -644,7 +647,7 @@ func (s *Service) handleTextMessage(packet *pb.Packet, senderPubKey, remoteAddr 
 
 	// Message Length Limit Check
 	if len(textMsg.Content) > 4096 {
-		log.Printf("[Messenger] Rejected message from %s: content too long (%d > 4096)", senderPubKey[:16], len(textMsg.Content))
+		log.Printf("[Messenger] Rejected message from %s: content too long (%d > 4096)", senderPubKey[:min(16, len(senderPubKey))], len(textMsg.Content))
 		return
 	}
 
@@ -708,7 +711,7 @@ func (s *Service) handleProfileUpdate(packet *pb.Packet, senderPubKey string) {
 		return
 	}
 
-	log.Printf("[Messenger] Profile update from %s: %s", senderPubKey[:16], profileUpdate.Nickname)
+	log.Printf("[Messenger] Profile update from %s: %s", senderPubKey[:min(16, len(senderPubKey))], profileUpdate.Nickname)
 	if s.profileHandler != nil {
 		s.profileHandler(senderPubKey, profileUpdate.Nickname, profileUpdate.Bio, profileUpdate.Avatar)
 	}
@@ -729,7 +732,7 @@ func (s *Service) handleHandshake(packet *pb.Packet, senderPubKey string) {
 
 	i2pAddress := handshake.I2PAddress
 
-	log.Printf("[Messenger] Handshake from %s (nickname: %s)", senderPubKey[:16], nickname)
+	log.Printf("[Messenger] Handshake from %s (nickname: %s)", senderPubKey[:min(16, len(senderPubKey))], nickname)
 
 	// Вызываем callback для создания контакта
 	if s.contactHandler != nil {
@@ -745,7 +748,7 @@ func (s *Service) handleFileOffer(packet *pb.Packet, senderPubKey string) {
 		return
 	}
 
-	log.Printf("[Messenger] File offer from %s: %d files", senderPubKey[:16], offer.FileCount)
+	log.Printf("[Messenger] File offer from %s: %d files", senderPubKey[:min(16, len(senderPubKey))], offer.FileCount)
 	if s.fileOfferHandler != nil {
 		s.fileOfferHandler(senderPubKey, offer.MessageId, offer.ChatId, offer.Filenames, offer.TotalSize, offer.FileCount)
 	}
@@ -759,7 +762,7 @@ func (s *Service) handleFileResponse(packet *pb.Packet, senderPubKey string) {
 		return
 	}
 
-	log.Printf("[Messenger] File response from %s: accepted=%v", senderPubKey[:16], resp.Accepted)
+	log.Printf("[Messenger] File response from %s: accepted=%v", senderPubKey[:min(16, len(senderPubKey))], resp.Accepted)
 	if s.fileResponseHandler != nil {
 		s.fileResponseHandler(senderPubKey, resp.MessageId, resp.ChatId, resp.Accepted)
 	}
@@ -793,7 +796,7 @@ func (s *Service) sendHeartbeatToAll() {
 
 	for _, dest := range destinations {
 		if err := s.SendHeartbeat(dest); err != nil {
-			log.Printf("[Messenger] Heartbeat failed for %s...: %v", dest[:32], err)
+			log.Printf("[Messenger] Heartbeat failed for %s...: %v", dest[:min(32, len(dest))], err)
 		}
 	}
 

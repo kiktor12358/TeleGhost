@@ -111,22 +111,35 @@ func (a *AppCore) Login(mnemonic string) error {
 			a.Repo.SaveUser(a.Ctx, user)
 		} else {
 			// Если есть в БД, синхронизируем данные
-			// Приоритет отдаем данным из БД, если они не пустые,
-			// но если ProfileManager прислал что-то новое (например, только что созданный профиль),
-			// то обновляем БД.
+			needsUpdateDB := false
+			needsUpdatePM := false
 
-			needsUpdate := false
-			if nickname != "" && dbUser.Nickname != nickname {
+			// Если в ПМ есть имя и оно не "User", а в БД другое - обновляем БД
+			if nickname != "" && nickname != "User" && dbUser.Nickname != nickname {
 				dbUser.Nickname = nickname
-				needsUpdate = true
+				needsUpdateDB = true
+			} else if (dbUser.Nickname != "" && dbUser.Nickname != "User") && (nickname == "" || nickname == "User") {
+				// Если в БД есть имя, а в ПМ нет или дефолтное - обновляем ПМ (синхронизация в обратную сторону)
+				nickname = dbUser.Nickname
+				needsUpdatePM = true
 			}
+
+			// То же самое для аватара
 			if avatar != "" && dbUser.Avatar != avatar {
 				dbUser.Avatar = avatar
-				needsUpdate = true
+				needsUpdateDB = true
+			} else if dbUser.Avatar != "" && avatar == "" {
+				avatar = dbUser.Avatar
+				needsUpdatePM = true
 			}
 
-			if needsUpdate {
+			if needsUpdateDB {
 				a.Repo.UpdateMyProfile(a.Ctx, dbUser.Nickname, dbUser.Bio, dbUser.Avatar)
+			}
+			if needsUpdatePM && a.ProfileManager != nil {
+				if meta, _ := a.ProfileManager.GetProfileByUserID(keys.UserID); meta != nil {
+					a.UpdateMyProfile(dbUser.Nickname, dbUser.Bio, dbUser.Avatar)
+				}
 			}
 		}
 	}
