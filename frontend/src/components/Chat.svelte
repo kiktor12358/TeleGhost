@@ -206,7 +206,7 @@
 
 </script>
 
-<div class="chat-area animate-fade-in" class:mobile={isMobile} style="height: 100dvh;">
+<div class="chat-area animate-fade-in" class:mobile={isMobile}>
     <div class="chat-header">
         {#if isMobile && onBack}
             <button class="btn-back" on:click={onBack} style="margin-right: 8px;">
@@ -250,18 +250,25 @@
                 on:touchmove={(e) => isMobile && handleTouchMove(e)}
                 on:touchend={() => isMobile && handleTouchEnd(msg)}
                 on:dblclick={() => handleDoubleClick(msg)}
+                on:click={(e) => {
+                    if (isMobile) {
+                        onShowMessageMenu(e, msg);
+                    }
+                }}
             >
                 <div 
                     class="message-bubble-wrapper" 
                     style="transform: translateX(-{swipedMsgId === msg.ID ? touchMoveX : 0}px); transition: {swipedMsgId === msg.ID ? 'none' : 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'};"
                 >
-                    <div class="message-bubble" class:outgoing={msg.IsOutgoing} on:contextmenu|preventDefault={(e) => onShowMessageMenu(e, msg)}>
+                    <div class="message-bubble" class:outgoing={msg.IsOutgoing} 
+                         on:contextmenu|preventDefault={(e) => onShowMessageMenu(e, msg)}
+                    >
                         {#if msg.ReplyPreview}
                             <div 
                                 class="reply-preview-bubble" 
                                 role="button" 
                                 tabindex="0"
-                                on:click={() => {
+                                on:click|stopPropagation={() => {
                                     const target = document.getElementById(`msg-${msg.ReplyToID}`);
                                     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 }}
@@ -281,7 +288,7 @@
                                             style="height: {msg.Attachments.length === 1 ? 'auto' : '120px'}; min-height: 100px;" 
                                             role="button"
                                             tabindex="0"
-                                            on:click={() => onPreviewImage(att.LocalPath)}
+                                            on:click|stopPropagation={() => onPreviewImage(att.LocalPath)}
                                             on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onPreviewImage(att.LocalPath)}
                                             on:load={onImageLoad}
                                         />
@@ -425,7 +432,7 @@
 </div>
 
 <style>
-    .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary, #0c0c14); overflow: hidden; position: relative; overscroll-behavior: contain; }
+    .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary, #0c0c14); overflow: hidden; overflow-x: hidden; position: relative; overscroll-behavior: contain; width: 100%; }
     .chat-header { height: 64px; padding: 0 16px; display: flex; align-items: center; justify-content: flex-start; gap: 4px; background: var(--bg-secondary, #1e1e2e); border-bottom: 1px solid var(--border); z-index: 10; flex-shrink: 0; }
     .chat-contact-info { display: flex; align-items: center; gap: 12px; }
     .chat-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; overflow: hidden; background: var(--accent); }
@@ -529,6 +536,10 @@
     .chat-area.mobile .input-area-wrapper { padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 5px)); background: var(--bg-primary); }
     .chat-area.mobile .input-area { padding: 6px 10px; border-radius: 20px; }
     .chat-area.mobile .chat-header { height: 56px; padding: 0 12px; }
+    /* Fix header alignment for mobile */
+    .chat-area.mobile .chat-contact-info { margin-left: auto; flex-direction: row-reverse; }
+    .chat-area.mobile .chat-status { flex-direction: row-reverse; }
+    .chat-area.mobile .chat-name { text-align: right; }
 
     /* Reply Styling */
     .reply-preview-bubble {

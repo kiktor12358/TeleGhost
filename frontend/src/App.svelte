@@ -885,6 +885,7 @@
     {/if}
 
     {#if contextMenu.show}
+        <div class="menu-backdrop" on:click={() => contextMenu.show = false} on:touchmove|preventDefault></div>
         <div class="context-menu" style="top: {contextMenu.y}px; left: {contextMenu.x}px">
             {#if folders.length > 0}
                 {@const inFolders = folders.filter(f => (f.ChatIDs || f.chat_ids || []).includes(contextMenu.contact.ID))}
@@ -946,6 +947,7 @@
     {/if}
 
     {#if folderContextMenu.show}
+        <div class="menu-backdrop" on:click={() => folderContextMenu.show = false} on:touchmove|preventDefault></div>
         <div class="context-menu" style="top: {folderContextMenu.y}px; left: {folderContextMenu.x}px">
             <div class="context-item" on:click={() => { 
                 sidebarHandlers.onEditFolder(folderContextMenu.folder);
@@ -958,6 +960,7 @@
     {/if}
 
     {#if messageContextMenu.show}
+        <div class="menu-backdrop" on:click={() => messageContextMenu.show = false} on:touchmove|preventDefault></div>
         <div class="context-menu" style="top: {messageContextMenu.y}px; left: {messageContextMenu.x}px">
             <div class="context-item" on:click={() => {
                 replyingTo = messageContextMenu.message;
@@ -1017,6 +1020,9 @@
 
     .context-menu {
         position: fixed; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 4px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .menu-backdrop {
+        position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.1);
     }
     .context-item { padding: 10px 16px; cursor: pointer; border-radius: 4px; font-size: 14px; position: relative; }
     .context-item:hover { background: rgba(255,255,255,0.1); }
