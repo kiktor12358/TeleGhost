@@ -56,3 +56,7 @@ TEST_REPORT.md
 task.md
 implementation_plan.md
 walkthrough.md
+android/.gradle/
+android/app/build/
+android/app/libs/*.aar
+*.aar

@@ -6571,3 +6571,28 @@
 11:21:47@754/warn - Transports: Session to peer jiywiJo7ZKAG-~d3Uxy6OSz8JVUGuPK-ASBo3-XdlzI= has not been created in 15 seconds
 11:21:51@120/info - Tunnel: Outbound tunnel 2024602583 has been declined
 11:21:52@661/warn - Profiling: No profile yet for unSyYkRl13FcM4eaIJab7y7YVHb~pIZB3E6AIGXJDo0=
+11:21:59@445/info - NetDbReq: Exploring new 1 routers ...
+11:21:59@392/error - SAM: Read error: End of file
+11:21:59@392/warn - SAM: I2P acceptor has been reset
+11:21:59@392/error - SAM: Read error: Операция отменена
+11:21:59@654/info - Clients: Stopping SAM bridge
+11:21:59@654/info - Clients: Stopping AddressBook
+11:21:59@654/info - Addressbook: 81 addresses saved
+11:21:59@654/info - Clients: Stopping UDP Tunnels
+11:21:59@654/info - Clients: Stopping UDP Tunnels timers
+11:21:59@654/info - Clients: Stopping Destinations
+11:21:59@654/info - Clients: Stopping Destinations - Clear
+11:21:59@654/info - Clients: Stopping SharedLocalDestination
+11:21:59@654/info - API: Shutting down
+11:21:59@654/info - API: Stopping Router context
+11:21:59@654/info - API: Stopping Tunnels
+11:21:59@654/info - API: Stopping Transports
+11:21:59@599/warn - NTCP2: SessionCreated read error: Операция отменена
+11:21:59@599/warn - NTCP2: SessionCreated read error: Операция отменена
+11:21:59@599/warn - NTCP2: Receive length read error: End of file
+11:21:59@599/warn - NTCP2: Receive length read error: End of file
+11:21:59@599/warn - NTCP2: Receive length read error: End of file
+11:21:59@599/warn - NTCP2: Receive length read error: End of file
+11:21:59@599/warn - NTCP2: Receive length read error: End of file
+11:21:59@599/warn - NTCP2: Receive length read error: End of file
+11:21:59@654/info - API: Stopping NetDB

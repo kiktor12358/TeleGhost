@@ -1,0 +1,274 @@
+name: Build Android AAR
+
+on:
+  push:
+    branches: [ main, android-* ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Ручной запуск
+
+permissions:
+  contents: write
+
+env:
+  GO_VERSION: '1.24.0'
+  NDK_VERSION: '26.1.10909125'
+  ANDROID_API: '21'
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Job 1: Собираем Go пакет mobile в teleghost.aar через gomobile bind
+  # ═══════════════════════════════════════════════════════════════════════════
+  build-aar:
+    name: Build Go → AAR (gomobile)
+    runs-on: ubuntu-latest
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── 2. Setup Go ─────────────────────────────────────────────────────
+      - name: Setup Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      # ── 3. Setup Java (для Android SDK/gomobile) ─────────────────────────
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # ── 4. Setup Android SDK + NDK ───────────────────────────────────────
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: |
+          echo "Installing NDK ${{ env.NDK_VERSION }}..."
+          sdkmanager --install "ndk;${{ env.NDK_VERSION }}"
+          
+          # Устанавливаем ANDROID_NDK_HOME
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/${{ env.NDK_VERSION }}"
+          echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
+          
+          echo "NDK installed at: $ANDROID_NDK_HOME"
+          ls -la "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/" | head -20
+
+      # ── 5. Install gomobile ──────────────────────────────────────────────
+      - name: Install gomobile
+        run: |
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          go install golang.org/x/mobile/cmd/gobind@latest
+          
+          # Добавляем GOPATH/bin в PATH
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          
+          # Инициализация gomobile
+          gomobile init
+
+      # ── 6. Установка системных зависимостей для CGO ──────────────────────
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            pkg-config \
+            libssl-dev \
+            zlib1g-dev
+
+      # ── 7. Настройка NDK компиляторов для CGO ───────────────────────────
+      #
+      # КРИТИЧЕСКИ ВАЖНО: gomobile сам управляет CC/CXX, но мы должны
+      # убедиться что CGO_ENABLED=1 и NDK тулчейн доступен.
+      #
+      - name: Configure NDK environment for CGO
+        run: |
+          NDK_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64"
+          
+          echo "──── NDK Toolchain contents ────"
+          ls "$NDK_TOOLCHAIN/bin/" | grep -E "clang$|clang\+\+$" | head -10
+          
+          # Для arm64 (основная архитектура)
+          echo "CC_arm64=${NDK_TOOLCHAIN}/bin/aarch64-linux-android${ANDROID_API}-clang" >> $GITHUB_ENV
+          echo "CXX_arm64=${NDK_TOOLCHAIN}/bin/aarch64-linux-android${ANDROID_API}-clang++" >> $GITHUB_ENV
+          
+          # Для arm (armv7)
+          echo "CC_arm=${NDK_TOOLCHAIN}/bin/armv7a-linux-androideabi${ANDROID_API}-clang" >> $GITHUB_ENV
+          echo "CXX_arm=${NDK_TOOLCHAIN}/bin/armv7a-linux-androideabi${ANDROID_API}-clang++" >> $GITHUB_ENV
+          
+          # Для x86_64
+          echo "CC_x86_64=${NDK_TOOLCHAIN}/bin/x86_64-linux-android${ANDROID_API}-clang" >> $GITHUB_ENV
+          echo "CXX_x86_64=${NDK_TOOLCHAIN}/bin/x86_64-linux-android${ANDROID_API}-clang++" >> $GITHUB_ENV
+          
+          # Проверяем доступность компиляторов
+          echo "──── Compiler verification ────"
+          "${NDK_TOOLCHAIN}/bin/aarch64-linux-android${ANDROID_API}-clang" --version || true
+          "${NDK_TOOLCHAIN}/bin/armv7a-linux-androideabi${ANDROID_API}-clang" --version || true
+
+      # ── 8. Go dependencies ──────────────────────────────────────────────
+      - name: Download Go dependencies
+        run: |
+          go mod download
+          go mod verify
+
+      # ── 9. BUILD: gomobile bind ─────────────────────────────────────────
+      #
+      # gomobile bind компилирует Go пакет в .aar для Android.
+      # CGO_ENABLED=1 обязателен для I2P библиотеки.
+      # gomobile автоматически вызывает NDK clang для каждой архитектуры.
+      #
+      - name: Build AAR with CGO
+        run: |
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          export CGO_ENABLED=1
+          export ANDROID_NDK_HOME="${{ env.ANDROID_NDK_HOME }}"
+          
+          echo "══════════════════════════════════════════════"
+          echo "  Building teleghost.aar"
+          echo "  CGO_ENABLED=$CGO_ENABLED"
+          echo "  ANDROID_NDK_HOME=$ANDROID_NDK_HOME"
+          echo "  Target: android (API ${{ env.ANDROID_API }})"
+          echo "══════════════════════════════════════════════"
+          
+          # Сборка .aar
+          # -v для verbose логов
+          # -target=android автоматически собирает arm, arm64, x86_64
+          # -androidapi задаёт минимальный API level
+          CGO_ENABLED=1 gomobile bind \
+            -v \
+            -target=android \
+            -androidapi ${{ env.ANDROID_API }} \
+            -o teleghost.aar \
+            ./mobile
+          
+          echo "──── Build output ────"
+          ls -lh teleghost.aar
+          file teleghost.aar
+
+      # ── 10. Upload AAR artifact ─────────────────────────────────────────
+      - name: Upload AAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: teleghost-aar
+          path: teleghost.aar
+          retention-days: 30
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Job 2: Собираем Android APK (опциональная, если есть Gradle проект)
+  # ═══════════════════════════════════════════════════════════════════════════
+  build-apk:
+    name: Build Android APK
+    needs: build-aar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      # Скачиваем .aar из предыдущего job-а
+      - name: Download AAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: teleghost-aar
+          path: android/app/libs/
+
+      - name: Verify AAR
+        run: |
+          echo "──── Verifying AAR ────"
+          ls -lh android/app/libs/
+          file android/app/libs/teleghost.aar
+
+      # Собираем фронтенд (Svelte → dist)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          echo "──── Frontend dist ────"
+          ls -la dist/
+
+      # Копируем фронтенд dist в assets Android проекта
+      - name: Copy frontend to Android assets
+        run: |
+          mkdir -p android/app/src/main/assets
+          cp -r frontend/dist/* android/app/src/main/assets/
+          echo "──── Android assets ────"
+          ls -la android/app/src/main/assets/
+
+      # Gradle build
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew 2>/dev/null || true
+          ./gradlew assembleDebug --stacktrace || {
+            echo "──── Gradle wrapper not found, using system gradle ────"
+            gradle assembleDebug --stacktrace
+          }
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: teleghost-android-debug
+          path: android/app/build/outputs/apk/debug/*.apk
+          retention-days: 30
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Job 3: Создаём Release (только при push тега v*)
+  # ═══════════════════════════════════════════════════════════════════════════
+  release-android:
+    name: Release Android
+    needs: [build-aar, build-apk]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download AAR
+        uses: actions/download-artifact@v4
+        with:
+          name: teleghost-aar
+
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: teleghost-android-debug
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            teleghost.aar
+            *.apk
+          draft: false
+          prerelease: true
+          body: |
+            ## Android Build 🤖
+            
+            ### Артефакты:
+            - `teleghost.aar` — Go библиотека для Android (gomobile bind + CGO)
+            - `*.apk` — Debug APK для тестирования
+            
+            ### Требования:
+            - Android 5.0+ (API 21)
+            - Архитектуры: arm64-v8a, armeabi-v7a, x86_64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
