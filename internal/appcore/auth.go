@@ -3,6 +3,8 @@ package appcore
 import (
 	"fmt"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	"teleghost/internal/core"
@@ -101,11 +103,22 @@ func (a *AppCore) Login(mnemonic string) error {
 			if nickname == "" {
 				nickname = "User"
 			}
+
+			// Если есть аватар в ПМ, импортируем его в папку пользователя
+			finalAvatar := avatar
+			if avatar != "" {
+				if data, err := os.ReadFile(avatar); err == nil {
+					if savedPath, err := a.SaveAvatar("my_avatar.png", data); err == nil {
+						finalAvatar = savedPath
+					}
+				}
+			}
+
 			user := &core.User{
 				ID:        keys.UserID,
 				PublicKey: keys.PublicKeyBase64,
 				Nickname:  nickname,
-				Avatar:    avatar,
+				Avatar:    finalAvatar,
 				UpdatedAt: time.Now(),
 			}
 			a.Repo.SaveUser(a.Ctx, user)
@@ -125,12 +138,39 @@ func (a *AppCore) Login(mnemonic string) error {
 			}
 
 			// То же самое для аватара
-			if avatar != "" && dbUser.Avatar != avatar {
-				dbUser.Avatar = avatar
-				needsUpdateDB = true
+			// То же самое для аватара
+			// Логика синхронизации:
+			// 1. Если в БД нет аватара, а в ПМ есть -> Импортируем из ПМ в users/... и обновляем БД
+			if dbUser.Avatar == "" && avatar != "" {
+				if data, err := os.ReadFile(avatar); err == nil {
+					// SaveAvatar сохраняет в папку пользователя и возвращает абсолютный путь
+					if savedPath, err := a.SaveAvatar("my_avatar.png", data); err == nil {
+						dbUser.Avatar = savedPath
+						needsUpdateDB = true
+					}
+				}
 			} else if dbUser.Avatar != "" && avatar == "" {
+				// 2. Если в БД есть, а в ПМ нет -> Обновляем ПМ
 				avatar = dbUser.Avatar
 				needsUpdatePM = true
+			} else if dbUser.Avatar != "" && avatar != "" && dbUser.Avatar != avatar {
+				// 3. Если есть в обоих местах, но пути разные.
+				// ProfileManager создает свою копию (путь .../profiles/...), а БД хранит путь (.../users/...).
+				// Они всегда будут отличаться путями.
+				// Мы должны доверять БД, если путь выглядит как "правильный" (лежит в users/.../avatars).
+
+				isDbInternal := strings.Contains(dbUser.Avatar, "users") && strings.Contains(dbUser.Avatar, "avatars")
+
+				if !isDbInternal {
+					// Если в БД какой-то левый путь, то берем из ПМ и импортируем
+					if data, err := os.ReadFile(avatar); err == nil {
+						if savedPath, err := a.SaveAvatar("my_avatar.png", data); err == nil {
+							dbUser.Avatar = savedPath
+							needsUpdateDB = true
+						}
+					}
+				}
+				// Если isDbInternal, то оставляем как есть в БД.
 			}
 
 			if needsUpdateDB {

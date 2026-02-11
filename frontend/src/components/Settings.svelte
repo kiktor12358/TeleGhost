@@ -1,6 +1,7 @@
 <script>
     import { Icons } from '../Icons.js';
     import { getInitials, getStatusColor, getStatusText } from '../utils.js';
+    import * as AppActions from '../../wailsjs/go/main/App.js';
 
     export let profileNickname;
     export let profileBio;
@@ -114,7 +115,7 @@
                             <div class="destination-box">
                                 <code class="destination-code">{myDestination || 'Загрузка...'}</code>
                                 <button class="btn-icon-copy" on:click={() => {
-                                    navigator.clipboard.writeText(myDestination);
+                                    AppActions.ClipboardSet(myDestination);
                                 }}>📋</button>
                             </div>
                         </details>

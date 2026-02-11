@@ -20,13 +20,15 @@ func (a *App) GetMessages(contactID string, limit, offset int) ([]*MessageInfo, 
 	result := make([]*MessageInfo, len(coreMsgs))
 	for i, m := range coreMsgs {
 		info := &MessageInfo{
-			ID:          m.ID,
-			Content:     m.Content,
-			Timestamp:   m.Timestamp,
-			IsOutgoing:  m.IsOutgoing,
-			Status:      m.Status,
-			ContentType: m.ContentType,
-			Attachments: m.Attachments,
+			ID:           m.ID,
+			Content:      m.Content,
+			Timestamp:    m.Timestamp,
+			IsOutgoing:   m.IsOutgoing,
+			Status:       m.Status,
+			ContentType:  m.ContentType,
+			Attachments:  m.Attachments,
+			ReplyToID:    m.ReplyToID,
+			ReplyPreview: m.ReplyPreview,
 		}
 		result[i] = info
 	}

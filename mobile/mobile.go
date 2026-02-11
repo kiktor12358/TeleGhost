@@ -408,6 +408,26 @@ func dispatch(app *appcore.AppCore, method string, args []json.RawMessage) (inte
 		// На мобилке обычно фронтенд сам может это делать или через другой URL
 		return "", nil
 
+	case "SetActiveChat":
+		var chatID string
+		parseArgs(args, &chatID)
+		app.ActiveChatID = chatID
+		return nil, nil
+
+	case "SetAppFocus":
+		var focused bool
+		parseArgs(args, &focused)
+		app.IsFocused = focused
+		return nil, nil
+
+	case "RequestProfileUpdate":
+		var address string
+		parseArgs(args, &address)
+		if app.Messenger != nil {
+			return nil, app.Messenger.SendProfileRequest(address)
+		}
+		return nil, fmt.Errorf("messenger not initialized")
+
 	case "SaveRouterSettings":
 		var settings map[string]interface{}
 		parseArgs(args, &settings)

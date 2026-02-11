@@ -23,15 +23,16 @@ func (a *AppCore) GetContacts() ([]*ContactInfo, error) {
 	result := make([]*ContactInfo, len(contacts))
 	for i, c := range contacts {
 		info := &ContactInfo{
-			ID:         c.ID,
-			Nickname:   c.Nickname,
-			Bio:        c.Bio,
-			Avatar:     a.formatAvatarURL(c.Avatar),
-			I2PAddress: c.I2PAddress,
-			PublicKey:  c.PublicKey,
-			ChatID:     c.ChatID,
-			IsBlocked:  c.IsBlocked,
-			IsVerified: c.IsVerified,
+			ID:          c.ID,
+			Nickname:    c.Nickname,
+			Bio:         c.Bio,
+			Avatar:      a.formatAvatarURL(c.Avatar),
+			I2PAddress:  c.I2PAddress,
+			PublicKey:   c.PublicKey,
+			ChatID:      c.ChatID,
+			IsBlocked:   c.IsBlocked,
+			IsVerified:  c.IsVerified,
+			UnreadCount: c.UnreadCount,
 		}
 		if c.LastMessage != "" {
 			info.LastMessage = c.LastMessage

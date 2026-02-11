@@ -194,8 +194,8 @@ func (s *Service) SendMessage(destination string, packet *pb.Packet) error {
 	return nil
 }
 
-// SendTextMessage создаёт и отправляет текстовое сообщение
-func (s *Service) SendTextMessage(destination, chatID, content, replyToID string) error {
+// SendTextMessageWithID создаёт и отправляет текстовое сообщение с указанным ID
+func (s *Service) SendTextMessageWithID(destination, chatID, messageID, content, replyToID string) error {
 	now := time.Now().UnixMilli()
 
 	// Создаём TextMessage
@@ -203,7 +203,7 @@ func (s *Service) SendTextMessage(destination, chatID, content, replyToID string
 		ChatId:    chatID,
 		Content:   content,
 		Timestamp: now,
-		MessageId: fmt.Sprintf("%d-%s", now, s.identity.UserID[:8]),
+		MessageId: messageID,
 		ReplyToId: replyToID,
 	}
 

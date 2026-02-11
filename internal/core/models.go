@@ -86,6 +86,8 @@ type Contact struct {
 	LastMessage string `json:"last_message,omitempty" db:"-"`
 	// LastMessageTime — время последнего сообщения
 	LastMessageTime time.Time `json:"last_message_time,omitempty" db:"-"`
+	// UnreadCount — количество непрочитанных сообщений в чате с этим контактом
+	UnreadCount int `json:"unread_count,omitempty" db:"-"`
 }
 
 // MessageStatus определяет статус доставки сообщения

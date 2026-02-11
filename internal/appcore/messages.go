@@ -58,22 +58,25 @@ func (a *AppCore) SendText(contactID, text, replyToID string) error {
 		}
 	}
 
+	msgID := uuid.New().String()
+	now := time.Now().UnixMilli()
+
 	if contactID != a.Identity.Keys.UserID {
-		if err := a.Messenger.SendTextMessage(contact.I2PAddress, contact.ChatID, text, replyToID); err != nil {
+		if err := a.Messenger.SendTextMessageWithID(contact.I2PAddress, contact.ChatID, msgID, text, replyToID); err != nil {
 			log.Printf("[AppCore] SendTextMessage error to %s: %v", contact.Nickname, err)
 			return fmt.Errorf("send failed: %w", err)
 		}
 	}
 
 	msg := &core.Message{
-		ID:          uuid.New().String(),
+		ID:          msgID,
 		ChatID:      contact.ChatID,
 		SenderID:    a.Identity.Keys.UserID,
 		Content:     text,
 		ContentType: "text",
 		Status:      core.MessageStatusSent,
 		IsOutgoing:  true,
-		Timestamp:   time.Now().UnixMilli(),
+		Timestamp:   now,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -161,9 +164,17 @@ func (a *AppCore) GetMessages(contactID string, limit, offset int) ([]*MessageIn
 				if author == "" {
 					author = "Контакт"
 				}
+				if len([]rune(author)) > 50 {
+					author = string([]rune(author)[:47]) + "..."
+				}
+				content := orig.Content
+				runes := []rune(content)
+				if len(runes) > 100 {
+					content = string(runes[:97]) + "..."
+				}
 				info.ReplyPreview = &ReplyPreview{
 					AuthorName: author,
-					Content:    orig.Content,
+					Content:    content,
 				}
 			}
 		}

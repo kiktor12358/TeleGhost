@@ -22,6 +22,14 @@ export function CheckForUpdates() {
   return window['go']['main']['App']['CheckForUpdates']();
 }
 
+export function ClipboardGet() {
+  return window['go']['main']['App']['ClipboardGet']();
+}
+
+export function ClipboardSet(arg1) {
+  return window['go']['main']['App']['ClipboardSet'](arg1);
+}
+
 export function CopyToClipboard(arg1) {
   return window['go']['main']['App']['CopyToClipboard'](arg1);
 }
@@ -176,6 +184,10 @@ export function SendText(arg1, arg2, arg3) {
 
 export function SetActiveChat(arg1) {
   return window['go']['main']['App']['SetActiveChat'](arg1);
+}
+
+export function SetAppFocus(arg1) {
+  return window['go']['main']['App']['SetAppFocus'](arg1);
 }
 
 export function ShowInFolder(arg1) {

@@ -11,12 +11,13 @@ func (a *App) GetContacts() ([]*ContactInfo, error) {
 	result := make([]*ContactInfo, len(coreContacts))
 	for i, c := range coreContacts {
 		info := &ContactInfo{
-			ID:         c.ID,
-			Nickname:   c.Nickname,
-			PublicKey:  c.PublicKey,
-			Avatar:     c.Avatar,
-			I2PAddress: c.I2PAddress,
-			ChatID:     c.ChatID,
+			ID:          c.ID,
+			Nickname:    c.Nickname,
+			PublicKey:   c.PublicKey,
+			Avatar:      c.Avatar,
+			I2PAddress:  c.I2PAddress,
+			ChatID:      c.ChatID,
+			UnreadCount: c.UnreadCount,
 		}
 		if c.LastMessage != "" {
 			info.LastMessage = c.LastMessage

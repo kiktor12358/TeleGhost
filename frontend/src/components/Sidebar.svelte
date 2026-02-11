@@ -110,9 +110,6 @@
             on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onToggleSettings()}
         >
             <div class="icon-svg">{@html Icons.Menu}</div>
-            {#if unreadCount > 0}
-                <div class="unread-badge">{unreadCount > 99 ? '99+' : unreadCount}</div>
-            {/if}
         </div>
 
         <div class="folders-list">
@@ -250,9 +247,6 @@
         <div class="mobile-header">
             <button class="mobile-menu-btn" on:click={onToggleSettings} style="position: relative;">
                 <div class="icon-svg">{@html Icons.Menu}</div>
-                {#if unreadCount > 0}
-                    <div class="unread-badge mobile-badge">{unreadCount > 99 ? '99+' : unreadCount}</div>
-                {/if}
             </button>
             <h1 class="mobile-title">TeleGhost</h1>
             <div class="mobile-network-dot" style="background: {getStatusColor(networkStatus)}" title={getStatusText(networkStatus)}></div>

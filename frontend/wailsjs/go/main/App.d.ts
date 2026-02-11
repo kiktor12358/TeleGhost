@@ -13,6 +13,10 @@ export function AddContactFromClipboard(arg1:string):Promise<main.ContactInfo>;
 
 export function CheckForUpdates():Promise<string>;
 
+export function ClipboardGet():Promise<string>;
+
+export function ClipboardSet(arg1:string):Promise<void>;
+
 export function CopyToClipboard(arg1:string):Promise<void>;
 
 export function CreateAccount():Promise<string>;
@@ -90,6 +94,8 @@ export function SendFileMessage(arg1:string,arg2:string,arg3:string,arg4:Array<s
 export function SendText(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function SetActiveChat(arg1:string):Promise<void>;
+
+export function SetAppFocus(arg1:boolean):Promise<void>;
 
 export function ShowInFolder(arg1:string):Promise<void>;
 

@@ -188,6 +188,11 @@
         }
     }
 
+    // Auto-scroll on new messages
+    $: if (messages && messages.length > 0 && chatReady) {
+        scrollToBottom();
+    }
+
     function finishLoading() {
         if (chatReady) return;
         
@@ -377,8 +382,8 @@
             <div class="replying-to-bar" transition:fade={{duration: 150}}>
                 <div class="reply-line"></div>
                 <div class="reply-info">
-                    <div class="reply-author-name">Ответ для {replyingTo.IsOutgoing ? 'Меня' : (selectedContact.Nickname || 'Unknown')}</div>
-                    <div class="reply-text-preview">{replyingTo.Content}</div>
+                    <div class="reply-author-name">Ответ для {replyingTo.IsOutgoing ? 'Меня' : ((selectedContact.Nickname?.length > 50 ? selectedContact.Nickname.substring(0, 47) + '...' : selectedContact.Nickname) || 'Unknown')}</div>
+                    <div class="reply-text-preview">{replyingTo.Content?.length > 100 ? replyingTo.Content.substring(0, 97) + '...' : (replyingTo.Content || (replyingTo.ContentType === 'mixed' ? '📷 Фото' : '📎 Файл'))}</div>
                 </div>
                 <button class="btn-cancel-reply" on:click={() => { replyingTo = null; if (onCancelReply) onCancelReply(); }}>
                     <div class="icon-svg-xs">{@html Icons.Plus}</div>
@@ -561,7 +566,18 @@
     .message.outgoing .reply-preview-bubble { background: rgba(255, 255, 255, 0.15); border-left-color: white; }
     .reply-author { font-weight: 600; color: var(--accent); margin-bottom: 2px; font-size: 12px; }
     .message.outgoing .reply-author { color: white; }
-    .reply-content-preview { color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
+    .reply-content-preview { 
+        color: var(--text-secondary); 
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        font-size: 11px; 
+        max-width: 100%; 
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        white-space: normal; /* Override nowrap for line-clamping */
+    }
     .message.outgoing .reply-content-preview { color: rgba(255, 255, 255, 0.8); }
 
     .replying-to-bar {
@@ -577,7 +593,7 @@
     .reply-line { width: 3px; height: 32px; background: var(--accent); border-radius: 2px; }
     .reply-info { flex: 1; overflow: hidden; }
     .reply-author-name { font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 2px; }
-    .reply-text-preview { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .reply-text-preview { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
     .btn-cancel-reply { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; border-radius: 50%; display: flex; transform: rotate(45deg); }
     .btn-cancel-reply:hover { color: #ff6b6b; }
 

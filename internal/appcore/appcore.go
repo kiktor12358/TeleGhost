@@ -622,6 +622,11 @@ func (a *AppCore) OnMessageReceived(msg *core.Message, senderPubKey, senderAddr 
 	})
 
 	if !msg.IsOutgoing {
+		// Помечаем как прочитанное сразу, если чат активен
+		if a.ActiveChatID == msg.ChatID {
+			a.Repo.MarkChatAsRead(a.Ctx, msg.ChatID)
+		}
+
 		// Подавляем уведомление, если приложение видимо, в фокусе и открыт именно этот чат
 		if !a.IsVisible || !(a.IsFocused && a.ActiveChatID == msg.ChatID) {
 			go a.SendNotification(contact.Nickname, msg.Content, msg.ContentType)
@@ -689,9 +694,18 @@ func (a *AppCore) getReplyPreview(replyToID string, contact *core.Contact) *Repl
 	} else if contact != nil {
 		author = contact.Nickname
 	}
+	if len([]rune(author)) > 50 {
+		author = string([]rune(author)[:47]) + "..."
+	}
+
+	content := orig.Content
+	runes := []rune(content)
+	if len(runes) > 100 {
+		content = string(runes[:97]) + "..."
+	}
 
 	return &ReplyPreview{
 		AuthorName: author,
-		Content:    orig.Content,
+		Content:    content,
 	}
 }

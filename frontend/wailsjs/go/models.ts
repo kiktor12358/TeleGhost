@@ -1,3 +1,22 @@
+export namespace appcore {
+	
+	export class ReplyPreview {
+	    author_name: string;
+	    content: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new ReplyPreview(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.author_name = source["author_name"];
+	        this.content = source["content"];
+	    }
+	}
+
+}
+
 export namespace main {
 	
 	export class AppAboutInfo {
@@ -85,6 +104,8 @@ export namespace main {
 	    TotalSize: number;
 	    Filenames: string[];
 	    Attachments: any[];
+	    ReplyToID: string;
+	    ReplyPreview?: appcore.ReplyPreview;
 	
 	    static createFrom(source: any = {}) {
 	        return new MessageInfo(source);
@@ -102,7 +123,27 @@ export namespace main {
 	        this.TotalSize = source["TotalSize"];
 	        this.Filenames = source["Filenames"];
 	        this.Attachments = source["Attachments"];
+	        this.ReplyToID = source["ReplyToID"];
+	        this.ReplyPreview = this.convertValues(source["ReplyPreview"], appcore.ReplyPreview);
 	    }
+	
+		convertValues(a: any, classs: any, asMap: boolean = false): any {
+		    if (!a) {
+		        return a;
+		    }
+		    if (a.slice && a.map) {
+		        return (a as any[]).map(elem => this.convertValues(elem, classs));
+		    } else if ("object" === typeof a) {
+		        if (asMap) {
+		            for (const key of Object.keys(a)) {
+		                a[key] = new classs(a[key]);
+		            }
+		            return a;
+		        }
+		        return new classs(a);
+		    }
+		    return a;
+		}
 	}
 	export class RouterSettings {
 	    TunnelLength: number;

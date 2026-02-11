@@ -292,6 +292,12 @@
       showSettings = false;
       loadMessages(contact.ID);
       AppActions.SetActiveChat(contact.ChatID || "");
+      // Сбрасываем счетчик во фронтенде для мгновенного отклика
+      contact.UnreadCount = 0;
+      contacts = [...contacts];
+      if (contact.ChatID) {
+          AppActions.MarkChatAsRead(contact.ChatID);
+      }
       if (isMobile) {
           mobileView.set('chat');
           // Add history state for back button
@@ -334,7 +340,10 @@
           Status: 'sending',
           ContentType: files.length > 0 ? 'mixed' : 'text',
           ReplyToID: replyingTo?.ID,
-          ReplyPreview: replyingTo ? { AuthorName: replyingTo.SenderID === identity ? 'Я' : selectedContact.Nickname, Content: replyingTo.Content } : null,
+          ReplyPreview: replyingTo ? { 
+              AuthorName: (replyingTo.SenderID === identity ? 'Я' : (selectedContact.Nickname?.length > 50 ? selectedContact.Nickname.substring(0, 47) + '...' : selectedContact.Nickname)), 
+              Content: (replyingTo.Content || "").length > 100 ? replyingTo.Content.substring(0, 97) + '...' : (replyingTo.Content || (replyingTo.ContentType === 'mixed' ? '📷 Фото' : '📎 Файл'))
+          } : null,
           _optimistic: true
       };
       

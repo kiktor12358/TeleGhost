@@ -1,6 +1,7 @@
 <script>
     import { Icons } from '../Icons.js';
     import { getInitials, getAvatarGradient } from '../utils.js';
+    import * as AppActions from '../../wailsjs/go/main/App.js';
 
     // Confirm Modal
     export let showConfirmModal = false;
@@ -178,7 +179,7 @@
             </div>
         </div>
         <div class="modal-footer" style="flex-direction: column; gap: 8px;">
-            <button class="btn-primary full-width clickable-btn" on:click={() => { navigator.clipboard.writeText(contact.I2PAddress); }}>Скопировать адрес</button>
+            <button class="btn-primary full-width clickable-btn" on:click={() => { AppActions.ClipboardSet(contact.I2PAddress); }}>Скопировать адрес</button>
             {#if onUpdateProfile}
                 <button class="btn-glass full-width clickable-btn" on:click={() => onUpdateProfile(contact.I2PAddress)}>🔄 Обновить профиль</button>
             {/if}
@@ -249,7 +250,7 @@
                 {/each}
             </div>
             
-            <button class="btn-glass full-width clickable-btn" on:click={() => { navigator.clipboard.writeText(mnemonic); }} style="padding: 12px; border-radius: 16px;">
+            <button class="btn-glass full-width clickable-btn" on:click={() => { AppActions.ClipboardSet(mnemonic); }} style="padding: 12px; border-radius: 16px;">
                 📋 Скопировать всё
             </button>
         </div>
