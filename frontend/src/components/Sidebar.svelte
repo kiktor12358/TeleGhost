@@ -72,10 +72,11 @@
     }
 
     function handleFolderClick(folder) {
-        if (folder.ID === 'add') {
+        const id = folder.ID || folder.id;
+        if (id === 'add') {
             onCreateFolder();
         } else {
-            onSelectFolder(folder.ID);
+            onSelectFolder(id);
         }
     }
 </script>
