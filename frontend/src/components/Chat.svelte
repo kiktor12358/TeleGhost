@@ -38,6 +38,15 @@
     let touchMoveX = 0;
     let swipedMsgId = null;
     let swipeThreshold = 60;
+    
+    // Image loading state
+    let imagesLoading = false;
+    let pendingImages = 0;
+    let loadedImages = 0;
+    let chatReady = false;
+    let initialScrollDone = false;
+    let currentContactId = null;
+
 
     function handleTouchStart(e, msgId) {
         if (msgId === swipedMsgId) return;
@@ -84,27 +93,14 @@
         showScrollButton = distanceToBottom > 50;
     }
 
-    function handleImageLoad() {
-        if (!containerRef) return;
-        // Check if we are roughly at the bottom
-        // If we are, stick to bottom as image loads/expands
-        const distanceToBottom = containerRef.scrollHeight - containerRef.scrollTop - containerRef.clientHeight;
-        // Use a slightly larger buffer (150px) to catch "near bottom" cases
-        if (distanceToBottom < 250) { 
-             requestAnimationFrame(() => {
-                 if (containerRef) containerRef.scrollTop = containerRef.scrollHeight;
-             });
-        }
-    }
-
     function scrollToBottom(force = false) {
-        // Guard against empty state loops (CRITICAL FIX)
+        // Guard against unnecessary scrolls
         if (!processScroll(force)) return;
 
         tick().then(() => {
             requestAnimationFrame(() => {
                 if (containerRef) {
-                    // If force is true, we scroll to bottom no matter what
+                     // If force is true, we scroll to bottom no matter what
                     if (force) {
                         containerRef.scrollTop = containerRef.scrollHeight;
                         return;
@@ -129,11 +125,6 @@
 
     onMount(() => {
         if (containerRef) {
-            // Scroll to bottom initially
-            if (messages && messages.length > 0) {
-                containerRef.scrollTop = containerRef.scrollHeight;
-            }
-            
             // We only need to observe to SHOW/HIDE the button, NOT to force scroll
             resizeObserver = new ResizeObserver(() => {
                 if (!containerRef) return;
@@ -148,6 +139,66 @@
         }
     });
 
+    // Handle Contact Change & Initialize Loading
+    $: if (selectedContact && selectedContact.ID !== currentContactId) {
+        currentContactId = selectedContact.ID;
+        // Reset state for new chat
+        chatReady = false; 
+        initialScrollDone = false;
+        imagesLoading = true;
+        pendingImages = 0;
+        loadedImages = 0;
+    }
+
+    // Handle Messages Update & Image Counting
+    $: if (messages && !chatReady && currentContactId) {
+        // Count images ONLY in the initial load phase
+        let imgCount = 0;
+        // Check only last 20 messages for performance, deeper history images shouldn't affect initial scroll much
+        const recentMessages = messages.slice(-20); 
+        
+        recentMessages.forEach(msg => {
+            if (msg.Attachments) {
+                msg.Attachments.forEach(att => {
+                    if (att.MimeType && att.MimeType.startsWith('image/')) {
+                        imgCount++;
+                    }
+                });
+            }
+        });
+
+        pendingImages = imgCount;
+        
+        if (pendingImages === 0) {
+            // No images to wait for (or messages empty), show immediately
+            finishLoading();
+        } else {
+            // Set a fallback timeout in case images fail to load
+            setTimeout(() => {
+                if (!chatReady) finishLoading();
+            }, 1500); // 1.5s max wait
+        }
+    }
+
+    function onImageLoad() {
+        if (chatReady) return;
+        loadedImages++;
+        if (loadedImages >= pendingImages) {
+            finishLoading();
+        }
+    }
+
+    function finishLoading() {
+        if (chatReady) return;
+        chatReady = true;
+        imagesLoading = false;
+        // Force scroll to bottom once ready
+        tick().then(() => {
+             // Double insurance: scroll immediately and again after paint
+             scrollToBottom(true);
+             setTimeout(() => scrollToBottom(true), 50);
+        });
+    }
 
 </script>
 
@@ -185,7 +236,7 @@
         </div>
     </div>
     
-    <div class="messages-container messages-scroll-area" bind:this={containerRef} on:scroll={handleScroll}>
+    <div class="messages-container messages-scroll-area" bind:this={containerRef} on:scroll={handleScroll} style="opacity: {chatReady ? 1 : 0}; transition: opacity 0.2s;">
         {#each messages as msg (msg.ID)}
             <div 
                 class="message animate-message" 
@@ -228,7 +279,7 @@
                                             tabindex="0"
                                             on:click={() => onPreviewImage(att.LocalPath)}
                                             on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onPreviewImage(att.LocalPath)}
-                                            on:load={handleImageLoad}
+                                            on:load={onImageLoad}
                                         />
                                     {:else}
                                         <div class="file-attachment-container">
@@ -303,6 +354,13 @@
         {/if}
     </div>
 
+    <!-- Loading Spinner Overlay -->
+    {#if !chatReady}
+        <div class="loading-overlay" transition:fade={{duration: 200}}>
+            <div class="spinner"></div>
+        </div>
+    {/if}
+
     <div class="input-area-wrapper">
         {#if replyingTo}
             <div class="replying-to-bar" transition:fade={{duration: 150}}>
@@ -374,7 +432,7 @@
     .status-dot { width: 8px; height: 8px; border-radius: 50%; }
     .status-text { font-size: 12px; color: var(--text-secondary); }
 
-    .messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 4px; overflow-anchor: auto; }
+    .messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 4px; }
     .message { display: flex; margin-bottom: 2px; position: relative; align-items: center; }
     .message.outgoing { justify-content: flex-end; }
     
@@ -524,5 +582,29 @@
     .btn-scroll-bottom:hover {
         transform: translateY(-2px);
         background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .loading-overlay {
+        position: absolute;
+        top: 64px;
+        left: 0;
+        right: 0;
+        bottom: 90px;
+        background: var(--bg-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 20;
+    }
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255,255,255,0.1);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 </style>
