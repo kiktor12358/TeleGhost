@@ -35,13 +35,6 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
-
-    // Подхватываем .aar из libs/
-    repositories {
-        flatDir {
-            dirs 'libs'
-        }
-    }
 }
 
 dependencies {
@@ -53,5 +46,5 @@ dependencies {
 
     // gomobile-сгенерированный .aar с Go кодом
     // CI копирует teleghost.aar → android/app/libs/
-    implementation(name: 'teleghost', ext: 'aar')
+    implementation files('libs/teleghost.aar')
 }
