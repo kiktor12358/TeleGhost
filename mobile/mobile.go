@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 
+	"teleghost/internal/core"
 	"teleghost/internal/core/identity"
 	"teleghost/internal/network/media"
 	"teleghost/internal/network/messenger"
@@ -742,15 +743,78 @@ func (app *MobileApp) sendText(contactID, text string) error {
 	if app.messenger == nil {
 		return fmt.Errorf("not connected to I2P")
 	}
-	// Делегируем messenger service
-	return fmt.Errorf("SendText: implement via messenger service")
+	if app.repo == nil {
+		return fmt.Errorf("not logged in")
+	}
+
+	contact, err := app.repo.GetContact(app.ctx, contactID)
+	if err != nil || contact == nil {
+		return fmt.Errorf("contact not found")
+	}
+
+	if contact.ChatID == "" {
+		contact.ChatID = identity.CalculateChatID(app.identity.Keys.PublicKeyBase64, contact.PublicKey)
+		app.repo.SaveContact(app.ctx, contact)
+	}
+
+	log.Printf("[Mobile] Sending message to %s (ChatID: %s)", contact.Nickname, contact.ChatID)
+
+	// Отправляем handshake синхронно, если нет публичного ключа
+	if contact.PublicKey == "" {
+		log.Printf("[Mobile] No public key for %s, sending handshake first...", contact.Nickname)
+		if err := app.messenger.SendHandshake(contact.I2PAddress); err != nil {
+			log.Printf("[Mobile] Handshake failed: %v", err)
+		}
+	}
+
+	if err := app.messenger.SendTextMessage(contact.I2PAddress, contact.ChatID, text); err != nil {
+		log.Printf("[Mobile] SendTextMessage error to %s: %v", contact.Nickname, err)
+		return fmt.Errorf("send failed: %w", err)
+	}
+
+	// Сохраняем сообщение в БД
+	msg := &core.Message{
+		ID:          fmt.Sprintf("%d-%s", time.Now().UnixMilli(), app.identity.Keys.UserID[:8]),
+		ChatID:      contact.ChatID,
+		SenderID:    app.identity.Keys.UserID,
+		Content:     text,
+		ContentType: "text",
+		Status:      core.MessageStatusSent,
+		IsOutgoing:  true,
+		Timestamp:   time.Now().UnixMilli(),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+
+	if err := app.repo.SaveMessage(app.ctx, msg); err != nil {
+		log.Printf("[Mobile] Failed to save message: %v", err)
+	}
+
+	// Отправляем событие через SSE
+	app.emitEvent("new_message", map[string]interface{}{
+		"ID":         msg.ID,
+		"ChatID":     msg.ChatID,
+		"SenderID":   msg.SenderID,
+		"Content":    msg.Content,
+		"Timestamp":  msg.Timestamp,
+		"IsOutgoing": msg.IsOutgoing,
+		"Status":     "sent",
+	})
+
+	return nil
 }
 
 func (app *MobileApp) getMessages(contactID string, limit, offset int) (interface{}, error) {
 	if app.repo == nil {
 		return []interface{}{}, nil
 	}
-	msgs, err := app.repo.GetMessages(app.ctx, contactID, limit, offset)
+
+	contact, err := app.repo.GetContact(app.ctx, contactID)
+	if err != nil || contact == nil {
+		return []interface{}{}, nil
+	}
+
+	msgs, err := app.repo.GetChatHistory(app.ctx, contact.ChatID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
