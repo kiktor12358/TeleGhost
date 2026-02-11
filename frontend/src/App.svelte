@@ -131,9 +131,17 @@
     
     EventsOn("new_message", (msg) => {
         if (!msg) return;
-        if (selectedContact && msg.ChatID === selectedContact.ChatID) {
+        // Более надежная проверка на принадлежность сообщения текущему чату
+        const isCurrentChat = selectedContact && (
+            msg.ChatID === selectedContact.ChatID || 
+            msg.ChatID === selectedContact.ID ||
+            msg.SenderID === selectedContact.PublicKey ||
+            (msg.IsOutgoing && msg.ChatID === selectedContact.ChatID)
+        );
+
+        if (isCurrentChat) {
             // Check if optimistic message exists and replace it
-            const existingIdx = (messages || []).findIndex(m => m.ID === msg.ID);
+            const existingIdx = (messages || []).findIndex(m => m.ID === msg.ID || (m._optimistic && m.Content === msg.Content && m.Timestamp >= msg.Timestamp - 5000));
             if (existingIdx !== -1) {
                 const updated = [...messages];
                 updated[existingIdx] = msg;

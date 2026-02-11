@@ -335,6 +335,21 @@ func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string
 		}
 		a.Repo.SaveMessage(a.Ctx, msg)
 
+		// Формируем вложения для фронтенда
+		infoAttachments := make([]map[string]interface{}, 0, len(msg.Attachments))
+		for _, att := range msg.Attachments {
+			infoAttachments = append(infoAttachments, map[string]interface{}{
+				"ID":           att.ID,
+				"Filename":     att.Filename,
+				"Size":         att.Size,
+				"LocalPath":    att.LocalPath,
+				"MimeType":     att.MimeType,
+				"IsCompressed": att.IsCompressed,
+				"Width":        att.Width,
+				"Height":       att.Height,
+			})
+		}
+
 		a.Emitter.Emit("new_message", map[string]interface{}{
 			"ID":           msg.ID,
 			"ChatID":       msg.ChatID,
@@ -346,6 +361,7 @@ func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string
 			"Status":       msg.Status.String(),
 			"ReplyToID":    replyToID,
 			"ReplyPreview": a.getReplyPreview(replyToID, contact),
+			"Attachments":  infoAttachments,
 		})
 
 		return nil

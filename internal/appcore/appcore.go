@@ -444,6 +444,7 @@ func (a *AppCore) ConnectToI2P() {
 
 	// Запускаем messenger
 	a.Messenger = messenger.NewService(a.Router, a.Identity.Keys, a.OnMessageReceived)
+	a.Messenger.SetAttachmentSaver(a.SaveAttachment)
 	a.Messenger.SetContactHandler(a.OnContactRequest)
 	a.Messenger.SetFileOfferHandler(a.onFileOffer)
 	a.Messenger.SetFileResponseHandler(a.onFileResponse)
@@ -580,6 +581,7 @@ func (a *AppCore) OnMessageReceived(msg *core.Message, senderPubKey, senderAddr 
 	}
 
 	msg.ChatID = contact.ChatID
+
 	if err := a.Repo.SaveMessage(a.Ctx, msg); err != nil {
 		return
 	}
@@ -589,6 +591,21 @@ func (a *AppCore) OnMessageReceived(msg *core.Message, senderPubKey, senderAddr 
 		replyToIDStr = *msg.ReplyToID
 	}
 	replyPreview := a.getReplyPreview(replyToIDStr, contact)
+
+	// Формируем вложения для фронтенда
+	attachments := make([]map[string]interface{}, 0, len(msg.Attachments))
+	for _, att := range msg.Attachments {
+		attachments = append(attachments, map[string]interface{}{
+			"ID":           att.ID,
+			"Filename":     att.Filename,
+			"Size":         att.Size,
+			"LocalPath":    att.LocalPath,
+			"MimeType":     att.MimeType,
+			"IsCompressed": att.IsCompressed,
+			"Width":        att.Width,
+			"Height":       att.Height,
+		})
+	}
 
 	a.Emitter.Emit("new_message", map[string]interface{}{
 		"ID":           msg.ID,
@@ -601,6 +618,7 @@ func (a *AppCore) OnMessageReceived(msg *core.Message, senderPubKey, senderAddr 
 		"Status":       msg.Status.String(),
 		"ReplyToID":    msg.ReplyToID,
 		"ReplyPreview": replyPreview,
+		"Attachments":  attachments,
 	})
 
 	if !msg.IsOutgoing {
