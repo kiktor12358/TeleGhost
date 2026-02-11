@@ -50,6 +50,7 @@
   let editMessageContent = '';
   let isCompressed = true;
   let previewImage = null;
+  let replyingTo = null;
   
   // Settings State
   let showSettings = false;
@@ -95,6 +96,11 @@
     updateIsMobile();
     window.addEventListener('resize', updateIsMobile);
     
+    // Focus tracking
+    window.addEventListener('focus', () => AppActions.SetAppFocus(true));
+    window.addEventListener('blur', () => AppActions.SetAppFocus(false));
+    AppActions.SetAppFocus(document.hasFocus());
+    
     // Back button support for mobile
     window.addEventListener('popstate', (e) => {
         if (isMobile) {
@@ -102,8 +108,7 @@
                 showSettings = false;
                 mobileView.set('list');
             } else if (selectedContact) {
-                selectedContact = null;
-                messages = [];
+                selectContact(null);
                 mobileView.set('list');
             }
         }
@@ -257,16 +262,27 @@
   }
 
   function selectContact(contact) {
-      if (!contact) return;
+      if (!contact) {
+          selectedContact = null;
+          messages = [];
+          AppActions.SetActiveChat("");
+          return;
+      }
       if (selectedContact && selectedContact.ID === contact.ID) {
           selectedContact = null;
           messages = [];
+          AppActions.SetActiveChat("");
           return;
       }
       selectedContact = contact;
       showSettings = false;
       loadMessages(contact.ID);
-      if (isMobile) mobileView.set('chat');
+      AppActions.SetActiveChat(contact.ChatID || "");
+      if (isMobile) {
+          mobileView.set('chat');
+          // Add history state for back button
+          window.history.pushState({view: 'chat'}, '');
+      }
   }
 
   async function loadMessages(contactId) {
@@ -303,8 +319,13 @@
           IsOutgoing: true,
           Status: 'sending',
           ContentType: files.length > 0 ? 'mixed' : 'text',
+          ReplyToID: replyingTo?.ID,
+          ReplyPreview: replyingTo ? { AuthorName: replyingTo.SenderID === identity ? 'Я' : selectedContact.Nickname, Content: replyingTo.Content } : null,
           _optimistic: true
       };
+      
+      const replyID = replyingTo?.ID || "";
+      replyingTo = null; // Clear immediately after getting ID
       
       messages = [...(messages || []), optimisticMsg];
       scrollToBottom();
@@ -316,9 +337,9 @@
       
       try {
           if (files.length > 0) {
-              await AppActions.SendFileMessage(selectedContact.ID, text, files, !compress);
+              await AppActions.SendFileMessage(selectedContact.ID, text, replyID, files, !compress);
           } else {
-              await AppActions.SendText(selectedContact.ID, text);
+              await AppActions.SendText(selectedContact.ID, text, replyID);
           }
           // Убираем оптимистичное сообщение (реальное придёт через событие)
           messages = (messages || []).filter(m => m.ID !== tempId);
@@ -348,9 +369,14 @@
       onToggleSettings: () => { 
           if (showSettings) {
               showSettings = false;
+              if (isMobile) mobileView.set('list');
           } else {
               showSettings = true;
               settingsView = 'menu';
+              if (isMobile) {
+                  mobileView.set('settings');
+                  window.history.pushState({view: 'settings'}, '');
+              }
           }
       },
       onStartResize: (e) => {
@@ -501,7 +527,8 @@
           AppActions.GetFileBase64(path).then(b64 => {
               if (b64) node.src = "data:image/jpeg;base64," + b64;
           });
-      }
+      },
+      onCancelReply: () => { replyingTo = null; }
   };
 
   const settingsHandlers = {
@@ -700,7 +727,7 @@
                         <Chat 
                             {selectedContact} {messages} bind:newMessage bind:selectedFiles {filePreviews}
                             {editingMessageId} {editMessageContent} bind:isCompressed {previewImage}
-                            {isMobile}
+                            {replyingTo} {isMobile}
                             onBack={() => { selectedContact = null; messages = []; mobileView.set('list'); }}
                             {...chatHandlers}
                         />
@@ -760,7 +787,7 @@
                         <Chat 
                             {selectedContact} {messages} bind:newMessage bind:selectedFiles {filePreviews}
                             {editingMessageId} {editMessageContent} bind:isCompressed {previewImage}
-                            isMobile={false}
+                            {replyingTo} isMobile={false}
                             {...chatHandlers}
                         />
                     {:else}
@@ -850,6 +877,15 @@
 
     {#if messageContextMenu.show}
         <div class="context-menu" style="top: {messageContextMenu.y}px; left: {messageContextMenu.x}px">
+            <div class="context-item" on:click={() => {
+                replyingTo = messageContextMenu.message;
+                messageContextMenu.show = false;
+                // Focus textarea
+                setTimeout(() => {
+                    const ta = document.querySelector('.message-input');
+                    if (ta) ta.focus();
+                }, 100);
+            }}>Ответить</div>
             {#if messageContextMenu.message?.Content}
                 <div class="context-item" on:click={() => {
                     AppActions.CopyToClipboard(messageContextMenu.message.Content);

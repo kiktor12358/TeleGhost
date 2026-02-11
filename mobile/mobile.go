@@ -297,9 +297,9 @@ func dispatch(app *appcore.AppCore, method string, args []json.RawMessage) (inte
 
 	// === Messages ===
 	case "SendText":
-		var contactID, text string
-		parseArgs(args, &contactID, &text)
-		return nil, app.SendText(contactID, text)
+		var contactID, text, replyToID string
+		parseArgs(args, &contactID, &text, &replyToID)
+		return nil, app.SendText(contactID, text, replyToID)
 
 	case "GetMessages":
 		var contactID string
@@ -326,11 +326,11 @@ func dispatch(app *appcore.AppCore, method string, args []json.RawMessage) (inte
 		return app.GetUnreadCount()
 
 	case "SendFileMessage":
-		var chatID, text string
+		var chatID, text, replyToID string
 		var files []string
 		var isRaw bool
-		parseArgs(args, &chatID, &text, &files, &isRaw)
-		return nil, app.SendFileMessage(chatID, text, files, isRaw)
+		parseArgs(args, &chatID, &text, &replyToID, &files, &isRaw)
+		return nil, app.SendFileMessage(chatID, text, replyToID, files, isRaw)
 
 	// === Folders ===
 	case "CreateFolder":

@@ -109,15 +109,15 @@
                     </div>
                 {:else if activeSettingsTab === 'network'}
                     <div class="settings-section">
-                        <label class="form-label">Ваш I2P адрес (Destination)</label>
-                        <div class="destination-box">
-                            <code class="destination-code">{myDestination || 'Загрузка...'}</code>
-                            <button class="btn-icon-copy" on:click={() => {
-                                navigator.clipboard.writeText(myDestination);
-                                // We can't easily call showToast from here without passing it as prop, 
-                                // but the parent App.svelte already has onCopyDestination.
-                            }}>📋</button>
-                        </div>
+                        <details class="destination-details">
+                            <summary class="form-label">Ваш I2P адрес (Destination) <span class="hint-inline">(нажмите, чтобы развернуть)</span></summary>
+                            <div class="destination-box">
+                                <code class="destination-code">{myDestination || 'Загрузка...'}</code>
+                                <button class="btn-icon-copy" on:click={() => {
+                                    navigator.clipboard.writeText(myDestination);
+                                }}>📋</button>
+                            </div>
+                        </details>
                         <div class="info-item">
                             <span class="info-label">Статус сети:</span>
                             <span class="info-value" style="color: {getStatusColor(networkStatus)}">{getStatusText(networkStatus)}</span>
@@ -291,8 +291,27 @@
     .flex-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     .bg-box { background: var(--bg-secondary); padding: 16px; border-radius: 12px; }
 
-    .destination-box { display: flex; align-items: center; gap: 10px; background: var(--bg-input); padding: 12px; border-radius: 12px; margin-top: 8px; }
-    .destination-code { flex: 1; font-family: monospace; font-size: 12px; opacity: 0.7; overflow: hidden; text-overflow: ellipsis; }
+    .destination-details { margin-bottom: 24px; cursor: pointer; background: rgba(99, 102, 241, 0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+    .destination-details[open] { background: rgba(99, 102, 241, 0.05); }
+    .destination-details summary { 
+        padding: 16px 20px; list-style: none; display: flex; align-items: center; gap: 12px; 
+        outline: none; transition: all 0.2s; font-weight: 600; color: #a29bfe;
+    }
+    .destination-details summary:hover { background: rgba(255,255,255,0.03); color: white; }
+    .destination-details summary::-webkit-details-marker { display: none; }
+    .destination-details summary::before { content: '🌐'; font-size: 14px; }
+    .destination-details[open] summary { border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .hint-inline { font-size: 11px; opacity: 0.5; font-weight: 400; font-family: var(--font-main); margin-left: auto; }
+
+    .destination-box { 
+        display: flex; align-items: flex-start; gap: 10px; padding: 20px; 
+        animation: slideDown 0.3s ease-out;
+    }
+    .destination-code { 
+        flex: 1; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 12px; 
+        line-height: 1.6; opacity: 0.8; word-break: break-all; white-space: pre-wrap;
+        max-height: 150px; overflow-y: auto; color: #a29bfe;
+    }
 
     .full-width { width: 100%; }
     .section-title { margin: 32px 0 16px; border-top: 1px solid var(--border); padding-top: 24px; }

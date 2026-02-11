@@ -122,6 +122,12 @@ func (s MessageStatus) String() string {
 	}
 }
 
+// ReplyPreview содержит краткую информацию об исходном сообщении для ответа
+type ReplyPreview struct {
+	AuthorName string `json:"author_name"`
+	Content    string `json:"content"`
+}
+
 // Message представляет сообщение в чате
 type Message struct {
 	// ID — уникальный идентификатор сообщения (UUID)
@@ -147,6 +153,9 @@ type Message struct {
 
 	// ReplyToID — ID сообщения, на которое это ответ (опционально)
 	ReplyToID *string `json:"reply_to_id,omitempty" db:"reply_to_id"`
+
+	// ReplyPreview — информация об исходном сообщении для отображения (не хранится в БД напрямую)
+	ReplyPreview *ReplyPreview `json:"reply_preview,omitempty" db:"-"`
 
 	// Timestamp — время создания сообщения (Unix ms)
 	Timestamp int64 `json:"timestamp" db:"timestamp"`

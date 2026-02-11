@@ -287,7 +287,9 @@ type TextMessage struct {
 	// Уникальный ID сообщения (UUID)
 	MessageId string `protobuf:"bytes,4,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"`
 	// Вложения
-	Attachments   []*Attachment `protobuf:"bytes,5,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	Attachments []*Attachment `protobuf:"bytes,5,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	// ID сообщения, на которое это ответ (опционально)
+	ReplyToId     string `protobuf:"bytes,6,opt,name=reply_to_id,json=replyToId,proto3" json:"reply_to_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -355,6 +357,13 @@ func (x *TextMessage) GetAttachments() []*Attachment {
 		return x.Attachments
 	}
 	return nil
+}
+
+func (x *TextMessage) GetReplyToId() string {
+	if x != nil {
+		return x.ReplyToId
+	}
+	return ""
 }
 
 // ProfileUpdate — обновление профиля пользователя
@@ -826,14 +835,15 @@ const file_proto_teleghost_proto_rawDesc = "" +
 	"\x04data\x18\x05 \x01(\fR\x04data\x12#\n" +
 	"\ris_compressed\x18\x06 \x01(\bR\fisCompressed\x12\x14\n" +
 	"\x05width\x18\a \x01(\x05R\x05width\x12\x16\n" +
-	"\x06height\x18\b \x01(\x05R\x06height\"\xb6\x01\n" +
+	"\x06height\x18\b \x01(\x05R\x06height\"\xd6\x01\n" +
 	"\vTextMessage\x12\x17\n" +
 	"\achat_id\x18\x01 \x01(\tR\x06chatId\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1c\n" +
 	"\ttimestamp\x18\x03 \x01(\x03R\ttimestamp\x12\x1d\n" +
 	"\n" +
 	"message_id\x18\x04 \x01(\tR\tmessageId\x127\n" +
-	"\vattachments\x18\x05 \x03(\v2\x15.teleghost.AttachmentR\vattachments\"U\n" +
+	"\vattachments\x18\x05 \x03(\v2\x15.teleghost.AttachmentR\vattachments\x12\x1e\n" +
+	"\vreply_to_id\x18\x06 \x01(\tR\treplyToId\"U\n" +
 	"\rProfileUpdate\x12\x1a\n" +
 	"\bnickname\x18\x01 \x01(\tR\bnickname\x12\x10\n" +
 	"\x03bio\x18\x02 \x01(\tR\x03bio\x12\x16\n" +

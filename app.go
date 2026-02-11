@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"teleghost/internal/appcore"
 	"teleghost/internal/network/media"
@@ -201,17 +202,29 @@ func (a *App) startup(ctx context.Context) {
 
 // shutdown вызывается при закрытии приложения
 func (a *App) shutdown(ctx context.Context) {
-	log.Printf("[App] Shutting down...")
+	log.Printf("[App] Shutdown started...")
+
+	// Failsafe: force exit if shutdown takes too long
+	go func() {
+		time.Sleep(1 * time.Second)
+		log.Println("[App] Shutdown timed out, forcing exit!")
+		os.Exit(0)
+	}()
+
 	if a.core != nil {
+		log.Println("[App] Shutting down Core...")
 		a.core.Shutdown()
 	}
 	if a.embeddedStop != nil {
+		log.Println("[App] Stopping embedded I2P router...")
 		a.embeddedStop()
 	}
 	if a.trayManager != nil {
+		log.Println("[App] Stopping Tray...")
 		a.trayManager.Stop()
 	}
-	log.Println("[App] Shutdown complete.")
+	log.Println("[App] Shutdown complete. Exiting.")
+	os.Exit(0)
 }
 
 // GetMediaHandler возвращает обработчик для медиафайлов
@@ -342,4 +355,20 @@ func (a *App) SaveFileToLocation(path, filename string) (string, error) {
 // RequestProfileUpdate запрашивает обновление профиля (заглушка для совместимости)
 func (a *App) RequestProfileUpdate() {
 	runtime.EventsEmit(a.ctx, "profile_updated")
+}
+
+// SetAppFocus устанавливает фокус приложения (для подавления уведомлений)
+func (a *App) SetAppFocus(focused bool) {
+	if a.core != nil {
+		a.core.IsFocused = focused
+		log.Printf("[App] Focus changed: %v", focused)
+	}
+}
+
+// SetActiveChat устанавливает ID активного чата
+func (a *App) SetActiveChat(chatID string) {
+	if a.core != nil {
+		a.core.ActiveChatID = chatID
+		log.Printf("[App] Active chat: %s", chatID)
+	}
 }

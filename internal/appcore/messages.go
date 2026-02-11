@@ -18,7 +18,7 @@ import (
 )
 
 // SendText отправляет текстовое сообщение.
-func (a *AppCore) SendText(contactID, text string) error {
+func (a *AppCore) SendText(contactID, text, replyToID string) error {
 	if a.Messenger == nil {
 		return fmt.Errorf("not connected to I2P")
 	}
@@ -46,7 +46,7 @@ func (a *AppCore) SendText(contactID, text string) error {
 		}
 	}
 
-	if err := a.Messenger.SendTextMessage(contact.I2PAddress, contact.ChatID, text); err != nil {
+	if err := a.Messenger.SendTextMessage(contact.I2PAddress, contact.ChatID, text, replyToID); err != nil {
 		log.Printf("[AppCore] SendTextMessage error to %s: %v", contact.Nickname, err)
 		return fmt.Errorf("send failed: %w", err)
 	}
@@ -64,6 +64,10 @@ func (a *AppCore) SendText(contactID, text string) error {
 		UpdatedAt:   time.Now(),
 	}
 
+	if replyToID != "" {
+		msg.ReplyToID = &replyToID
+	}
+
 	a.Repo.SaveMessage(a.Ctx, msg)
 
 	a.Emitter.Emit("new_message", map[string]interface{}{
@@ -74,6 +78,7 @@ func (a *AppCore) SendText(contactID, text string) error {
 		"Timestamp":  msg.Timestamp,
 		"IsOutgoing": msg.IsOutgoing,
 		"Status":     "sent",
+		"ReplyToID":  replyToID,
 	})
 
 	return nil
@@ -95,6 +100,21 @@ func (a *AppCore) GetMessages(contactID string, limit, offset int) ([]*MessageIn
 		return nil, err
 	}
 
+	// Получаем контакты для имен авторов
+	contacts, _ := a.Repo.ListContacts(a.Ctx)
+	cidToName := make(map[string]string)
+	for _, c := range contacts {
+		cidToName[c.ID] = c.Nickname
+		cidToName[c.PublicKey] = c.Nickname
+	}
+	cidToName[a.Identity.Keys.UserID] = "Я"
+
+	// Создаем карту всех сообщений для быстрого поиска предпросмотра ответа
+	allMsgsMap := make(map[string]*core.Message)
+	for _, m := range messages {
+		allMsgsMap[m.ID] = m
+	}
+
 	result := make([]*MessageInfo, len(messages))
 	for i, m := range messages {
 		info := &MessageInfo{
@@ -104,6 +124,27 @@ func (a *AppCore) GetMessages(contactID string, limit, offset int) ([]*MessageIn
 			IsOutgoing:  m.IsOutgoing,
 			Status:      m.Status.String(),
 			ContentType: m.ContentType,
+		}
+
+		if m.ReplyToID != nil && *m.ReplyToID != "" {
+			info.ReplyToID = *m.ReplyToID
+			// Пытаемся найти исходное сообщение для превью
+			orig, ok := allMsgsMap[*m.ReplyToID]
+			if !ok {
+				// Если в текущей пачке нет, ищем в БД
+				orig, _ = a.Repo.GetMessage(a.Ctx, *m.ReplyToID)
+			}
+
+			if orig != nil {
+				author := cidToName[orig.SenderID]
+				if author == "" {
+					author = "Контакт"
+				}
+				info.ReplyPreview = &ReplyPreview{
+					AuthorName: author,
+					Content:    orig.Content,
+				}
+			}
 		}
 
 		if len(m.Attachments) > 0 {
@@ -158,7 +199,7 @@ func (a *AppCore) GetUnreadCount() (int, error) {
 }
 
 // SendFileMessage отправляет предложение о передаче файлов
-func (a *AppCore) SendFileMessage(chatID, text string, files []string, isRaw bool) error {
+func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string, isRaw bool) error {
 	if a.Messenger == nil {
 		return fmt.Errorf("messenger not started")
 	}
@@ -169,10 +210,11 @@ func (a *AppCore) SendFileMessage(chatID, text string, files []string, isRaw boo
 	}
 
 	destination := contact.I2PAddress
-	actualChatID := contact.ChatID
-	if actualChatID == "" {
-		actualChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
+	if contact.ChatID == "" {
+		contact.ChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
+		a.Repo.SaveContact(a.Ctx, contact)
 	}
+	actualChatID := contact.ChatID
 
 	now := time.Now().UnixMilli()
 	msgID := fmt.Sprintf("%d-%s", now, a.Identity.Keys.UserID[:8])
@@ -219,7 +261,7 @@ func (a *AppCore) SendFileMessage(chatID, text string, files []string, isRaw boo
 			return fmt.Errorf("failed to compress any images")
 		}
 
-		if err := a.Messenger.SendAttachmentMessageWithID(destination, actualChatID, msgID, text, attachments); err != nil {
+		if err := a.Messenger.SendAttachmentMessageWithID(destination, actualChatID, msgID, text, replyToID, attachments); err != nil {
 			return fmt.Errorf("failed to send message: %w", err)
 		}
 
@@ -252,6 +294,10 @@ func (a *AppCore) SendFileMessage(chatID, text string, files []string, isRaw boo
 			UpdatedAt:   time.Now(),
 			Attachments: coreAttachments,
 		}
+
+		if replyToID != "" {
+			msg.ReplyToID = &replyToID
+		}
 		a.Repo.SaveMessage(a.Ctx, msg)
 
 		a.Emitter.Emit("new_message", map[string]interface{}{
@@ -263,6 +309,7 @@ func (a *AppCore) SendFileMessage(chatID, text string, files []string, isRaw boo
 			"IsOutgoing":  msg.IsOutgoing,
 			"ContentType": msg.ContentType,
 			"Status":      msg.Status.String(),
+			"ReplyToID":   replyToID,
 		})
 
 		return nil
@@ -305,6 +352,9 @@ func (a *AppCore) SendFileMessage(chatID, text string, files []string, isRaw boo
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
+	if replyToID != "" {
+		msg.ReplyToID = &replyToID
+	}
 
 	coreAttachments := make([]*core.Attachment, 0, len(files))
 	for _, f := range files {
@@ -338,6 +388,7 @@ func (a *AppCore) SendFileMessage(chatID, text string, files []string, isRaw boo
 		"FileCount":   len(files),
 		"TotalSize":   totalSize,
 		"Filenames":   filenames,
+		"ReplyToID":   replyToID,
 	})
 
 	return nil
@@ -474,7 +525,7 @@ func (a *AppCore) onFileResponse(senderPubKey, messageID, chatID string, accepte
 			attachments = append(attachments, att)
 		}
 
-		a.Messenger.SendAttachmentMessageWithID(transfer.Destination, transfer.ChatID, messageID, "", attachments)
+		a.Messenger.SendAttachmentMessageWithID(transfer.Destination, transfer.ChatID, messageID, "", "", attachments)
 	}
 
 	a.TransferMu.Lock()

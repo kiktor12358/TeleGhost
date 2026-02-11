@@ -73,6 +73,12 @@ const (
 	StatusError      NetworkStatus = "error"
 )
 
+// ReplyPreview содержит краткую информацию об исходном сообщении для ответа
+type ReplyPreview struct {
+	AuthorName string `json:"author_name"`
+	Content    string `json:"content"`
+}
+
 // FolderInfo — информация о папке (для фронтенда)
 type FolderInfo struct {
 	ID          string   `json:"id"`
@@ -100,13 +106,15 @@ type ContactInfo struct {
 
 // MessageInfo — информация о сообщении (для фронтенда)
 type MessageInfo struct {
-	ID          string                   `json:"ID"`
-	Content     string                   `json:"Content"`
-	Timestamp   int64                    `json:"Timestamp"`
-	IsOutgoing  bool                     `json:"IsOutgoing"`
-	Status      string                   `json:"Status"`
-	ContentType string                   `json:"ContentType"`
-	Attachments []map[string]interface{} `json:"Attachments,omitempty"`
+	ID           string                   `json:"ID"`
+	Content      string                   `json:"Content"`
+	Timestamp    int64                    `json:"Timestamp"`
+	IsOutgoing   bool                     `json:"IsOutgoing"`
+	Status       string                   `json:"Status"`
+	ContentType  string                   `json:"ContentType"`
+	ReplyToID    string                   `json:"ReplyToID,omitempty"`
+	ReplyPreview *ReplyPreview            `json:"ReplyPreview,omitempty"`
+	Attachments  []map[string]interface{} `json:"Attachments,omitempty"`
 }
 
 // UserInfo — информация о пользователе
@@ -160,6 +168,9 @@ type AppCore struct {
 
 	Status  NetworkStatus
 	DataDir string
+
+	IsFocused    bool   // Текущий статус фокуса окна
+	ActiveChatID string // ID чата, который сейчас открыт
 
 	TransferMu       sync.RWMutex
 	PendingTransfers map[string]*PendingTransfer
@@ -221,6 +232,7 @@ func (a *AppCore) Shutdown() {
 
 // UpdateMyProfile обновляет профиль пользователя в БД и в менеджере профилей.
 func (a *AppCore) UpdateMyProfile(nickname, bio, avatar string) error {
+	log.Printf("[AppCore] Updating profile: nickname=%s, bio=%s, avatarLen=%d", nickname, bio, len(avatar))
 	if a.Repo == nil {
 		return fmt.Errorf("not logged in")
 	}
@@ -432,18 +444,39 @@ func (a *AppCore) OnMessageReceived(msg *core.Message, senderPubKey, senderAddr 
 		return
 	}
 
+	var replyPreview *ReplyPreview
+	if msg.ReplyToID != nil && *msg.ReplyToID != "" {
+		orig, _ := a.Repo.GetMessage(a.Ctx, *msg.ReplyToID)
+		if orig != nil {
+			author := contact.Nickname
+			if orig.IsOutgoing {
+				author = "Я"
+			}
+			replyPreview = &ReplyPreview{
+				AuthorName: author,
+				Content:    orig.Content,
+			}
+		}
+	}
+
 	a.Emitter.Emit("new_message", map[string]interface{}{
-		"ID":          msg.ID,
-		"ChatID":      msg.ChatID,
-		"SenderID":    msg.SenderID,
-		"Content":     msg.Content,
-		"Timestamp":   msg.Timestamp,
-		"IsOutgoing":  msg.IsOutgoing,
-		"ContentType": msg.ContentType,
+		"ID":           msg.ID,
+		"ChatID":       msg.ChatID,
+		"SenderID":     msg.SenderID,
+		"Content":      msg.Content,
+		"Timestamp":    msg.Timestamp,
+		"IsOutgoing":   msg.IsOutgoing,
+		"ContentType":  msg.ContentType,
+		"Status":       msg.Status.String(),
+		"ReplyToID":    msg.ReplyToID,
+		"ReplyPreview": replyPreview,
 	})
 
 	if !msg.IsOutgoing {
-		go a.SendNotification(contact.Nickname, msg.Content, msg.ContentType)
+		// Подавляем уведомление, если приложение в фокусе и открыт именно этот чат
+		if !(a.IsFocused && a.ActiveChatID == msg.ChatID) {
+			go a.SendNotification(contact.Nickname, msg.Content, msg.ContentType)
+		}
 		go a.UpdateUnreadCount()
 	}
 }

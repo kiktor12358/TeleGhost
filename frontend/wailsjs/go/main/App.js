@@ -166,12 +166,12 @@ export function SelectImage() {
   return window['go']['main']['App']['SelectImage']();
 }
 
-export function SendFileMessage(arg1, arg2, arg3, arg4) {
-  return window['go']['main']['App']['SendFileMessage'](arg1, arg2, arg3, arg4);
+export function SendFileMessage(arg1, arg2, arg3, arg4, arg5) {
+  return window['go']['main']['App']['SendFileMessage'](arg1, arg2, arg3, arg4, arg5);
 }
 
-export function SendText(arg1, arg2) {
-  return window['go']['main']['App']['SendText'](arg1, arg2);
+export function SendText(arg1, arg2, arg3) {
+  return window['go']['main']['App']['SendText'](arg1, arg2, arg3);
 }
 
 export function ShowInFolder(arg1) {

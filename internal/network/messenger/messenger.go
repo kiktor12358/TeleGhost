@@ -195,7 +195,7 @@ func (s *Service) SendMessage(destination string, packet *pb.Packet) error {
 }
 
 // SendTextMessage создаёт и отправляет текстовое сообщение
-func (s *Service) SendTextMessage(destination, chatID, content string) error {
+func (s *Service) SendTextMessage(destination, chatID, content, replyToID string) error {
 	now := time.Now().UnixMilli()
 
 	// Создаём TextMessage
@@ -204,6 +204,7 @@ func (s *Service) SendTextMessage(destination, chatID, content string) error {
 		Content:   content,
 		Timestamp: now,
 		MessageId: fmt.Sprintf("%d-%s", now, s.identity.UserID[:8]),
+		ReplyToId: replyToID,
 	}
 
 	payload, err := proto.Marshal(textMsg)
@@ -579,11 +580,11 @@ func (s *Service) SendAttachmentMessage(destination, chatID, content string, att
 	// I'll create `SendAttachmentMessageWithID`.
 
 	msgID := fmt.Sprintf("%d-%s", now, s.identity.UserID[:8])
-	return s.SendAttachmentMessageWithID(destination, chatID, msgID, content, attachments)
+	return s.SendAttachmentMessageWithID(destination, chatID, msgID, content, "", attachments)
 }
 
 // SendAttachmentMessageWithID отправляет сообщение с вложениями и указанным ID
-func (s *Service) SendAttachmentMessageWithID(destination, chatID, messageID, content string, attachments []*pb.Attachment) error {
+func (s *Service) SendAttachmentMessageWithID(destination, chatID, messageID, content, replyToID string, attachments []*pb.Attachment) error {
 	now := time.Now().UnixMilli()
 
 	// Создаём TextMessage
@@ -593,6 +594,7 @@ func (s *Service) SendAttachmentMessageWithID(destination, chatID, messageID, co
 		Timestamp:   now,
 		MessageId:   messageID,
 		Attachments: attachments,
+		ReplyToId:   replyToID,
 	}
 
 	payload, err := proto.Marshal(textMsg)
@@ -663,6 +665,10 @@ func (s *Service) handleTextMessage(packet *pb.Packet, senderPubKey, remoteAddr 
 		Timestamp:   textMsg.Timestamp,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
+	}
+
+	if textMsg.ReplyToId != "" {
+		msg.ReplyToID = &textMsg.ReplyToId
 	}
 
 	// Обрабатываем вложения

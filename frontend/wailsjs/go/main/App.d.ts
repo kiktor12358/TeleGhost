@@ -85,9 +85,9 @@ export function SelectFiles():Promise<Array<string>>;
 
 export function SelectImage():Promise<string>;
 
-export function SendFileMessage(arg1:string,arg2:string,arg3:Array<string>,arg4:boolean):Promise<void>;
+export function SendFileMessage(arg1:string,arg2:string,arg3:string,arg4:Array<string>,arg5:boolean):Promise<void>;
 
-export function SendText(arg1:string,arg2:string):Promise<void>;
+export function SendText(arg1:string,arg2:string,arg3:string):Promise<void>;
 
 export function ShowInFolder(arg1:string):Promise<void>;
 

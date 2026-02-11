@@ -1,13 +1,13 @@
 package main
 
 // SendText отправляет текстовое сообщение.
-func (a *App) SendText(contactID, text string) error {
-	return a.core.SendText(contactID, text)
+func (a *App) SendText(contactID, text, replyToID string) error {
+	return a.core.SendText(contactID, text, replyToID)
 }
 
 // SendFileMessage отправляет файлы.
-func (a *App) SendFileMessage(chatID, text string, files []string, isRaw bool) error {
-	return a.core.SendFileMessage(chatID, text, files, isRaw)
+func (a *App) SendFileMessage(chatID, text, replyToID string, files []string, isRaw bool) error {
+	return a.core.SendFileMessage(chatID, text, replyToID, files, isRaw)
 }
 
 // GetMessages возвращает историю сообщений.

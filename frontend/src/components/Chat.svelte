@@ -11,9 +11,10 @@
     export let editingMessageId = null;
     export let editMessageContent = '';
     export let isCompressed = false;
-    export let previewImage = null;
+    export let replyingTo = null;
     export let isMobile = false;
     export let onBack = null;
+    export let onCancelReply;
 
     export let onSendMessage;
     export let onKeyPress;
@@ -31,6 +32,45 @@
     export let onPreviewImage;
 
     let textarea;
+    let touchStartX = 0;
+    let touchMoveX = 0;
+    let swipedMsgId = null;
+    let swipeThreshold = 60;
+
+    function handleTouchStart(e, msgId) {
+        if (msgId === swipedMsgId) return;
+        touchStartX = e.touches[0].clientX;
+        swipedMsgId = msgId;
+    }
+
+    function handleTouchMove(e) {
+        if (!swipedMsgId) return;
+        const currentX = e.touches[0].clientX;
+        const diff = touchStartX - currentX;
+        if (diff > 0) { // Swiping left
+            touchMoveX = Math.min(diff, 100); // Limit visual swipe
+        }
+    }
+
+    function handleTouchEnd(msg) {
+        if (swipedMsgId === msg.ID && touchMoveX >= swipeThreshold) {
+            handleReply(msg);
+            if (navigator.vibrate) navigator.vibrate(50);
+        }
+        touchMoveX = 0;
+        swipedMsgId = null;
+    }
+
+    function handleReply(msg) {
+        replyingTo = msg;
+        if (textarea) textarea.focus();
+    }
+
+    function handleDoubleClick(msg) {
+        if (!isMobile) {
+            handleReply(msg);
+        }
+    }
 
     function handleKeyPress(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -43,7 +83,7 @@
     export let startLoadingImage; 
 </script>
 
-<div class="chat-area animate-fade-in" class:mobile={isMobile}>
+<div class="chat-area animate-fade-in" class:mobile={isMobile} style="height: 100dvh;">
     <div class="chat-header">
         {#if isMobile && onBack}
             <button class="btn-back" on:click={onBack}>
@@ -77,89 +117,134 @@
         </div>
     </div>
     
-    <div class="messages-container">
+    <div class="messages-container messages-scroll-area">
         {#each messages as msg (msg.ID)}
-            <div class="message animate-message" class:outgoing={msg.IsOutgoing}>
-                <div class="message-bubble" class:outgoing={msg.IsOutgoing} on:contextmenu|preventDefault={(e) => onShowMessageMenu(e, msg)}>
-                    {#if msg.Attachments && msg.Attachments.length > 0}
-                        <div class="message-images" style="grid-template-columns: {msg.Attachments.length === 1 ? '1fr' : 'repeat(2, 1fr)'}">
-                            {#each msg.Attachments as att}
-                                {#if att.MimeType && att.MimeType.startsWith('image/')}
-                                    <img 
-                                        use:startLoadingImage={att.LocalPath} 
-                                        alt="attachment" 
-                                        class="msg-img" 
-                                        style="height: {msg.Attachments.length === 1 ? 'auto' : '120px'}" 
-                                        role="button"
-                                        tabindex="0"
-                                        on:click={() => onPreviewImage(att.LocalPath)}
-                                        on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onPreviewImage(att.LocalPath)}
-                                    />
-                                {:else}
-                                    <div class="file-attachment-container">
-                                        <div 
-                                            class="file-attachment-card" 
+            <div 
+                class="message animate-message" 
+                id="msg-{msg.ID}" 
+                class:outgoing={msg.IsOutgoing}
+                on:touchstart={(e) => isMobile && handleTouchStart(e, msg.ID)}
+                on:touchmove={(e) => isMobile && handleTouchMove(e)}
+                on:touchend={() => isMobile && handleTouchEnd(msg)}
+                on:dblclick={() => handleDoubleClick(msg)}
+            >
+                <div 
+                    class="message-bubble-wrapper" 
+                    style="transform: translateX(-{swipedMsgId === msg.ID ? touchMoveX : 0}px); transition: {swipedMsgId === msg.ID ? 'none' : 'transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28)'};"
+                >
+                    <div class="message-bubble" class:outgoing={msg.IsOutgoing} on:contextmenu|preventDefault={(e) => onShowMessageMenu(e, msg)}>
+                        {#if msg.ReplyPreview}
+                            <div 
+                                class="reply-preview-bubble" 
+                                role="button" 
+                                tabindex="0"
+                                on:click={() => {
+                                    const target = document.getElementById(`msg-${msg.ReplyToID}`);
+                                    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }}
+                            >
+                                <div class="reply-author">{msg.ReplyPreview.author_name || msg.ReplyPreview.AuthorName}</div>
+                                <div class="reply-content-preview">{msg.ReplyPreview.content || msg.ReplyPreview.Content}</div>
+                            </div>
+                        {/if}
+                        {#if msg.Attachments && msg.Attachments.length > 0}
+                            <div class="message-images" style="grid-template-columns: {msg.Attachments.length === 1 ? '1fr' : 'repeat(2, 1fr)'}">
+                                {#each msg.Attachments as att}
+                                    {#if att.MimeType && att.MimeType.startsWith('image/')}
+                                        <img 
+                                            use:startLoadingImage={att.LocalPath} 
+                                            alt="attachment" 
+                                            class="msg-img" 
+                                            style="height: {msg.Attachments.length === 1 ? 'auto' : '120px'}" 
                                             role="button"
                                             tabindex="0"
-                                            on:click|stopPropagation={() => onOpenFile(att.LocalPath)}
-                                            on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpenFile(att.LocalPath)}
-                                        >
-                                            <div class="file-icon">📄</div>
-                                            <div class="file-info">
-                                                <div class="file-name">{att.Filename || 'File'}</div>
-                                                <div class="file-size">{att.Size ? (att.Size / 1024).toFixed(1) + ' KB' : ''}</div>
+                                            on:click={() => onPreviewImage(att.LocalPath)}
+                                            on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onPreviewImage(att.LocalPath)}
+                                        />
+                                    {:else}
+                                        <div class="file-attachment-container">
+                                            <div 
+                                                class="file-attachment-card" 
+                                                role="button"
+                                                tabindex="0"
+                                                on:click|stopPropagation={() => onOpenFile(att.LocalPath)}
+                                                on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && onOpenFile(att.LocalPath)}
+                                            >
+                                                <div class="file-icon">📄</div>
+                                                <div class="file-info">
+                                                    <div class="file-name">{att.Filename || 'File'}</div>
+                                                    <div class="file-size">{att.Size ? (att.Size / 1024).toFixed(1) + ' KB' : ''}</div>
+                                                </div>
                                             </div>
+                                            <button class="btn-file-save" on:click|stopPropagation={() => onSaveFile(att.LocalPath, att.Filename)} title="Сохранить в другое место">
+                                                <div class="icon-svg-xs">{@html Icons.Download || '⬇️'}</div>
+                                            </button>
                                         </div>
-                                        <button class="btn-file-save" on:click|stopPropagation={() => onSaveFile(att.LocalPath, att.Filename)} title="Сохранить в другое место">
-                                            <div class="icon-svg-xs">{@html Icons.Download || '⬇️'}</div>
-                                        </button>
-                                    </div>
-                                {/if}
-                            {/each}
-                        </div>
-                    {/if}
+                                    {/if}
+                                {/each}
+                            </div>
+                        {/if}
 
-                    {#if editingMessageId === msg.ID}
-                        <div class="message-edit-container">
-                            <textarea class="message-edit-input" bind:value={editMessageContent} on:keydown={(e) => e.key === 'Escape' && onCancelEdit()}></textarea>
-                            <div class="message-edit-actions">
-                                <button class="btn-sm btn-primary" on:click={onSaveEditMessage}>✓</button>
-                                <button class="btn-sm btn-secondary" on:click={onCancelEdit}>✕</button>
+                        {#if editingMessageId === msg.ID}
+                            <div class="message-edit-container">
+                                <textarea class="message-edit-input" bind:value={editMessageContent} on:keydown={(e) => e.key === 'Escape' && onCancelEdit()}></textarea>
+                                <div class="message-edit-actions">
+                                    <button class="btn-sm btn-primary" on:click={onSaveEditMessage}>✓</button>
+                                    <button class="btn-sm btn-secondary" on:click={onCancelEdit}>✕</button>
+                                </div>
                             </div>
-                        </div>
-                    {:else if msg.ContentType === 'file_offer'}
-                        <div class="file-offer-card">
-                            <div class="file-icon-large">📁</div>
-                            <div class="file-info">
-                                <div class="file-title">Файлов: {msg.FileCount}</div>
-                                <div class="file-size">{(msg.TotalSize / (1024*1024)).toFixed(2)} MB</div>
+                        {:else if msg.ContentType === 'file_offer'}
+                            <div class="file-offer-card">
+                                <div class="file-icon-large">📁</div>
+                                <div class="file-info">
+                                    <div class="file-title">Файлов: {msg.FileCount}</div>
+                                    <div class="file-size">{(msg.TotalSize / (1024*1024)).toFixed(2)} MB</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="file-actions">
-                            {#if !msg.IsOutgoing}
-                                <button class="btn-small btn-success" on:click|stopPropagation={() => onAcceptTransfer(msg)}>Принять</button>
-                                <button class="btn-small btn-danger" on:click|stopPropagation={() => onDeclineTransfer(msg)}>Отклонить</button>
+                            <div class="file-actions">
+                                {#if !msg.IsOutgoing}
+                                    <button class="btn-small btn-success" on:click|stopPropagation={() => onAcceptTransfer(msg)}>Принять</button>
+                                    <button class="btn-small btn-danger" on:click|stopPropagation={() => onDeclineTransfer(msg)}>Отклонить</button>
+                                {/if}
+                            </div>
+                        {:else}
+                            <div class="message-content">{@html parseMarkdown(msg.Content)}</div>
+                        {/if}
+
+                        <div class="message-meta">
+                            <span class="message-time">{formatTime(msg.Timestamp)}</span>
+                            {#if msg.IsOutgoing}
+                                <span class="message-status"><div class="icon-svg-sm" style="display:inline-block; width:12px; height:12px;">{@html msg.Status === 'sending' ? Icons.Clock : Icons.Check}</div></span>
                             {/if}
                         </div>
-                    {:else}
-                        <div class="message-content">{@html parseMarkdown(msg.Content)}</div>
-                    {/if}
-
-                    <div class="message-meta">
-                        <span class="message-time">{formatTime(msg.Timestamp)}</span>
-                        {#if msg.IsOutgoing}
-                            <span class="message-status"><div class="icon-svg-sm" style="display:inline-block; width:12px; height:12px;">{@html msg.Status === 'sending' ? Icons.Clock : Icons.Check}</div></span>
-                        {/if}
                     </div>
                 </div>
+                {#if isMobile && swipedMsgId === msg.ID}
+                    <div class="swipe-reply-icon" style="opacity: {Math.min(touchMoveX / swipeThreshold, 1)}; transform: scale({Math.min(touchMoveX / swipeThreshold, 1)})">
+                        <div class="icon-svg-sm">{@html Icons.Reply || '↩️'}</div>
+                    </div>
+                {/if}
             </div>
         {/each}
     </div>
 
     <div class="input-area-wrapper">
+        {#if replyingTo}
+            <div class="replying-to-bar" transition:fade={{duration: 150}}>
+                <div class="reply-line"></div>
+                <div class="reply-info">
+                    <div class="reply-author-name">Ответ для {replyingTo.IsOutgoing ? 'Меня' : (selectedContact.Nickname || 'Unknown')}</div>
+                    <div class="reply-text-preview">{replyingTo.Content}</div>
+                </div>
+                <button class="btn-cancel-reply" on:click={onCancelReply}>
+                    <div class="icon-svg-xs">{@html Icons.Plus}</div>
+                </button>
+            </div>
+        {/if}
+
         <div class="attachment-preview-wrapper" style="display: {selectedFiles.length > 0 ? 'block' : 'none'}">
             <div class="attachment-preview-container">
-                <div class="attachment-preview">
+                <div class="attachment-preview" style="max-width: calc(100% - 60px);">
                     {#each selectedFiles as file, i}
                         <div class="preview-item">
                             {#if filePreviews[file]}
@@ -183,7 +268,7 @@
             <button class="btn-icon" on:click={onSelectFiles} title="Прикрепить файл">
                 <div class="icon-svg">{@html Icons.Paperclip}</div>
             </button>
-            <div style="flex: 1; position: relative; width: 100%;">
+            <div style="flex: 1; position: relative;">
                 <textarea
                     bind:this={textarea}
                     class="message-input"
@@ -203,8 +288,8 @@
 </div>
 
 <style>
-    .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary, #0c0c14); overflow: hidden; }
-    .chat-header { height: 64px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary, #1e1e2e); border-bottom: 1px solid var(--border); z-index: 10; }
+    .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary, #0c0c14); overflow: hidden; position: relative; }
+    .chat-header { height: 64px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary, #1e1e2e); border-bottom: 1px solid var(--border); z-index: 10; flex-shrink: 0; }
     .chat-contact-info { display: flex; align-items: center; gap: 12px; }
     .chat-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; overflow: hidden; background: var(--accent); }
     .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -215,13 +300,36 @@
     .status-text { font-size: 12px; color: var(--text-secondary); }
 
     .messages-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 4px; }
-    .message { display: flex; margin-bottom: 2px; }
+    .message { display: flex; margin-bottom: 2px; position: relative; align-items: center; }
     .message.outgoing { justify-content: flex-end; }
+    
+    .message-bubble-wrapper {
+        max-width: 85%;
+        display: flex;
+        flex-direction: column;
+        z-index: 2;
+    }
+    .message.outgoing .message-bubble-wrapper { align-items: flex-end; }
+
     .message-bubble { 
-        max-width: 70%; padding: 8px 12px; border-radius: 18px; background: var(--bg-secondary, #1e1e2e); color: var(--text-primary); position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        padding: 8px 12px; border-radius: 18px; background: var(--bg-secondary, #1e1e2e); color: var(--text-primary); position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: fit-content;
     }
     .message.outgoing .message-bubble { background: var(--accent, #6366f1); color: white; border-bottom-right-radius: 4px; }
     .message:not(.outgoing) .message-bubble { border-bottom-left-radius: 4px; }
+
+    .swipe-reply-icon {
+        position: absolute;
+        right: -40px;
+        width: 32px;
+        height: 32px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent);
+        pointer-events: none;
+    }
 
     .message-images { display: grid; gap: 4px; margin-bottom: 6px; border-radius: 8px; overflow: hidden; }
     .msg-img { width: 100%; object-fit: cover; cursor: pointer; background: rgba(0,0,0,0.2); }
@@ -229,20 +337,21 @@
     .message-meta { display: flex; align-items: center; gap: 6px; margin-top: 4px; justify-content: flex-end; opacity: 0.7; font-size: 10px; }
     .message-time { white-space: nowrap; }
 
-    .input-area-wrapper { padding: 10px 20px calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--bg-primary); position: sticky; bottom: 0; z-index: 50; }
+    .input-area-wrapper { padding: 10px 20px 20px; background: var(--bg-primary); position: sticky; bottom: 0; z-index: 50; border-top: 1px solid var(--border); }
     .input-area { display: flex; align-items: center; gap: 10px; background: var(--bg-secondary); padding: 8px 12px; border-radius: 24px; }
-    .message-input { flex: 1; background: transparent; border: none; color: white; outline: none; resize: none; font-size: 14px; max-height: 120px; padding: 8px 0; }
+    .message-input { flex: 1; background: transparent; border: none; color: white; outline: none; resize: none; font-size: 15px; max-height: 150px; padding: 8px 0; }
 
     .btn-icon { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
     .btn-icon:hover { background: rgba(255,255,255,0.1); color: white; }
     .btn-icon.active { color: var(--accent); }
 
-    .btn-send { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+    .btn-send { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; flex-shrink: 0; }
     .btn-send:hover { transform: scale(1.05); }
     .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .attachment-preview-container { display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary); border-radius: 12px; margin-bottom: 10px; padding: 10px; }
-    .attachment-preview { display: flex; gap: 10px; overflow-x: auto; }
+    .attachment-preview { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+    .attachment-preview::-webkit-scrollbar { display: none; }
     .preview-item { position: relative; width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: rgba(0,0,0,0.2); }
     .preview-item img { width: 100%; height: 100%; object-fit: cover; }
     .btn-remove-att { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; }
@@ -280,9 +389,42 @@
     .btn-back:hover { background: rgba(255,255,255,0.1); color: white; }
 
     /* Mobile-specific overrides */
-    .chat-area.mobile .chat-header { padding: 0 12px; }
-    .chat-area.mobile .messages-container { padding: 12px; }
-    .chat-area.mobile .message-bubble { max-width: 85%; }
-    .chat-area.mobile .input-area-wrapper { padding: 8px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
-    .chat-area.mobile .input-area { padding: 6px 10px; }
+    .chat-area.mobile .input-area-wrapper { padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 5px)); background: var(--bg-primary); }
+    .chat-area.mobile .input-area { padding: 6px 10px; border-radius: 20px; }
+    .chat-area.mobile .chat-header { height: 56px; padding: 0 12px; }
+
+    /* Reply Styling */
+    .reply-preview-bubble {
+        background: rgba(0, 0, 0, 0.05);
+        border-left: 3px solid var(--accent);
+        padding: 4px 8px;
+        margin-bottom: 6px;
+        border-radius: 4px;
+        font-size: 13px;
+        cursor: pointer;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    .message.outgoing .reply-preview-bubble { background: rgba(255, 255, 255, 0.15); border-left-color: white; }
+    .reply-author { font-weight: 600; color: var(--accent); margin-bottom: 2px; font-size: 12px; }
+    .message.outgoing .reply-author { color: white; }
+    .reply-content-preview { color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
+    .message.outgoing .reply-content-preview { color: rgba(255, 255, 255, 0.8); }
+
+    .replying-to-bar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--bg-secondary);
+        padding: 8px 16px;
+        border-top: 1px solid var(--border);
+        margin-bottom: 4px;
+        border-radius: 12px 12px 0 0;
+    }
+    .reply-line { width: 3px; height: 32px; background: var(--accent); border-radius: 2px; }
+    .reply-info { flex: 1; overflow: hidden; }
+    .reply-author-name { font-size: 12px; font-weight: 600; color: var(--accent); margin-bottom: 2px; }
+    .reply-text-preview { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .btn-cancel-reply { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 4px; border-radius: 50%; display: flex; transform: rotate(45deg); }
+    .btn-cancel-reply:hover { color: #ff6b6b; }
 </style>
