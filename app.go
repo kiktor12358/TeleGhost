@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"fmt"
 	"image"
 	"image/png"
 	"log"
@@ -352,21 +353,17 @@ func (a *App) SaveFileToLocation(path, filename string) (string, error) {
 	return dest, nil
 }
 
-// RequestProfileUpdate запрашивает обновление профиля (заглушка для совместимости)
-func (a *App) RequestProfileUpdate() {
-	runtime.EventsEmit(a.ctx, "profile_updated")
-}
-
-// SetAppFocus устанавливает фокус приложения (для подавления уведомлений)
-func (a *App) SetAppFocus(focused bool) {
-	if a.core != nil {
-		a.core.IsFocused = focused
-	}
-}
-
 // SetActiveChat устанавливает ID активного чата
 func (a *App) SetActiveChat(chatID string) {
 	if a.core != nil {
 		a.core.ActiveChatID = chatID
 	}
+}
+
+// RequestProfileUpdate запрашивает обновление профиля у контакта
+func (a *App) RequestProfileUpdate(address string) error {
+	if a.core != nil && a.core.Messenger != nil {
+		return a.core.Messenger.SendProfileRequest(address)
+	}
+	return fmt.Errorf("messenger not initialized")
 }

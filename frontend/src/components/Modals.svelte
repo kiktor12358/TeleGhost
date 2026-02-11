@@ -22,6 +22,7 @@
     export let showContactProfile = false;
     export let contact = null;
     export let onCloseContactProfile;
+    export let onUpdateProfile = null;
     
     // Add/Search Contact Modal
     export let showAddContact = false;
@@ -176,8 +177,11 @@
                 {/if}
             </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer" style="flex-direction: column; gap: 8px;">
             <button class="btn-primary full-width clickable-btn" on:click={() => { navigator.clipboard.writeText(contact.I2PAddress); }}>Скопировать адрес</button>
+            {#if onUpdateProfile}
+                <button class="btn-glass full-width clickable-btn" on:click={() => onUpdateProfile(contact.I2PAddress)}>🔄 Обновить профиль</button>
+            {/if}
         </div>
     </div>
 </div>

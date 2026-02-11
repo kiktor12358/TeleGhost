@@ -589,6 +589,12 @@
           showSettings = false; 
           if (isMobile) mobileView.set('list');
       },
+      onUpdateProfile: async (addr) => {
+          try {
+              await AppActions.RequestProfileUpdate(addr);
+              showToast("Запрос на обновление профиля отправлен", "info");
+          } catch (e) { showToast(e, "error"); }
+      },
       onShowSeed: () => { showSeedModal = true; },
       onCheckUpdates: async () => {
           const res = await AppActions.CheckForUpdates();
@@ -807,13 +813,14 @@
         </div>
     {/if}
 
-    <Modals {showConfirmModal} {confirmModalTitle} {confirmModalText} 
-            {showFolderModal} {isEditingFolder} bind:folderName={currentFolderData.Name} bind:folderIcon={currentFolderData.Icon}
-            showContactProfile={showContactProfile} contact={selectedContact}
-            {showAddContact} bind:addContactName bind:addContactAddress
-            {showSeedModal} mnemonic={currentUserInfo?.Mnemonic || ''}
-            {showChangePinModal}
-            {...modalHandlers} />
+    <Modals
+        {showConfirmModal} {confirmModalTitle} {confirmModalText} {onConfirm} onCancelConfirm={() => showConfirmModal = false}
+        {showFolderModal} {isEditingFolder} bind:folderName={currentFolderData.Name} bind:folderIcon={currentFolderData.Icon}
+        showContactProfile={showContactProfile} contact={selectedContact} onCloseContactProfile={() => showContactProfile = false} onUpdateProfile={settingsHandlers.onUpdateProfile}
+        {showAddContact} onAddContact={contactHandlers.onAddContact} onCancelAddContact={contactHandlers.onCancelAddContact} bind:addContactName bind:addContactAddress
+        {showSeedModal} mnemonic={currentUserInfo?.Mnemonic || ''} onCloseSeed={contactHandlers.onCloseSeed}
+        {showChangePinModal} onSavePin={contactHandlers.onSavePin} onCancelChangePin={contactHandlers.onCancelChangePin}
+    />
 
     {#if previewImage}
         <div class="fullscreen-preview" on:click={() => previewImage = null}>

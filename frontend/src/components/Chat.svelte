@@ -86,7 +86,7 @@
 <div class="chat-area animate-fade-in" class:mobile={isMobile} style="height: 100dvh;">
     <div class="chat-header">
         {#if isMobile && onBack}
-            <button class="btn-back" on:click={onBack}>
+            <button class="btn-back" on:click={onBack} style="margin-right: 8px;">
                 <div class="icon-svg">{@html Icons.ArrowLeft || '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>'}</div>
             </button>
         {/if}
@@ -288,8 +288,8 @@
 </div>
 
 <style>
-    .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary, #0c0c14); overflow: hidden; position: relative; }
-    .chat-header { height: 64px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary, #1e1e2e); border-bottom: 1px solid var(--border); z-index: 10; flex-shrink: 0; }
+    .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary, #0c0c14); overflow: hidden; position: relative; overscroll-behavior: contain; }
+    .chat-header { height: 64px; padding: 0 16px; display: flex; align-items: center; justify-content: flex-start; gap: 4px; background: var(--bg-secondary, #1e1e2e); border-bottom: 1px solid var(--border); z-index: 10; flex-shrink: 0; }
     .chat-contact-info { display: flex; align-items: center; gap: 12px; }
     .chat-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; overflow: hidden; background: var(--accent); }
     .chat-avatar img { width: 100%; height: 100%; object-fit: cover; }

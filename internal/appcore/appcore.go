@@ -244,25 +244,20 @@ func (a *AppCore) UpdateMyProfile(nickname, bio, avatar string) error {
 
 	// Синхронизируем с ProfileManager (чтобы на экране входа были актуальные данные)
 	if a.ProfileManager != nil && a.Identity != nil {
-		if meta, _ := a.ProfileManager.GetProfileByUserID(a.Identity.Keys.UserID); meta != nil {
-			avatarPath := avatar
-			// Если avatar - это base64, сохраняем его во временный файл, чтобы ProfileManager мог его скопировать
-			if len(avatar) > 100 && (avatar[:10] == "data:image" || avatar[:5] == "image") {
-				// Пытаемся сохранить base64 в файл
-				tempFile := filepath.Join(os.TempDir(), "teleghost_avatar_update.png")
-				data := avatar
-				if idx := strings.Index(data, "base64,"); idx != -1 {
-					data = data[idx+7:]
-				}
-				imgData, err := base64.StdEncoding.DecodeString(data)
-				if err == nil {
-					if err := os.WriteFile(tempFile, imgData, 0600); err == nil {
-						avatarPath = tempFile
-					}
-				}
+		avatarPath := avatar
+		// Если avatar - это base64 или пришел новый путь, сохраняем его локально
+		if len(avatar) > 30 && (strings.HasPrefix(avatar, "data:image") || strings.HasPrefix(avatar, "image")) {
+			// Пытаемся сохранить base64 в файл медиа пользователя
+			newPath, err := a.SaveAttachment("my_avatar.png", []byte(avatar))
+			if err == nil {
+				avatarPath = newPath
+				// Также обновляем в БД путь на локальный, а не base64
+				a.Repo.UpdateMyProfile(a.Ctx, nickname, bio, avatarPath)
 			}
+		}
 
-			a.ProfileManager.UpdateProfile(meta.ID, nickname, avatarPath, false, meta.UsePin, "", "")
+		if meta, _ := a.ProfileManager.GetProfileByUserID(a.Identity.Keys.UserID); meta != nil {
+			a.ProfileManager.UpdateProfile(meta.ID, nickname, avatarPath, false, meta.UsePin, "", a.Identity.Mnemonic)
 		}
 	}
 

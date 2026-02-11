@@ -142,8 +142,8 @@ export function RemoveChatFromFolder(arg1, arg2) {
   return window['go']['main']['App']['RemoveChatFromFolder'](arg1, arg2);
 }
 
-export function RequestProfileUpdate() {
-  return window['go']['main']['App']['RequestProfileUpdate']();
+export function RequestProfileUpdate(arg1) {
+  return window['go']['main']['App']['RequestProfileUpdate'](arg1);
 }
 
 export function SaveFileToLocation(arg1, arg2) {
@@ -176,10 +176,6 @@ export function SendText(arg1, arg2, arg3) {
 
 export function SetActiveChat(arg1) {
   return window['go']['main']['App']['SetActiveChat'](arg1);
-}
-
-export function SetAppFocus(arg1) {
-  return window['go']['main']['App']['SetAppFocus'](arg1);
 }
 
 export function ShowInFolder(arg1) {

@@ -42,6 +42,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"io/fs"
 	"log"
 	"net"
 	"os"
@@ -285,35 +286,39 @@ func (r *Router) GetSAMAddress() string {
 	return fmt.Sprintf("127.0.0.1:%d", r.samPort)
 }
 
-//go:embed i2pd/contrib/certificates/*
+//go:embed i2pd/contrib/certificates
 var embeddedCerts embed.FS
 
-// copyEmbeddedCerts extracts embedded certificates to the destination
+// copyEmbeddedCerts extracts embedded certificates to the destination recursively
 func copyEmbeddedCerts(dst string) error {
 	log.Println("[i2pd] Extracting embedded certificates...")
 
-	entries, err := embeddedCerts.ReadDir("i2pd/contrib/certificates")
-	if err != nil {
-		return fmt.Errorf("failed to read embedded certs dir: %w", err)
-	}
-
-	if err := os.MkdirAll(dst, 0700); err != nil {
-		return err
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-
-		data, err := embeddedCerts.ReadFile("i2pd/contrib/certificates/" + entry.Name())
+	return fs.WalkDir(embeddedCerts, "i2pd/contrib/certificates", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if err := os.WriteFile(filepath.Join(dst, entry.Name()), data, 0644); err != nil {
+		// Calculate relative path from the root of embed
+		relPath, err := filepath.Rel("i2pd/contrib/certificates", path)
+		if err != nil {
 			return err
 		}
-	}
-	return nil
+
+		if relPath == "." {
+			return nil
+		}
+
+		targetPath := filepath.Join(dst, relPath)
+
+		if d.IsDir() {
+			return os.MkdirAll(targetPath, 0700)
+		}
+
+		data, err := embeddedCerts.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		return os.WriteFile(targetPath, data, 0644)
+	})
 }
