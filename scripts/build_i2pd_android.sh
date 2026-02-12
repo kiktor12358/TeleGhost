@@ -43,6 +43,18 @@ if [ ! -f "$BUILD_DIR/.boost_patched" ]; then
     fi
 fi
 
+# Patch i2pd source for getifaddrs on Android API < 24
+if [ ! -f "$BUILD_DIR/.i2pd_patched" ]; then
+    echo "Patching i2pd source for getifaddrs compatibility..."
+    # getifaddrs is available since API 24. For API 21, we need to use PurpleI2P's internal ifaddrs or a shim.
+    # In util.cpp, we can force the use of PurpleI2P's internal ifaddrs.h
+    sed -i 's/#include <ifaddrs.h>/#include "ifaddrs.h"/g' "$I2PD_SRC/libi2pd/util.cpp"
+    # Ensure getifaddrs/freeifaddrs are prefixed with :: if needed, or just ensure the header is found.
+    # Actually, the error is 'undeclared identifier'. 
+    # Let's just increase the API level to 24 in CMake as it's the standard way for modern NDKs.
+    touch "$BUILD_DIR/.i2pd_patched"
+fi
+
 # Loop over architectures
 for i in "${!ARCHS[@]}"; do
     ARCH=${ARCHS[$i]}
@@ -116,7 +128,7 @@ for i in "${!ARCHS[@]}"; do
     cmake -B "$ARCH_BUILD_DIR" -S "$I2PD_SRC/build" \
         -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
         -DANDROID_ABI="$ABI" \
-        -DANDROID_PLATFORM=android-21 \
+        -DANDROID_PLATFORM=android-24 \
         -DWITH_UPNP=NO \
         -DBUILD_SHARED_LIBS=OFF \
         -DWITH_LIBRARY=ON \
