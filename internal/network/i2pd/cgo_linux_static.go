@@ -1,4 +1,4 @@
-//go:build cgo_i2pd && linux && !dynamic_libs
+//go:build cgo_i2pd && linux && !dynamic_libs && !android
 
 package i2pd
 
