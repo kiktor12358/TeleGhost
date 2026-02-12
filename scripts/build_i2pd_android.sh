@@ -38,11 +38,28 @@ for i in "${!ARCHS[@]}"; do
     mkdir -p $ARCH_BUILD_DIR
     
     # Locate OpenSSL for this Arch
-    # Assuming structure: $OPENSSL_ROOT/$ARCH/lib and include
-    # We used find in workflow, so OPENSSL_ROOT is likely just the parent dir?
-    # No, passed OPENSSL_ROOT should be the version dir, e.g. openssl_prebuilt/openssl-1.1.1
-    OPENSSL_INCLUDE="$OPENSSL_ROOT/$ARCH/include"
-    OPENSSL_LIB="$OPENSSL_ROOT/$ARCH/lib"
+    echo "--- OpenSSL Discovery for $ARCH ---"
+    # Find crypto lib for this arch
+    OPENSSL_CRYPTO_LIB=$(find "$OPENSSL_ROOT" -name "libcrypto.a" | grep "/$ARCH/" | head -n 1)
+    OPENSSL_SSL_LIB=$(find "$OPENSSL_ROOT" -name "libssl.a" | grep "/$ARCH/" | head -n 1)
+    # Find include (look for ssl.h)
+    OPENSSL_INCLUDE_PATH=$(find "$OPENSSL_ROOT" -name "ssl.h" | grep "/$ARCH/" | head -n 1 | sed 's|/openssl/ssl.h||')
+    
+    if [ -z "$OPENSSL_INCLUDE_PATH" ]; then
+        # Fallback to first found include if not arch-specific
+        OPENSSL_INCLUDE_PATH=$(find "$OPENSSL_ROOT" -name "ssl.h" | head -n 1 | sed 's|/openssl/ssl.h||')
+    fi
+    
+    if [ -z "$OPENSSL_CRYPTO_LIB" ] || [ -z "$OPENSSL_SSL_LIB" ] || [ -z "$OPENSSL_INCLUDE_PATH" ]; then
+        echo "Warning: Could not fully locate OpenSSL for $ARCH, using legacy fallback"
+        OPENSSL_INCLUDE_PATH="$OPENSSL_ROOT/$ARCH/include"
+        OPENSSL_CRYPTO_LIB="$OPENSSL_ROOT/$ARCH/lib/libcrypto.a"
+        OPENSSL_SSL_LIB="$OPENSSL_ROOT/$ARCH/lib/libssl.a"
+    fi
+    
+    echo "   OpenSSL Include: $OPENSSL_INCLUDE_PATH"
+    echo "   OpenSSL Crypto: $OPENSSL_CRYPTO_LIB"
+    echo "   OpenSSL SSL: $OPENSSL_SSL_LIB"
     
     # Locate Boost for this Arch
     echo "--- Boost Discovery for $ARCH ---"
@@ -90,7 +107,11 @@ for i in "${!ARCHS[@]}"; do
         -DWITH_LIBRARY=ON \
         -DWITH_BINARY=OFF \
         -DWITH_STATIC=ON \
+        -DOPENSSL_USE_STATIC_LIBS=ON \
         -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT/$ARCH" \
+        -DOPENSSL_INCLUDE_DIR="$OPENSSL_INCLUDE_PATH" \
+        -DOPENSSL_CRYPTO_LIBRARY="$OPENSSL_CRYPTO_LIB" \
+        -DOPENSSL_SSL_LIBRARY="$OPENSSL_SSL_LIB" \
         -DBOOST_ROOT="$BOOST_ROOT" \
         -DBOOST_INCLUDEDIR="$BOOST_INCLUDE_PATH" \
         -DBOOST_LIBRARYDIR="$BOOST_LIB_PATH" \
