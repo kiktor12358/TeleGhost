@@ -11,7 +11,9 @@
         UnlockProfile,
         DeleteProfile,
         GetFileBase64,
-        CopyToClipboard
+        CopyToClipboard,
+        ImportAccount,
+        SelectFiles
     } from '../../wailsjs/go/main/App.js';
     import { getInitials } from '../utils.js';
 
@@ -226,6 +228,22 @@
             isLoading = false;
         }
     }
+
+    async function handleImportAccount() {
+        try {
+            isLoading = true;
+            let files = await SelectFiles();
+            if (files && files.length > 0) {
+                await ImportAccount(files[0]);
+                showToast('Аккаунт успешно импортирован', 'success');
+                await loadProfiles();
+            }
+        } catch (e) {
+            showToast('Ошибка импорта: ' + e, 'error');
+        } finally {
+            isLoading = false;
+        }
+    }
 </script>
 
 <div class="login-screen bg-animated" in:fade={{duration: 400}} on:click={hideContextMenu}>
@@ -293,6 +311,10 @@
           
           <button class="btn-glass full-width" on:click={() => authScreen = 'seed'}>
             Войти по seed-фразе
+          </button>
+          
+          <button class="btn-glass full-width" on:click={handleImportAccount} style="margin-top: 12px; border-style: dashed; opacity: 0.7;">
+            📥 Импорт из резервной копии
           </button>
 
         {:else if authScreen === 'pin'}

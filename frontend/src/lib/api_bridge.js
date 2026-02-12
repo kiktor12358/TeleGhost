@@ -136,6 +136,10 @@ const METHODS = [
     'CopyImageToClipboard',
     'GetImageThumbnail',
 
+    // === Account Backup ===
+    'ExportAccount',
+    'ImportAccount',
+
     // === Notifications ===
     'GetUnreadCount',
     'MarkChatAsRead',

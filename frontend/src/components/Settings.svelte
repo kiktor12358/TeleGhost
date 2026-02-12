@@ -131,8 +131,21 @@
                                     <button class="btn-secondary full-width" on:click={onChangePin}>Сменить ПИН-код</button>
                                 {/if}
                             </div>
-                         {/if}
+
+                    <div class="setting-item-box" style="margin-top: 20px;">
+                        <h4 style="color: #a29bfe;">📤 Резервное копирование</h4>
+                        <p class="hint" style="margin-bottom: 12px;">Создайте полную копию вашего аккаунта (профиль, ключи, чаты, файлы). Сохраните архив в надежном месте.</p>
+                        <button class="btn-primary full-width" on:click={async () => {
+                            try {
+                                await AppActions.ExportAccount();
+                                alert('Аккаунт успешно экспортирован!');
+                            } catch(e) {
+                                alert('Ошибка экспорта: ' + e);
+                            }
+                        }}>Экспортировать аккаунт</button>
                     </div>
+                 {/if}
+            </div>
                 {:else if activeSettingsTab === 'network'}
                     <div class="settings-section">
                         <details class="destination-details">

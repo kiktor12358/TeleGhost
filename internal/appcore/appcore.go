@@ -11,9 +11,12 @@
 package appcore
 
 import (
+	"archive/zip"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -310,6 +313,202 @@ func (a *AppCore) UpdateMyProfile(nickname, bio, avatar string) error {
 	}
 
 	return nil
+}
+
+// ─── Export/Import Account ──────────────────────────────────────────────────
+
+// ExportAccount creates a ZIP archive with the current user's profile and data.
+func (a *AppCore) ExportAccount() (string, error) {
+	if a.Identity == nil {
+		return "", fmt.Errorf("not logged in")
+	}
+	if a.ProfileManager == nil {
+		return "", fmt.Errorf("profile manager not initialized")
+	}
+
+	// 1. Find profile metadata
+	profileMeta, err := a.ProfileManager.GetProfileByUserID(a.Identity.Keys.UserID)
+	if err != nil || profileMeta == nil {
+		return "", fmt.Errorf("profile metadata not found: %w", err)
+	}
+
+	// 2. Prepare temp zip file
+	tempDir := filepath.Join(a.DataDir, "temp")
+	os.MkdirAll(tempDir, 0755)
+	zipName := fmt.Sprintf("teleghost_export_%s_%d.zip", profileMeta.DisplayName, time.Now().Unix())
+	zipPath := filepath.Join(tempDir, zipName)
+
+	outFile, err := os.Create(zipPath)
+	if err != nil {
+		return "", err
+	}
+	defer outFile.Close()
+
+	w := zip.NewWriter(outFile)
+	defer w.Close()
+
+	// 3. Add profile JSON file
+	profileJsonPath := filepath.Join(a.DataDir, "profiles", profileMeta.ID+".json")
+	if err := addFileToZip(w, profileJsonPath, "profile.json"); err != nil {
+		return "", fmt.Errorf("failed to add profile json: %w", err)
+	}
+
+	// 4. Add Avatar if separate (it might be referenced in JSON)
+	if profileMeta.AvatarPath != "" {
+		avatarFullPath := filepath.Join(a.DataDir, "profiles", profileMeta.AvatarPath)
+		if _, err := os.Stat(avatarFullPath); err == nil {
+			if err := addFileToZip(w, avatarFullPath, profileMeta.AvatarPath); err != nil {
+				log.Printf("Failed to add avatar to zip: %v", err)
+			}
+		}
+	}
+
+	// 5. Add User Data Directory
+	userDir := filepath.Join(a.DataDir, "users", a.Identity.Keys.UserID)
+	err = filepath.Walk(userDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+
+		relPath, err := filepath.Rel(userDir, path)
+		if err != nil {
+			return err
+		}
+
+		zipEntryPath := filepath.Join("user_data", relPath)
+		return addFileToZip(w, path, zipEntryPath)
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to add user data: %w", err)
+	}
+
+	return zipPath, nil
+}
+
+// ImportAccount imports an account from a ZIP file.
+func (a *AppCore) ImportAccount(zipPath string) error {
+	if a.ProfileManager == nil {
+		return fmt.Errorf("profile manager not initialized")
+	}
+
+	r, err := zip.OpenReader(zipPath)
+	if err != nil {
+		return fmt.Errorf("failed to open zip: %w", err)
+	}
+	defer r.Close()
+
+	// 1. Read profile.json from zip
+	var profileData []byte
+	for _, f := range r.File {
+		if f.Name == "profile.json" {
+			rc, err := f.Open()
+			if err != nil {
+				return err
+			}
+			profileData, err = io.ReadAll(rc)
+			rc.Close()
+			if err != nil {
+				return err
+			}
+			break
+		}
+	}
+
+	if profileData == nil {
+		return fmt.Errorf("invalid archive: profile.json not found")
+	}
+
+	// Parse basic info via generic map to avoid struct mismatch if possible, or just struct
+	var meta struct {
+		ID          string `json:"id"`
+		UserID      string `json:"user_id"`
+		DisplayName string `json:"display_name"`
+		AvatarPath  string `json:"avatar_path"`
+	}
+	if err := json.Unmarshal(profileData, &meta); err != nil {
+		return fmt.Errorf("invalid profile json: %w", err)
+	}
+
+	// Check if already exists
+	existing, _ := a.ProfileManager.GetProfileByUserID(meta.UserID)
+	if existing != nil {
+		return fmt.Errorf("account already exists: %s", existing.DisplayName)
+	}
+
+	// 2. Restore Profile
+	profileDest := filepath.Join(a.DataDir, "profiles", meta.ID+".json")
+	if err := os.WriteFile(profileDest, profileData, 0600); err != nil {
+		return fmt.Errorf("failed to write profile json: %w", err)
+	}
+
+	// 3. Restore files
+	for _, f := range r.File {
+		if f.Name == "profile.json" {
+			continue
+		}
+
+		rc, err := f.Open()
+		if err != nil {
+			return err
+		}
+
+		var destPath string
+		if strings.HasPrefix(f.Name, "user_data/") {
+			rel := strings.TrimPrefix(f.Name, "user_data/")
+			destPath = filepath.Join(a.DataDir, "users", meta.UserID, rel)
+		} else if f.Name == meta.AvatarPath {
+			destPath = filepath.Join(a.DataDir, "profiles", f.Name)
+		} else {
+			rc.Close()
+			continue
+		}
+
+		os.MkdirAll(filepath.Dir(destPath), 0755)
+
+		outFile, err := os.Create(destPath)
+		if err != nil {
+			rc.Close()
+			return err
+		}
+		_, err = io.Copy(outFile, rc)
+		outFile.Close()
+		rc.Close()
+	}
+
+	log.Printf("Imported account: %s (%s)", meta.DisplayName, meta.ID)
+	return nil
+}
+
+// Helper to add file to zip
+func addFileToZip(w *zip.Writer, srcPath, zipPath string) error {
+	file, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	info, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	header, err := zip.FileInfoHeader(info)
+	if err != nil {
+		return err
+	}
+	header.Name = zipPath
+	header.Method = zip.Deflate
+
+	writer, err := w.CreateHeader(header)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(writer, file)
+	return err
 }
 
 // GetCurrentProfile возвращает текущий профиль.

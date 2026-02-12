@@ -37,6 +37,8 @@ export function DeleteProfile(arg1:string):Promise<void>;
 
 export function EditMessage(arg1:string,arg2:string):Promise<void>;
 
+export function ExportAccount():Promise<string>;
+
 export function ExportReseed():Promise<string>;
 
 export function GetAppAboutInfo():Promise<main.AppAboutInfo>;
@@ -64,6 +66,8 @@ export function GetNetworkStatus():Promise<string>;
 export function GetRouterSettings():Promise<main.RouterSettings>;
 
 export function GetUnreadCount():Promise<number>;
+
+export function ImportAccount(arg1:string):Promise<void>;
 
 export function ImportReseed(arg1:string):Promise<void>;
 

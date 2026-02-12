@@ -70,6 +70,10 @@ export function EditMessage(arg1, arg2) {
   return window['go']['main']['App']['EditMessage'](arg1, arg2);
 }
 
+export function ExportAccount() {
+  return window['go']['main']['App']['ExportAccount']();
+}
+
 export function ExportReseed() {
   return window['go']['main']['App']['ExportReseed']();
 }
@@ -124,6 +128,10 @@ export function GetRouterSettings() {
 
 export function GetUnreadCount() {
   return window['go']['main']['App']['GetUnreadCount']();
+}
+
+export function ImportAccount(arg1) {
+  return window['go']['main']['App']['ImportAccount'](arg1);
 }
 
 export function ImportReseed(arg1) {

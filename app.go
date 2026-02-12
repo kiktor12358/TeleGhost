@@ -484,6 +484,56 @@ func (a *App) ImportReseed(path string) error {
 	return a.core.ImportReseed(path)
 }
 
+// ExportAccount wraps AppCore.ExportAccount
+func (a *App) ExportAccount() (string, error) {
+	if a.core == nil {
+		return "", fmt.Errorf("core not initialized")
+	}
+
+	tempPath, err := a.core.ExportAccount()
+	if err != nil {
+		return "", err
+	}
+
+	defaultName := filepath.Base(tempPath)
+	destPath, err := wailsRuntime.SaveFileDialog(a.ctx, wailsRuntime.SaveDialogOptions{
+		Title:           "Сохранить резервную копию аккаунта",
+		DefaultFilename: defaultName,
+		Filters: []wailsRuntime.FileFilter{
+			{DisplayName: "ZIP Archive (*.zip)", Pattern: "*.zip"},
+		},
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if destPath == "" {
+		return "", fmt.Errorf("export cancelled")
+	}
+
+	input, err := os.ReadFile(tempPath)
+	if err != nil {
+		return "", err
+	}
+	if err := os.WriteFile(destPath, input, 0644); err != nil {
+		return "", err
+	}
+	os.Remove(tempPath)
+
+	a.ShareFile(destPath)
+
+	return destPath, nil
+}
+
+// ImportAccount wraps AppCore.ImportAccount
+func (a *App) ImportAccount(path string) error {
+	if a.core == nil {
+		return fmt.Errorf("core not initialized")
+	}
+	return a.core.ImportAccount(path)
+}
+
 // ShareFile calls WailsPlatform.ShareFile
 func (a *App) ShareFile(path string) error {
 	// For desktop, just open the folder containing the file
