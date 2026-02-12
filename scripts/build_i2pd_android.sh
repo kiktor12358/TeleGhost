@@ -163,10 +163,19 @@ for i in "${!ARCHS[@]}"; do
     DEST_DIR="internal/network/i2pd/lib/$ARCH"
     mkdir -p "$DEST_DIR"
     
+    echo ">>> Copying libraries to $DEST_DIR..."
     # i2pd produces libi2pd.a, libi2pdclient.a, libi2pdlang.a
-    cp "$ARCH_BUILD_DIR/libi2pd.a" "$DEST_DIR/" || echo "libi2pd.a not found"
-    cp "$ARCH_BUILD_DIR/libi2pdclient.a" "$DEST_DIR/" || echo "libi2pdclient.a not found"
-    cp "$ARCH_BUILD_DIR/libi2pdlang.a" "$DEST_DIR/" || echo "libi2pdlang.a not found"
+    cp -v "$ARCH_BUILD_DIR/libi2pd.a" "$DEST_DIR/" || echo "libi2pd.a not found"
+    cp -v "$ARCH_BUILD_DIR/libi2pdclient.a" "$DEST_DIR/" || echo "libi2pdclient.a not found"
+    cp -v "$ARCH_BUILD_DIR/libi2pdlang.a" "$DEST_DIR/" || echo "libi2pdlang.a not found"
+    
+    # Copy dependencies as well so CGO finds them in one place
+    cp -v "$OPENSSL_CRYPTO_LIB" "$DEST_DIR/" || echo "libcrypto.a not found"
+    cp -v "$OPENSSL_SSL_LIB" "$DEST_DIR/" || echo "libssl.a not found"
+    cp -v "$BOOST_LIB_PATH"/libboost_*.a "$DEST_DIR/" || echo "boost libs not found"
+    
+    echo ">>> Contents of $DEST_DIR:"
+    ls -F "$DEST_DIR"
     
     echo ">>> Finished $ARCH"
 done

@@ -1,6 +1,6 @@
 package i2pd
 
 /*
-#cgo android LDFLAGS: -L${SRCDIR} -li2pdclient -li2pd -li2pdlang -lssl -lcrypto -lz -latomic -lm -ldl -llog
+#cgo android LDFLAGS: -L${SRCDIR}/lib -li2pdclient -li2pd -li2pdlang -lssl -lcrypto -lboost_program_options -lboost_filesystem -lboost_system -lz -latomic -lm -ldl -llog
 */
 import "C"
