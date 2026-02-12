@@ -151,18 +151,24 @@ jobs:
           # Clone specific branch (e.g. boost-1_78_0 as latest prebuilt available)
           git clone --depth 1 -b boost-1_78_0 https://github.com/PurpleI2P/Boost-for-Android-Prebuilt.git boost_prebuilt
           
-          # Check if root is correct (has include/)
-          if [ -d "boost_prebuilt/include" ]; then
+          
+          echo "Scanning for Boost root..."
+          
+          # Check if content is in root (common for some branches)
+          if [ -d "boost_prebuilt/boost" ] || [ -d "boost_prebuilt/include/boost" ]; then
+             echo "Found Boost content in root."
              echo "BOOST_ROOT=$PWD/boost_prebuilt" >> $GITHUB_ENV
-             echo "Found Boost at root of repo."
           else
-             # Find version directory (e.g. boost-1.84.0)
-             BOOST_DIR_NAME=$(find boost_prebuilt -maxdepth 1 -type d -name "boost-1.*" | head -n 1)
+             # Find version directory (e.g. boost-1_78_0 or boost_1_78_0)
+             # Use broadly matching pattern 'boost*'
+             BOOST_DIR_NAME=$(find boost_prebuilt -maxdepth 1 -type d -name "boost*" | head -n 1)
+             
              if [ -z "$BOOST_DIR_NAME" ]; then
-                echo "Error: Could not find include/ or boost-1.* in boost_prebuilt"
-                ls -R boost_prebuilt
+                echo "Error: Could not find any boost directory usage pattern 'boost*' inside boost_prebuilt"
+                ls -F boost_prebuilt
                 exit 1
              fi
+             
              echo "Found Boost Version Subdir: $BOOST_DIR_NAME"
              echo "BOOST_ROOT=$PWD/$BOOST_DIR_NAME" >> $GITHUB_ENV
           fi
