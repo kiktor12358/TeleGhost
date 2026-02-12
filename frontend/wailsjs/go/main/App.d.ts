@@ -37,6 +37,8 @@ export function DeleteProfile(arg1:string):Promise<void>;
 
 export function EditMessage(arg1:string,arg2:string):Promise<void>;
 
+export function ExportReseed():Promise<string>;
+
 export function GetAppAboutInfo():Promise<main.AppAboutInfo>;
 
 export function GetContacts():Promise<Array<main.ContactInfo>>;
@@ -62,6 +64,8 @@ export function GetNetworkStatus():Promise<string>;
 export function GetRouterSettings():Promise<main.RouterSettings>;
 
 export function GetUnreadCount():Promise<number>;
+
+export function ImportReseed(arg1:string):Promise<void>;
 
 export function ListProfiles():Promise<Array<Record<string, any>>>;
 
@@ -96,6 +100,8 @@ export function SendText(arg1:string,arg2:string,arg3:string):Promise<void>;
 export function SetActiveChat(arg1:string):Promise<void>;
 
 export function SetAppFocus(arg1:boolean):Promise<void>;
+
+export function ShareFile(arg1:string):Promise<void>;
 
 export function ShowInFolder(arg1:string):Promise<void>;
 

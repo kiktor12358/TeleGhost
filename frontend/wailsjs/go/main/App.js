@@ -70,6 +70,10 @@ export function EditMessage(arg1, arg2) {
   return window['go']['main']['App']['EditMessage'](arg1, arg2);
 }
 
+export function ExportReseed() {
+  return window['go']['main']['App']['ExportReseed']();
+}
+
 export function GetAppAboutInfo() {
   return window['go']['main']['App']['GetAppAboutInfo']();
 }
@@ -120,6 +124,10 @@ export function GetRouterSettings() {
 
 export function GetUnreadCount() {
   return window['go']['main']['App']['GetUnreadCount']();
+}
+
+export function ImportReseed(arg1) {
+  return window['go']['main']['App']['ImportReseed'](arg1);
 }
 
 export function ListProfiles() {
@@ -188,6 +196,10 @@ export function SetActiveChat(arg1) {
 
 export function SetAppFocus(arg1) {
   return window['go']['main']['App']['SetAppFocus'](arg1);
+}
+
+export function ShareFile(arg1) {
+  return window['go']['main']['App']['ShareFile'](arg1);
 }
 
 export function ShowInFolder(arg1) {
