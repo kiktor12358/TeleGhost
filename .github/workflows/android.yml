@@ -182,18 +182,19 @@ jobs:
           export CGO_ENABLED=1
           export ANDROID_NDK_HOME="${{ env.ANDROID_NDK_HOME }}"
           
-          # Dynamically find OpenSSL directory (e.g. openssl-1.1.1w or openssl-1.1.1)
-          OPENSSL_DIR=$(find openssl_prebuilt -maxdepth 1 -type d -name "openssl-1.1*" | head -n 1)
-          if [ -z "$OPENSSL_DIR" ]; then
-            echo "Error: Could not find OpenSSL directory in openssl_prebuilt"
+          # Dynamically find OpenSSL include directory (by looking for dsa.h)
+          DSA_H=$(find openssl_prebuilt -name dsa.h | head -n 1)
+          if [ -z "$DSA_H" ]; then
+            echo "Error: openssl/dsa.h not found!"
             ls -R openssl_prebuilt
             exit 1
           fi
-          echo "Found OpenSSL directory: $OPENSSL_DIR"
+          # dsa.h is inside 'openssl/', so we need the parent of 'openssl/' directory
+          OPENSSL_INCLUDE_DIR=$(dirname $(dirname "$DSA_H"))
+          echo "Found OpenSSL include dir: $OPENSSL_INCLUDE_DIR"
           
           # Add Boost and OpenSSL to include path
-          # Using arm64 headers as reference
-          export CGO_CXXFLAGS="-I$BOOST_ROOT -I$GITHUB_WORKSPACE/$OPENSSL_DIR/arm64-v8a/include"
+          export CGO_CXXFLAGS="-I$BOOST_ROOT -I$GITHUB_WORKSPACE/$OPENSSL_INCLUDE_DIR"
           
           echo "Organizing OpenSSL libraries..."
           I2P_LIB_DIR="internal/network/i2pd/lib"
@@ -202,12 +203,34 @@ jobs:
           mkdir -p "$I2P_LIB_DIR/x86_64"
           mkdir -p "$I2P_LIB_DIR/x86"
           
-          # PurpleI2P structure: openssl-1.1.x/{arch}/lib/
+          # Find libraries dynamically
+          find openssl_prebuilt -name libssl.a
           
-          cp $GITHUB_WORKSPACE/$OPENSSL_DIR/arm64-v8a/lib/*.a "$I2P_LIB_DIR/arm64-v8a/"
-          cp $GITHUB_WORKSPACE/$OPENSSL_DIR/armeabi-v7a/lib/*.a   "$I2P_LIB_DIR/armeabi-v7a/"
-          cp $GITHUB_WORKSPACE/$OPENSSL_DIR/x86_64/lib/*.a "$I2P_LIB_DIR/x86_64/"
-          cp $GITHUB_WORKSPACE/$OPENSSL_DIR/x86/lib/*.a    "$I2P_LIB_DIR/x86/"
+          # Helper function to copy if source exists
+          copy_libs() {
+            ARCH_PATTERN=$1
+            DEST_DIR=$2
+            SRC_LIB=$(find openssl_prebuilt -name libssl.a | grep "$ARCH_PATTERN" | head -n 1)
+            if [ -n "$SRC_LIB" ]; then
+               SRC_DIR=$(dirname "$SRC_LIB")
+               echo "Copying from $SRC_DIR to $DEST_DIR"
+               cp "$SRC_DIR"/*.a "$DEST_DIR/"
+            else
+               echo "Warning: Libs for $ARCH_PATTERN not found!"
+            fi
+          }
+          
+          copy_libs "arm64" "$I2P_LIB_DIR/arm64-v8a"
+          copy_libs "arm"   "$I2P_LIB_DIR/armeabi-v7a" # Matches armeabi or arm
+          copy_libs "x86_64" "$I2P_LIB_DIR/x86_64"
+          copy_libs "x86"    "$I2P_LIB_DIR/x86" # Might match x86_64 too if careless, grep is fuzzy
+          # refine grep for x86? "x86/" or "x86$"
+          
+          # For x86 specifically to avoid x86_64
+          SRC_LIB_X86=$(find openssl_prebuilt -name libssl.a | grep "x86/" | head -n 1)
+          if [ -n "$SRC_LIB_X86" ]; then
+             cp "$(dirname "$SRC_LIB_X86")"/*.a "$I2P_LIB_DIR/x86/"
+          fi
           
           echo "──── Library structure (OpenSSL) ────"
           ls -R internal/network/i2pd/lib
