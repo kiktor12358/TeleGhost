@@ -145,21 +145,22 @@ jobs:
           BOOST_VER="1.84.0"
           BOOST_NAME="boost_1_84_0"
       # ── 10. Install Boost (Headers Only) ────────────────────────────────
-      - name: Download Boost Headers
+      - name: Download Boost Prebuilts
         run: |
-          BOOST_VER="1.84.0"
-          BOOST_NAME="boost_1_84_0"
-          # SourceForge mirror acts better with redirects
-          BOOST_URL="https://sourceforge.net/projects/boost/files/boost/${BOOST_VER}/${BOOST_NAME}.tar.gz/download"
+          echo "Cloning Boost for Android (PurpleI2P)..."
+          git clone --depth 1 https://github.com/PurpleI2P/Boost-for-Android-Prebuilt.git boost_prebuilt
           
-          echo "Downloading Boost ${BOOST_VER}..."
-          curl -L -o boost.tar.gz "${BOOST_URL}"
+          # Find version directory (e.g. boost-1.84.0)
+          BOOST_DIR_NAME=$(find boost_prebuilt -maxdepth 1 -type d -name "boost-1.*" | head -n 1)
+          if [ -z "$BOOST_DIR_NAME" ]; then
+             echo "Error: Could not find boost directory in boost_prebuilt"
+             ls -R boost_prebuilt
+             exit 1
+          fi
           
-          echo "Extracting Boost..."
-          tar xzf boost.tar.gz
-          mv ${BOOST_NAME} boost
-          
-          echo "BOOST_ROOT=$PWD/boost" >> $GITHUB_ENV
+          echo "Found Boost Version: $BOOST_DIR_NAME"
+          # Set BOOST_ROOT to the version directory which should contain include/ and lib/
+          echo "BOOST_ROOT=$PWD/$BOOST_DIR_NAME" >> $GITHUB_ENV
 
       - name: Download OpenSSL Prebuilts
         run: |
@@ -174,6 +175,58 @@ jobs:
           ls -R openssl_prebuilt | head -20
           echo "--- Checking specific path ---"
           ls -F openssl_prebuilt/openssl-1.1.1/ || true
+
+      - name: Compile i2pd (Android)
+        run: |
+          chmod +x scripts/build_i2pd_android.sh
+          
+          # Find OpenSSL base
+          OPENSSL_DIR=$(find openssl_prebuilt -maxdepth 1 -type d -name "openssl-1.1*" | head -n 1)
+          if [ -z "$OPENSSL_DIR" ]; then OPENSSL_DIR="openssl_prebuilt/openssl-1.1.1"; fi
+          OPENSSL_ROOT="$PWD/$OPENSSL_DIR"
+          
+          # Source
+          I2PD_SRC="$PWD/internal/network/i2pd/i2pd"
+          
+          echo "Building i2pd with:"
+          echo "  NDK: $ANDROID_NDK_HOME"
+          echo "  OpenSSL: $OPENSSL_ROOT"
+          echo "  Boost: $BOOST_ROOT"
+          
+          # Run build script
+          ./scripts/build_i2pd_android.sh "$ANDROID_NDK_HOME" "$OPENSSL_ROOT" "$BOOST_ROOT" "$I2PD_SRC"
+          
+          echo "Verifying compiled libs..."
+          ls -R internal/network/i2pd/lib
+          
+          # Copy Boost Libs to internal/network/i2pd/lib/{arch}
+          echo "Copying Boost libraries..."
+          
+          # Function to find and copy boost libs
+          cp_boost() {
+             ARCH_SRC=$1
+             ARCH_DST=$2
+             # Check potential boost lib paths
+             # PurpleI2P boost structure usually: boost-1.x/lib/arch/libboost_*.a OR boost-1.x/arch/lib
+             
+             SRC_DIR=""
+             if [ -d "$BOOST_ROOT/lib/$ARCH_SRC" ]; then SRC_DIR="$BOOST_ROOT/lib/$ARCH_SRC"; fi
+             if [ -d "$BOOST_ROOT/$ARCH_SRC/lib" ]; then SRC_DIR="$BOOST_ROOT/$ARCH_SRC/lib"; fi
+             
+             if [ -n "$SRC_DIR" ]; then
+                echo "Found Boost libs at $SRC_DIR. Copying..."
+                cp "$SRC_DIR"/libboost_program_options.a "internal/network/i2pd/lib/$ARCH_DST/" || echo "Warn: libboost_program_options.a not found"
+                # Add filesystem/system if needed, but modern boost might be header-only for those or not needed
+             else
+                 echo "Error: Boost libs for $ARCH_SRC not found structure!"
+                 ls -R "$BOOST_ROOT" | head -n 20
+             fi
+          }
+          
+          cp_boost "arm64-v8a" "arm64-v8a"
+          cp_boost "armeabi-v7a" "armeabi-v7a"
+          cp_boost "x86_64" "x86_64"
+          cp_boost "x86" "x86"
 
       # ── 11. BUILD: gomobile bind ────────────────────────────────────────
       - name: Build AAR with CGO
