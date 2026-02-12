@@ -164,6 +164,7 @@ jobs:
           # -androidapi задаёт минимальный API level
           CGO_ENABLED=1 gomobile bind \
             -v \
+            -tags cgo_i2pd \
             -target=android \
             -androidapi ${{ env.ANDROID_API }} \
             -o teleghost.aar \
