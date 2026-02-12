@@ -562,7 +562,7 @@ func dispatch(app *appcore.AppCore, method string, args []json.RawMessage) (inte
 		return "У вас установлена последняя версия", nil
 
 	// === Utils ===
-	case "CopyToClipboard":
+	case "ClipboardSet":
 		var text string
 		parseArgs(args, &text)
 		if bridge != nil {

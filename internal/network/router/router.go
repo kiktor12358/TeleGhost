@@ -309,14 +309,44 @@ func (r *SAMRouter) Dial(destination string) (net.Conn, error) {
 		return nil, fmt.Errorf("router not started")
 	}
 
-	// Парсим destination address
-	addr, err := samConn.Lookup(destination)
-	if err != nil {
-		// Пробуем создать адрес напрямую из строки
-		addr, err = i2pkeys.NewI2PAddrFromString(destination)
-		if err != nil {
-			return nil, fmt.Errorf("invalid destination: %w", err)
+	// Parse destination address
+	// Point 6: Ensure SAM connection is still alive, reconnect if needed
+	var addr i2pkeys.I2PAddr
+	var err error
+
+	for i := 0; i < 2; i++ {
+		addr, err = samConn.Lookup(destination)
+		if err == nil {
+			break
 		}
+
+		// If lookup fails, maybe SAM connection is stale
+		if i == 0 {
+			log.Printf("[SAMRouter] Lookup failed: %v. Attempting to refresh SAM connection...", err)
+			// We can't easily recreate the whole session here without locking everything,
+			// but we can try to re-create the SAM bridge connection if possible.
+			// Actually, if Lookup fails, it's likely the sam socket is dead.
+			// Try to recreate sam3.SAM
+			newSam, samErr := sam3.NewSAM(r.config.SAMAddress)
+			if samErr == nil {
+				r.mu.Lock()
+				r.sam.Close()
+				r.sam = newSam
+				samConn = newSam
+				r.mu.Unlock()
+				continue
+			}
+		}
+
+		// Try direct parsing as fallback
+		addr, err = i2pkeys.NewI2PAddrFromString(destination)
+		if err == nil {
+			break
+		}
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid destination: %w", err)
 	}
 
 	conn, err := session.DialI2P(addr)

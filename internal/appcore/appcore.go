@@ -761,17 +761,27 @@ func (a *AppCore) OnMessageReceived(msg *core.Message, senderPubKey, senderAddr 
 		return
 	}
 
-	contact, _ := a.Repo.GetContactByPublicKey(a.Ctx, senderPubKey)
+	var contact *core.Contact
+	contact, _ = a.Repo.GetContactByPublicKey(a.Ctx, senderPubKey)
 	if contact == nil {
-		// Попробуем найти по адресу (для случая, когда контакт добавлен вручную по b32)
+		// Try to find by address (for manual b32 contacts)
 		contact, _ = a.Repo.GetContactByAddress(a.Ctx, senderAddr)
 		if contact != nil {
-			log.Printf("[AppCore] Found contact by address %s, updating PublicKey", senderAddr)
+			oldChatID := contact.ChatID
+			newChatID := identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, senderPubKey)
+
+			log.Printf("[AppCore] Discovered PublicKey for %s (%s). Migrating ChatID: %s -> %s", contact.Nickname, senderAddr, oldChatID, newChatID)
+
 			contact.PublicKey = senderPubKey
-			a.Repo.SaveContact(a.Ctx, contact)
+			contact.ChatID = newChatID
+			contact.UpdatedAt = time.Now()
+
+			if err := a.Repo.UpdateContactAndMigrateChatID(a.Ctx, contact, oldChatID, newChatID); err != nil {
+				log.Printf("[AppCore] Failed to migrate ChatID for %s: %v", contact.Nickname, err)
+			}
 			a.Emitter.Emit("contact_updated")
 		} else {
-			// Создаем контакт если неизвестен
+			// Create new contact
 			newChatID := identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, senderPubKey)
 			contact = &core.Contact{
 				ID:         uuid.New().String(),

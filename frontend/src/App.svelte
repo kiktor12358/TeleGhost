@@ -112,6 +112,17 @@
         if (savedPinned) pinnedChats = JSON.parse(savedPinned);
     } catch (e) { console.error('Error loading pinned chats:', e); }
 
+    // Check if already logged in (Point 8)
+    try {
+        const myInfo = await AppActions.GetMyInfo();
+        if (myInfo && myInfo.ID) {
+            console.log("[App] Found existing session, skipping login to:", myInfo.Nickname);
+            await loadMyInfo();
+            screen = 'main';
+            loadContacts();
+        }
+    } catch (e) { console.log("[App] No active session on startup"); }
+
     // Back button support for mobile
     window.addEventListener('popstate', (e) => {
         if (isMobile) {
@@ -152,7 +163,7 @@
                 // Remove optimistic messages that match (by tempId prefix)
                 messages = [...(messages || []).filter(m => !m._optimistic), msg];
             }
-            // scrollToBottom(); // User requested to remove auto-scroll on new messages
+            // scrollToBottom();
         }
         loadContacts(); // Update last message
     });

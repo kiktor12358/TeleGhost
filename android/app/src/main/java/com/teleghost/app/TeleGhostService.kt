@@ -121,7 +121,7 @@ class TeleGhostService : Service() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.notification_channel_name),
-                NotificationManager.IMPORTANCE_LOW // LOW = без звука, но видно в шторке
+                NotificationManager.IMPORTANCE_DEFAULT // DEFAULT = visible and persistent
             ).apply {
                 description = getString(R.string.notification_channel_description)
                 setShowBadge(false)
@@ -155,11 +155,12 @@ class TeleGhostService : Service() {
             .setContentText(getString(R.string.notification_text))
             .setSmallIcon(R.mipmap.ic_launcher_foreground) // TODO: заменить на кастомную иконку
             .setContentIntent(openPending)
-            .setOngoing(true)          // Не смахивается
-            .setAutoCancel(false)      // Не закрывается при нажатии
+            .setOngoing(true)          // Non-dismissible
+            .setAutoCancel(false)      // Doesn't close on click
             .setShowWhen(false)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .addAction(
                 android.R.drawable.ic_menu_close_clear_cancel,
                 getString(R.string.notification_stop),

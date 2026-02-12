@@ -138,20 +138,29 @@
         return true;
     }
 
+    let pollInterval;
+
     onMount(() => {
         if (containerRef) {
-            // We only need to observe to SHOW/HIDE the button, NOT to force scroll
             resizeObserver = new ResizeObserver(() => {
                 if (!containerRef) return;
                 const distanceToBottom = containerRef.scrollHeight - containerRef.scrollTop - containerRef.clientHeight;
-                showScrollButton = distanceToBottom > 50;
+                showScrollButton = distanceToBottom > 80;
+                
+                // Point 5: Auto-scroll to bottom on content changes if we were already at bottom
+                if (distanceToBottom < 30 && chatReady) {
+                    scrollToBottom();
+                }
             });
             resizeObserver.observe(containerRef);
-            
-            return () => {
-                resizeObserver.disconnect();
-            };
         }
+        
+        scrollToBottom(true);
+
+        return () => {
+            if (pollInterval) clearInterval(pollInterval);
+            if (resizeObserver) resizeObserver.disconnect();
+        };
     });
 
     // Handle Contact Change & Initialize Loading
@@ -163,45 +172,49 @@
         imagesLoading = true;
         pendingImages = 0;
         loadedImages = 0;
+        
+        // Safety timeout to ensure chat shows even if image load hangs
+        setTimeout(() => {
+            if (!chatReady) {
+                chatReady = true;
+                imagesLoading = false;
+                scrollToBottom(true);
+            }
+        }, 3000);
     }
 
     // Handle Messages Update & Image Counting
     $: if (messages && currentContactId) {
         if (!chatReady) {
+            // Check for images in new messages
+            const images = messages.flatMap(m => m.Attachments || []).filter(a => a.MimeType && a.MimeType.startsWith('image/'));
+            if (images.length > 0 && !initialScrollDone) {
+                pendingImages = images.length;
+                // chatReady will be set when images load OR timeout hits
+            } else {
+                chatReady = true;
+                imagesLoading = false;
+                scrollToBottom(true);
+            }
+        }
+    }
+
+    function onImageLoad() {
+        if (chatReady) {
+            // Smart scroll after image load if near bottom
+            if (containerRef) {
+                const dist = containerRef.scrollHeight - containerRef.scrollTop - containerRef.clientHeight;
+                if (dist < 100) scrollToBottom(true);
+            }
+            return;
+        }
+        loadedImages++;
+        if (loadedImages >= pendingImages) {
             chatReady = true;
             imagesLoading = false;
             scrollToBottom(true);
         }
     }
-
-    function onImageLoad() {
-        if (chatReady) return;
-        loadedImages++;
-        // finishLoading() could be here but we simplified it to messages reaction
-    }
-    
-    const dispatch = createEventDispatcher();
-    let pollInterval;
-
-    onMount(() => {
-        if (containerRef) {
-            resizeObserver = new ResizeObserver(() => {
-                if (!containerRef) return;
-                const distanceToBottom = containerRef.scrollHeight - containerRef.scrollTop - containerRef.clientHeight;
-                showScrollButton = distanceToBottom > 50;
-            });
-            resizeObserver.observe(containerRef);
-        }
-        
-        scrollToBottom(true);
-
-        return () => {
-            if (pollInterval) clearInterval(pollInterval);
-            if (resizeObserver) {
-                resizeObserver.disconnect();
-            }
-        }
-    });
 
     // Auto-scroll on new messages
     $: if (messages && messages.length > 0 && chatReady) {
@@ -268,11 +281,11 @@
                     </span>
                     {#if isMobile}
                          <button class="btn-icon-xs" style="margin-left: 8px; opacity: 0.7;" on:click|stopPropagation={() => {
-                             if(selectedContact?.PublicKey) {
-                                 // Dispatch copy event or usage generic bridge
-                                 // We need to import AppActions or similar if available, or just use native nav
-                                 // Start simple:
-                                 navigator.clipboard.writeText(selectedContact.PublicKey).then(() => alert('Адрес скопирован'));
+                             if(selectedContact?.I2PAddress) {
+                                  import('../../wailsjs/go/main/App.js').then(Actions => {
+                                      Actions.ClipboardSet(selectedContact.I2PAddress);
+                                      dispatch('toast', { message: 'Адрес скопирован', type: 'success' });
+                                  });
                              }
                          }}>
                             <div class="icon-svg-xs">{@html Icons.Copy || '📋'}</div>
