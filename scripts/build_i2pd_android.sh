@@ -129,7 +129,7 @@ for i in "${!ARCHS[@]}"; do
         -DCMAKE_BUILD_TYPE=Release
 
     # CMake Build
-    cmake --build "$ARCH_BUILD_DIR" --config Release --jobs 4
+    cmake --build "$ARCH_BUILD_DIR" --config Release --parallel 4
     
     # Copy Static Libs
     DEST_DIR="internal/network/i2pd/lib/$ARCH"
