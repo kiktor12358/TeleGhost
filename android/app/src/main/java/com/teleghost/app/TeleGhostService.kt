@@ -155,7 +155,8 @@ class TeleGhostService : Service() {
             .setSmallIcon(R.mipmap.ic_launcher_foreground) // TODO: заменить на кастомную иконку
             .setContentIntent(openPending)
             .setOngoing(true)          // Не смахивается
-            .setSilent(true)           // Без звука
+            .setAutoCancel(false)      // Не закрывается при нажатии
+            .setShowWhen(false)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .addAction(
