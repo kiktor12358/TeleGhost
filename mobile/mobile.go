@@ -17,18 +17,26 @@
 package mobile
 
 import (
+	"bytes"
 	"context"
 	"embed"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image"
+	_ "image/jpeg" // Support JPEG decoding
+	"image/png"
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
 	"teleghost/internal/appcore"
 	"teleghost/internal/network/i2pd"
+
+	"github.com/nfnt/resize"
 )
 
 //go:embed all:dist
@@ -93,7 +101,8 @@ func (e *SSEEmitter) unsubscribe(ch chan string) {
 // PlatformBridge defines methods that Native Android/iOS must implement.
 type PlatformBridge interface {
 	PickFile()
-	ShareFile(path string) // New method
+	ShareFile(path string)
+	ClipboardSet(text string) // New method
 }
 
 var (
@@ -145,12 +154,19 @@ func (p *MobilePlatform) OpenFileDialog(title string, filters []string) (string,
 func (p *MobilePlatform) SaveFileDialog(title, defaultFilename string) (string, error) {
 	return "", fmt.Errorf("save dialog not implemented on mobile")
 }
-func (p *MobilePlatform) ClipboardSet(text string) {}
+func (p *MobilePlatform) ClipboardSet(text string) {
+	if bridge != nil {
+		bridge.ClipboardSet(text)
+	}
+}
 func (p *MobilePlatform) ClipboardGet() (string, error) {
 	return "", fmt.Errorf("clipboard not available on mobile")
 }
+
 func (p *MobilePlatform) ShowWindow() {}
 func (p *MobilePlatform) HideWindow() {}
+
+// MobileFileSelector removed (redundant)
 
 func (p *MobilePlatform) Notify(title, message string) {
 	log.Printf("[Mobile] Notification: %s - %s", title, message)
@@ -198,6 +214,8 @@ func Start(dataDir string) {
 	}
 
 	globalApp = app
+
+	// FileSelector reflection setup removed (redundant)
 
 	// HTTP сервер
 	mux := http.NewServeMux()
@@ -318,8 +336,16 @@ func handleAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("[CRITICAL] API Panic in %s: %v", method, r)
+			writeError(w, http.StatusInternalServerError, fmt.Sprintf("Internal Panic: %v", r))
+		}
+	}()
+
 	result, err := dispatch(globalApp, method, req.Args)
 	if err != nil {
+		log.Printf("[Mobile] API Error in %s: %v", method, err)
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -519,8 +545,9 @@ func dispatch(app *appcore.AppCore, method string, args []json.RawMessage) (inte
 		return nil, fmt.Errorf("file saving to location not available on mobile")
 
 	case "GetImageThumbnail":
-		// На мобилке обычно фронтенд сам может это делать или через другой URL
-		return "", nil
+		var path string
+		parseArgs(args, &path)
+		return GetImageThumbnail(path)
 
 	case "SetActiveChat":
 		var chatID string
@@ -630,4 +657,28 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 		"result": nil,
 		"error":  msg,
 	})
+}
+
+// GetImageThumbnail возвращает уменьшенную копию изображения в base64
+func GetImageThumbnail(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return "", err
+	}
+
+	// Изменяем размер до 256px по одной из сторон
+	thumb := resize.Thumbnail(256, 256, img, resize.Lanczos3)
+
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, thumb); err != nil {
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(buf.Bytes()), nil
 }

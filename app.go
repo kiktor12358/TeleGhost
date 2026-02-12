@@ -115,6 +115,7 @@ type App struct {
 	}
 	embeddedStop func() error
 	trayManager  *TrayManager
+	fileSelector FileSelector
 }
 
 // WailsEmitter — реализация appcore.EventEmitter через Wails runtime
@@ -174,9 +175,20 @@ func (p *WailsPlatform) ShareFile(path string) error {
 	return openFile(dir)
 }
 
+// FileSelector interface for platform-specific file selection
+type FileSelector interface {
+	SelectImage() (string, error)
+	SelectFiles() ([]string, error)
+}
+
 // ClipboardSet sets text to clipboard
 func (a *App) ClipboardSet(text string) {
 	wailsRuntime.ClipboardSetText(a.ctx, text)
+}
+
+// SetFileSelector sets the file selector implementation
+func (a *App) SetFileSelector(selector FileSelector) {
+	a.fileSelector = selector
 }
 
 // ClipboardGet gets text from clipboard
@@ -293,6 +305,9 @@ func (a *App) QuitApp() {
 
 // SelectImage открывает диалог выбора изображения
 func (a *App) SelectImage() (string, error) {
+	if a.fileSelector != nil {
+		return a.fileSelector.SelectImage()
+	}
 	return wailsRuntime.OpenFileDialog(a.ctx, wailsRuntime.OpenDialogOptions{
 		Title: "Выберите изображение",
 		Filters: []wailsRuntime.FileFilter{
@@ -303,6 +318,9 @@ func (a *App) SelectImage() (string, error) {
 
 // SelectFiles открывает диалог выбора файлов
 func (a *App) SelectFiles() ([]string, error) {
+	if a.fileSelector != nil {
+		return a.fileSelector.SelectFiles()
+	}
 	return wailsRuntime.OpenMultipleFilesDialog(a.ctx, wailsRuntime.OpenDialogOptions{
 		Title: "Выберите файлы",
 	})

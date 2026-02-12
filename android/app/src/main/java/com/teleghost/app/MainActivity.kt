@@ -81,6 +81,7 @@ class MainActivity : AppCompatActivity(), mobile.PlatformBridge {
 
         // Не давать Android убить Activity при нехватки памяти
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
         // Создаём WebView программно (без XML layout)
         webView = WebView(this).apply {
@@ -142,6 +143,19 @@ class MainActivity : AppCompatActivity(), mobile.PlatformBridge {
             } catch (e: Exception) {
                 android.util.Log.e(TAG, "Failed to share file", e)
                 android.widget.Toast.makeText(this, "Share failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun clipboardSet(text: String) {
+        runOnUiThread {
+            try {
+                val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("TeleGhost", text)
+                clipboard.setPrimaryClip(clip)
+                // android.widget.Toast.makeText(this, "Скопировано", android.widget.Toast.LENGTH_SHORT).show() // Toast делается во фронтенде
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Clipboard set failed", e)
             }
         }
     }
