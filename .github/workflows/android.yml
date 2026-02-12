@@ -148,19 +148,24 @@ jobs:
       - name: Download Boost Prebuilts
         run: |
           echo "Cloning Boost for Android (PurpleI2P)..."
-          git clone --depth 1 https://github.com/PurpleI2P/Boost-for-Android-Prebuilt.git boost_prebuilt
+          # Clone specific branch (e.g. boost-1_78_0 as latest prebuilt available)
+          git clone --depth 1 -b boost-1_78_0 https://github.com/PurpleI2P/Boost-for-Android-Prebuilt.git boost_prebuilt
           
-          # Find version directory (e.g. boost-1.84.0)
-          BOOST_DIR_NAME=$(find boost_prebuilt -maxdepth 1 -type d -name "boost-1.*" | head -n 1)
-          if [ -z "$BOOST_DIR_NAME" ]; then
-             echo "Error: Could not find boost directory in boost_prebuilt"
-             ls -R boost_prebuilt
-             exit 1
+          # Check if root is correct (has include/)
+          if [ -d "boost_prebuilt/include" ]; then
+             echo "BOOST_ROOT=$PWD/boost_prebuilt" >> $GITHUB_ENV
+             echo "Found Boost at root of repo."
+          else
+             # Find version directory (e.g. boost-1.84.0)
+             BOOST_DIR_NAME=$(find boost_prebuilt -maxdepth 1 -type d -name "boost-1.*" | head -n 1)
+             if [ -z "$BOOST_DIR_NAME" ]; then
+                echo "Error: Could not find include/ or boost-1.* in boost_prebuilt"
+                ls -R boost_prebuilt
+                exit 1
+             fi
+             echo "Found Boost Version Subdir: $BOOST_DIR_NAME"
+             echo "BOOST_ROOT=$PWD/$BOOST_DIR_NAME" >> $GITHUB_ENV
           fi
-          
-          echo "Found Boost Version: $BOOST_DIR_NAME"
-          # Set BOOST_ROOT to the version directory which should contain include/ and lib/
-          echo "BOOST_ROOT=$PWD/$BOOST_DIR_NAME" >> $GITHUB_ENV
 
       - name: Download OpenSSL Prebuilts
         run: |
