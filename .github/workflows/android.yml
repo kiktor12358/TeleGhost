@@ -139,7 +139,23 @@ jobs:
           cp -r frontend/dist mobile/dist
           ls -la mobile/dist
 
-      # ── 10. BUILD: gomobile bind ────────────────────────────────────────
+      # ── 10. Install Boost (Headers Only) ────────────────────────────────
+      - name: Download Boost Headers
+        run: |
+          BOOST_VER="1.84.0"
+          BOOST_NAME="boost_1_84_0"
+          BOOST_URL="https://boostorg.jfrog.io/artifactory/main/release/${BOOST_VER}/source/${BOOST_NAME}.tar.gz"
+          
+          echo "Downloading Boost ${BOOST_VER}..."
+          wget -q -O boost.tar.gz "${BOOST_URL}"
+          
+          echo "Extracting Boost..."
+          tar xzf boost.tar.gz
+          mv ${BOOST_NAME} boost
+          
+          echo "BOOST_ROOT=$PWD/boost" >> $GITHUB_ENV
+
+      # ── 11. BUILD: gomobile bind ────────────────────────────────────────
       #
       # gomobile bind компилирует Go пакет в .aar для Android.
       # CGO_ENABLED=1 обязателен для I2P библиотеки.
@@ -150,6 +166,8 @@ jobs:
           export PATH="$PATH:$(go env GOPATH)/bin"
           export CGO_ENABLED=1
           export ANDROID_NDK_HOME="${{ env.ANDROID_NDK_HOME }}"
+          # Add Boost to include path
+          export CGO_CXXFLAGS="-I$BOOST_ROOT"
           
           echo "══════════════════════════════════════════════"
           echo "  Building teleghost.aar"
