@@ -93,7 +93,7 @@ type PlatformBridge interface {
 
 var (
 	bridge            PlatformBridge
-	fileSelectionChan = make(chan string) // Channel to receive file path from Native side
+	fileSelectionChan = make(chan string, 1) // Channel to receive file path from Native side
 )
 
 // SetPlatformBridge connects the native OS implementation to Go.
