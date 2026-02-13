@@ -60,7 +60,8 @@
                         const base64 = await GetFileBase64(p.avatar_path);
                         if (base64) newAvatars[p.id] = base64;
                     } catch (e) {
-                        console.error("Failed to load avatar for", p.id, e);
+                        // Suppress error if file not found, use placeholder
+                        console.warn("Avatar not found or load failed:", p.id);
                     }
                 }
             }

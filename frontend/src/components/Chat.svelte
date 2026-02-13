@@ -35,6 +35,8 @@
     export let onPreviewImage;
     export let startLoadingImage; // Fix: Add missing prop
     export let isLoading = false;
+    export let previewImage; // Fix: Add missing prop
+    export let onJumpToMessage = null; // Fix: Add missing prop
 
     let textarea;
     let touchStartX = 0;
@@ -91,23 +93,7 @@
     let containerRef;
 
     let isLoadingMore = false;
-    async function handleScroll(e) {
-        const container = e.target;
-        const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-        showScrollButton = distanceToBottom > 50;
 
-        // Load more when reaching top
-        if (container.scrollTop < 100 && canLoadMore && !isLoadingMore && onLoadMore) {
-            isLoadingMore = true;
-            const oldHeight = container.scrollHeight;
-            await onLoadMore();
-            await tick();
-            // Maintain scroll position relative to bottom
-            const newHeight = container.scrollHeight;
-            container.scrollTop += (newHeight - oldHeight);
-            isLoadingMore = false;
-        }
-    }
 
     function scrollToBottom(force = false) {
         // Guard against unnecessary scrolls
@@ -152,46 +138,31 @@
     });
 
     // Handle Contact Change & Initialize Loading
-    $: if (isLoading || (selectedContact && selectedContact.ID !== currentContactId)) {
-        if (selectedContact) currentContactId = selectedContact.ID;
-        // Reset state for new chat or loading start
+    let lastMessageId = null;
+
+    $: if (selectedContact && selectedContact.ID !== currentContactId) {
+        currentContactId = selectedContact.ID;
+        // Reset state ONLY for new chat
         chatReady = false; 
         initialScrollDone = false;
         imagesLoading = true;
         pendingImages = 0;
         loadedImages = 0;
-        
-        // Safety timeout
-        if (isLoading) {
-             // If legitimate loading, we rely on isLoading becoming false
-        } else {
-            // Fallback if not loading but contact changed (shouldn't happen with new App logic)
-             setTimeout(() => {
-                if (!chatReady && !isLoading) {
-                    chatReady = true;
-                    imagesLoading = false;
-                    scrollToBottom(true);
-                }
-            }, 3000);
-        }
+        lastMessageId = null;
     }
 
     // Handle Messages Update & Auto-scroll
-    $: if (!isLoading && messages && currentContactId && containerRef) {
-        // Logic when data is ready
-        
+    $: if (messages && currentContactId && containerRef) {
         if (!chatReady) {
-            // Check for images in new messages
-            const images = messages.flatMap(m => m.Attachments || []).filter(a => a.MimeType && a.MimeType.startsWith('image/'));
+            // Initial Load Logic
+            const images = (messages || []).flatMap(m => m.Attachments || []).filter(a => a.MimeType && a.MimeType.startsWith('image/'));
             
             if (images.length > 0) {
-                 // Check if we already counted them (to avoid reset loop)
                  if (pendingImages === 0) {
                     pendingImages = images.length;
                     loadedImages = 0;
-                    // Wait for onImageLoad
                  }
-                 // If all images loaded (rare case of cache)
+                 // If all images loaded (rare case of cache) or no pending
                  if (loadedImages >= pendingImages) {
                      finishLoading();
                  }
@@ -201,45 +172,85 @@
             }
         } else {
             // Already ready, handle normal new message scroll
-            const distanceToBottom = containerRef.scrollHeight - containerRef.scrollTop - containerRef.clientHeight;
-            const wasNearBottom = distanceToBottom < 100;
-            const isUserSender = messages.length > 0 && messages[messages.length-1].IsOutgoing;
+            const currentLastMsg = messages.length > 0 ? messages[messages.length-1] : null;
+            const isNewMessage = currentLastMsg && currentLastMsg.ID !== lastMessageId;
+            
+            if (isNewMessage) {
+                lastMessageId = currentLastMsg.ID;
+                
+                const distanceToBottom = containerRef.scrollHeight - containerRef.scrollTop - containerRef.clientHeight;
+                const wasNearBottom = distanceToBottom < 100;
+                const isUserSender = currentLastMsg.IsOutgoing;
 
-            if (wasNearBottom || isUserSender) {
-                tick().then(() => {
-                    scrollToBottom(true); 
-                });
+                if (wasNearBottom || isUserSender) {
+                    tick().then(() => {
+                        scrollToBottom(true); 
+                    });
+                }
             }
         }
     }
 
-    function onImageLoad() {
+    function onImageLoad(e) {
+        // If image is already complete (cached), handle immediately
+        if (e && e.target && e.target.complete) {
+             // Logic handled below
+        }
+
         if (chatReady) {
             // Smart scroll after image load if near bottom
             if (containerRef) {
                 const dist = containerRef.scrollHeight - containerRef.scrollTop - containerRef.clientHeight;
-                if (dist < 100) scrollToBottom(true);
+                if (dist < 150) scrollToBottom(true);
             }
             return;
         }
         loadedImages++;
         if (loadedImages >= pendingImages) {
-            chatReady = true;
-            imagesLoading = false;
-            scrollToBottom(true);
+            finishLoading();
         }
-    }
-
-    // Auto-scroll on new messages
-    $: if (messages && messages.length > 0 && chatReady) {
-        scrollToBottom();
     }
 
     function finishLoading() {
         if (chatReady) return;
-        chatReady = true;
-        imagesLoading = false;
+        
+        // 1. Force scroll to bottom WHILE INVISIBLE
         scrollToBottom(true);
+        
+        // 2. Make visible after brief delay to allow layout to settle
+        requestAnimationFrame(() => {
+            chatReady = true;
+            imagesLoading = false;
+            
+            if (messages && messages.length > 0) {
+                 lastMessageId = messages[messages.length-1].ID;
+            }
+            
+            // 3. Force scroll again just in case opacity change affected anything
+            setTimeout(() => scrollToBottom(true), 10);
+        });
+    }
+    
+    // ...
+    
+    async function handleScroll(e) {
+        if (!chatReady) return; // CRITICAL: Don't load history if initial scroll isn't done
+        
+        const container = e.target;
+        const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+        showScrollButton = distanceToBottom > 50;
+        
+        // ... rest of logic
+        if (container.scrollTop < 100 && canLoadMore && !isLoadingMore && onLoadMore) {
+             // ...
+             isLoadingMore = true;
+             const oldHeight = container.scrollHeight;
+             await onLoadMore();
+             await tick();
+             const newHeight = container.scrollHeight;
+             container.scrollTop += (newHeight - oldHeight);
+             isLoadingMore = false;
+        }
     }
 
 </script>

@@ -500,7 +500,8 @@
           }
           // Убираем оптимистичное сообщение (реальное придёт через событие)
           messages = (messages || []).filter(m => m.ID !== tempId);
-          await loadMessages(selectedContact.ID);
+          // Removed redundant loadMessages to prevent UI reset loop
+          // await loadMessages(selectedContact.ID);
       } catch (err) {
           showToast(err, 'error');
           // Помечаем как ошибку

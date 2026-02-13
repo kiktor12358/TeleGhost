@@ -41,11 +41,7 @@ func (a *AppCore) SendText(contactID, text, replyToID string) error {
 		if err != nil || contact == nil {
 			return fmt.Errorf("contact not found")
 		}
-
-		if contact.ChatID == "" {
-			contact.ChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
-			a.Repo.SaveContact(a.Ctx, contact)
-		}
+		// ChatID calculation moved to after handshake check
 	}
 
 	log.Printf("[AppCore] Sending message to %s (ChatID: %s)", contact.Nickname, contact.ChatID)
@@ -56,6 +52,35 @@ func (a *AppCore) SendText(contactID, text, replyToID string) error {
 		if err := a.Messenger.SendHandshake(contact.I2PAddress); err != nil {
 			log.Printf("[AppCore] Handshake failed: %v", err)
 		}
+
+		// Wait for handshake completion (up to 10 seconds)
+		log.Printf("[AppCore] Waiting for handshake with %s...", contact.Nickname)
+		for i := 0; i < 20; i++ {
+			time.Sleep(500 * time.Millisecond)
+			updatedContact, err := a.Repo.GetContact(a.Ctx, contactID)
+			if err == nil && updatedContact != nil && updatedContact.PublicKey != "" {
+				contact = updatedContact
+				log.Printf("[AppCore] Handshake complete, PublicKey received.")
+				break
+			}
+		}
+
+		if contact.PublicKey == "" {
+			return fmt.Errorf("handshake timeout: recipient did not respond with public key")
+		}
+
+		// Re-calculate ChatID if it was empty (now we have PK)
+		if contact.ChatID == "" {
+			contact.ChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
+			a.Repo.SaveContact(a.Ctx, contact)
+			// Critical: Emit event so frontend knows the new ChatID
+			a.Emitter.Emit("contact_updated", contact)
+		}
+	} else if contact.ChatID == "" {
+		// If PK existed but ChatID was empty (shouldn't happen often but possible)
+		contact.ChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
+		a.Repo.SaveContact(a.Ctx, contact)
+		a.Emitter.Emit("contact_updated", contact)
 	}
 
 	msgID := uuid.New().String()

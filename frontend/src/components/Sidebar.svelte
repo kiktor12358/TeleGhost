@@ -29,6 +29,8 @@
     export let onEditFolder;
     export let onCreateFolder;
     export let onFolderContextMenu;
+    export let onTogglePin;
+    export let onMovePin;
 
     let longPressTimer;
 

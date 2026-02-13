@@ -138,6 +138,43 @@ class MainActivity : AppCompatActivity(), mobile.PlatformBridge {
     }
 
     // --- PlatformBridge Implementation ---
+    override fun openFile(path: String) {
+        runOnUiThread {
+            try {
+                val file = File(path)
+                if (!file.exists()) {
+                    android.widget.Toast.makeText(this, "File not found: $path", android.widget.Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
+
+                val uri = androidx.core.content.FileProvider.getUriForFile(
+                    this,
+                    "com.teleghost.app.fileprovider",
+                    file
+                )
+
+                val intent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(uri, getMimeType(path))
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+
+                startActivity(Intent.createChooser(intent, "Open File"))
+            } catch (e: Exception) {
+                android.util.Log.e(TAG, "Failed to open file", e)
+                android.widget.Toast.makeText(this, "Open failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun getMimeType(url: String): String {
+        var type: String? = null
+        val extension = MimeTypeMap.getFileExtensionFromUrl(url)
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+        }
+        return type ?: "*/*"
+    }
+
     override fun pickFile() {
         runOnUiThread {
             try {

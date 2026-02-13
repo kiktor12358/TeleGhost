@@ -521,8 +521,25 @@ func dispatch(app *appcore.AppCore, method string, args []json.RawMessage) (inte
 		parseArgs(args, &chatID, &text, &replyToID, &files, &isRaw)
 		return nil, app.SendFileMessage(chatID, text, replyToID, files, isRaw)
 
-	// === Folders ===
-	case "CreateFolder":
+	case "ExportAccount":
+		path, err := app.ExportAccount()
+		if err != nil {
+			return nil, err
+		}
+		if err := app.Platform.ShareFile(path); err != nil {
+			log.Printf("[Mobile] Failed to share account export: %v", err)
+		}
+		return path, nil
+
+	case "ImportAccount":
+		var path string
+		parseArgs(args, &path)
+		return nil, app.ImportAccount(path)
+
+	case "ShareFile":
+		var path string
+		parseArgs(args, &path)
+		return nil, app.Platform.ShareFile(path)
 		var name, icon string
 		parseArgs(args, &name, &icon)
 		return nil, app.CreateFolder(name, icon)
