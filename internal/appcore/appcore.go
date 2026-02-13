@@ -898,11 +898,13 @@ func (a *AppCore) OnContactRequest(pubKey, nickname, i2pAddress string) {
 		// Contact exists.
 		oldChatID := contact.ChatID
 		updated := false
+		publicKeyChanged := false
 
 		// Update Public Key if changed
 		if contact.PublicKey != pubKey {
 			contact.PublicKey = pubKey
 			updated = true
+			publicKeyChanged = true
 		}
 
 		// Update Nickname if meaningful change
@@ -927,6 +929,14 @@ func (a *AppCore) OnContactRequest(pubKey, nickname, i2pAddress string) {
 				return
 			}
 			a.Emitter.Emit("contact_updated")
+
+			// Send handshake back if public key was updated (to ensure they have ours)
+			// But avoid infinite loop if key didn't change (handled by 'updated' flag logic which checks contact.PublicKey != pubKey)
+			if publicKeyChanged && a.Messenger != nil {
+				// We just updated it to pubKey, so checking == is always true here.
+				// The guard is that we only enter this block if it was DIFFERENT before.
+				go a.Messenger.SendHandshake(contact.I2PAddress)
+			}
 		} else {
 			// No changes needed
 		}
@@ -949,6 +959,13 @@ func (a *AppCore) OnContactRequest(pubKey, nickname, i2pAddress string) {
 			"nickname": nickname,
 		})
 		a.Emitter.Emit("contact_updated")
+
+		// Send handshake back to new contact so they get our key
+		if a.Messenger != nil {
+			go a.Messenger.SendHandshake(i2pAddress)
+			// Also request profile
+			go a.Messenger.SendProfileRequest(i2pAddress)
+		}
 	}
 }
 
