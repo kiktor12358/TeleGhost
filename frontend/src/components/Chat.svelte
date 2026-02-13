@@ -142,25 +142,12 @@
 
     onMount(() => {
         if (containerRef) {
-            resizeObserver = new ResizeObserver(() => {
-                if (!containerRef) return;
-                const distanceToBottom = containerRef.scrollHeight - containerRef.scrollTop - containerRef.clientHeight;
-                showScrollButton = distanceToBottom > 80;
-                
-                // Point 5: Auto-scroll to bottom on content changes if we were already at bottom
-                if (distanceToBottom < 30 && chatReady) {
-                    scrollToBottom();
-                }
+            containerRef.addEventListener('scroll', () => {
+                 const distanceToBottom = containerRef.scrollHeight - containerRef.scrollTop - containerRef.clientHeight;
+                 showScrollButton = distanceToBottom > 80;
             });
-            resizeObserver.observe(containerRef);
+            scrollToBottom(true);
         }
-        
-        scrollToBottom(true);
-
-        return () => {
-            if (pollInterval) clearInterval(pollInterval);
-            if (resizeObserver) resizeObserver.disconnect();
-        };
     });
 
     // Handle Contact Change & Initialize Loading
@@ -183,8 +170,19 @@
         }, 3000);
     }
 
-    // Handle Messages Update & Image Counting
-    $: if (messages && currentContactId) {
+    // Handle Messages Update & Auto-scroll (Point 1)
+    $: if (messages && currentContactId && containerRef) {
+        // Check if we are near bottom BEFORE update (to decide if we should auto-scroll)
+        const distanceToBottom = containerRef.scrollHeight - containerRef.scrollTop - containerRef.clientHeight;
+        const wasNearBottom = distanceToBottom < 100;
+
+        if (wasNearBottom || !initialScrollDone) {
+            tick().then(() => {
+                scrollToBottom(!initialScrollDone);
+                if (!initialScrollDone && chatReady) initialScrollDone = true;
+            });
+        }
+
         if (!chatReady) {
             // Check for images in new messages
             const images = messages.flatMap(m => m.Attachments || []).filter(a => a.MimeType && a.MimeType.startsWith('image/'));

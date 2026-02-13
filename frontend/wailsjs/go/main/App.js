@@ -166,8 +166,8 @@ export function RemoveChatFromFolder(arg1, arg2) {
   return window['go']['main']['App']['RemoveChatFromFolder'](arg1, arg2);
 }
 
-export function RequestProfileUpdate(arg1) {
-  return window['go']['main']['App']['RequestProfileUpdate'](arg1);
+export function RequestProfile(arg1) {
+  return window['go']['main']['App']['RequestProfile'](arg1);
 }
 
 export function SaveFileToLocation(arg1, arg2) {

@@ -85,7 +85,7 @@ export function QuitApp():Promise<void>;
 
 export function RemoveChatFromFolder(arg1:string,arg2:string):Promise<void>;
 
-export function RequestProfileUpdate(arg1:string):Promise<void>;
+export function RequestProfile(arg1:string):Promise<void>;
 
 export function SaveFileToLocation(arg1:string,arg2:string):Promise<string>;
 

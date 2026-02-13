@@ -779,9 +779,19 @@
       },
       onUpdateProfile: async (addr) => {
           try {
-              await AppActions.RequestProfileUpdate(addr);
-              showToast("Запрос на обновление профиля отправлен", "info");
-          } catch (e) { showToast(e, "error"); }
+              if (AppActions.RequestProfile) {
+                  await AppActions.RequestProfile(addr);
+              } else if (AppActions.RequestProfileUpdate) {
+                  // Fallback for older binary if exists
+                  await AppActions.RequestProfileUpdate(addr);
+              } else {
+                  console.warn("RequestProfile not found in AppActions");
+              }
+              showToast('Запрос обновления профиля отправлен', 'info');
+          } catch(e) {
+              console.error(e);
+              showToast('Ошибка обновления профиля', 'error');
+          }
       },
       onShowSeed: () => { showSeedModal = true; },
       onCheckUpdates: async () => {

@@ -43,19 +43,67 @@ function createProxy(methodName) {
 }
 
 // Инициализация глобального объекта runtime для Wails Events
+// Wails Runtime Events Implementation
 window.runtime = {
     EventsOn: (eventName, callback) => {
         if (!bridge.listeners[eventName]) {
             bridge.listeners[eventName] = [];
         }
-        bridge.listeners[eventName].push(callback);
+        // Wrapper to maintain Wails behavior (maxCallbacks = -1 for infinite)
+        bridge.listeners[eventName].push({ callback, maxCallbacks: -1 });
+        return () => window.runtime.EventsOff(eventName, callback);
     },
-    EventsOff: (eventName) => {
-        delete bridge.listeners[eventName];
+    EventsOnMultiple: (eventName, callback, maxCallbacks) => {
+        if (!bridge.listeners[eventName]) {
+            bridge.listeners[eventName] = [];
+        }
+        bridge.listeners[eventName].push({ callback, maxCallbacks });
+        return () => window.runtime.EventsOff(eventName, callback);
+    },
+    EventsOnce: (eventName, callback) => {
+        return window.runtime.EventsOnMultiple(eventName, callback, 1);
+    },
+    EventsOff: (eventName, ...additionalEventNames) => {
+        const events = [eventName, ...additionalEventNames];
+        events.forEach(name => {
+            delete bridge.listeners[name];
+        });
+    },
+    EventsOffAll: () => {
+        bridge.listeners = {};
     },
     EventsEmit: (eventName, data) => {
-        // Локальная эмуляция или отправка на сервер если нужно
-        console.log("EventsEmit not fully implemented in bridge", eventName, data);
+        // Broadcast locally to listeners (optimistic UI updates)
+        if (bridge.listeners[eventName]) {
+            bridge.listeners[eventName].forEach(listener => {
+                listener.callback(data);
+                if (listener.maxCallbacks > 0) {
+                    listener.maxCallbacks--;
+                }
+            });
+            // Cleanup exhausted listeners
+            bridge.listeners[eventName] = bridge.listeners[eventName].filter(l => l.maxCallbacks !== 0);
+        }
+    }
+};
+
+// Override bridge listener logic to handle the new object structure
+bridge.events.onmessage = (event) => {
+    try {
+        const msg = JSON.parse(event.data);
+        // Expecting msg.event (string) and msg.data (payload)
+        if (msg.event && bridge.listeners[msg.event]) {
+            bridge.listeners[msg.event].forEach(listener => {
+                listener.callback(msg.data);
+                if (listener.maxCallbacks > 0) {
+                    listener.maxCallbacks--;
+                }
+            });
+            // Cleanup exhausted listeners
+            bridge.listeners[msg.event] = bridge.listeners[msg.event].filter(l => l.maxCallbacks !== 0);
+        }
+    } catch (e) {
+        console.error("Failed to parse SSE message:", e);
     }
 };
 

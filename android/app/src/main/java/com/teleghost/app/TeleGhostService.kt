@@ -121,7 +121,7 @@ class TeleGhostService : Service() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.notification_channel_name),
-                NotificationManager.IMPORTANCE_DEFAULT // DEFAULT = visible and persistent
+                NotificationManager.IMPORTANCE_LOW // LOW = silent but visible in shade
             ).apply {
                 description = getString(R.string.notification_channel_description)
                 setShowBadge(false)
