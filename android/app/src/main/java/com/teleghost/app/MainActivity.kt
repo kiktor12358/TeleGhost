@@ -138,7 +138,7 @@ class MainActivity : AppCompatActivity(), mobile.PlatformBridge {
     }
 
     // --- PlatformBridge Implementation ---
-    override fun openFile(path: String) {
+    fun openFile(path: String) {
         runOnUiThread {
             try {
                 val file = File(path)
