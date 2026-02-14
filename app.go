@@ -107,7 +107,6 @@ type App struct {
 	ctx  context.Context
 	core *appcore.AppCore
 
-	mediaCrypt     *media.MediaCrypt
 	embeddedRouter interface {
 		IsReady() bool
 		Start(context.Context) error
@@ -146,7 +145,7 @@ func (p *WailsPlatform) SaveFileDialog(title, defaultFilename string) (string, e
 }
 
 func (p *WailsPlatform) ClipboardSet(text string) {
-	wailsRuntime.ClipboardSetText(p.ctx, text)
+	_ = wailsRuntime.ClipboardSetText(p.ctx, text)
 }
 
 func (p *WailsPlatform) ClipboardGet() (string, error) {
@@ -183,7 +182,7 @@ type FileSelector interface {
 
 // ClipboardSet sets text to clipboard
 func (a *App) ClipboardSet(text string) {
-	wailsRuntime.ClipboardSetText(a.ctx, text)
+	_ = wailsRuntime.ClipboardSetText(a.ctx, text)
 }
 
 // SetFileSelector sets the file selector implementation
@@ -211,7 +210,10 @@ func (a *App) startup(ctx context.Context) {
 		log.Printf("[App] Failed to init clipboard: %v", err)
 	}
 
-	appDataDir, _ := os.UserConfigDir()
+	appDataDir, err := os.UserConfigDir()
+	if err != nil {
+		appDataDir = "."
+	}
 	dataDir := filepath.Join(appDataDir, "TeleGhost")
 
 	emitter := &WailsEmitter{ctx: ctx}
@@ -250,7 +252,7 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 	if a.embeddedStop != nil {
 		log.Println("[App] Stopping embedded I2P router...")
-		a.embeddedStop()
+		_ = a.embeddedStop()
 	}
 	if a.trayManager != nil {
 		log.Println("[App] Stopping Tray...")
@@ -456,7 +458,7 @@ func (a *App) ExportReseed() (string, error) {
 
 	if destPath == "" {
 		// Пользователь отменил сохранение
-		return "", fmt.Errorf("export cancelled")
+		return "", fmt.Errorf("export canceled")
 	}
 
 	// 3. Перемещаем файл из temp в выбранное место
@@ -509,7 +511,7 @@ func (a *App) ExportAccount() (string, error) {
 	}
 
 	if destPath == "" {
-		return "", fmt.Errorf("export cancelled")
+		return "", fmt.Errorf("export canceled")
 	}
 
 	input, err := os.ReadFile(tempPath)

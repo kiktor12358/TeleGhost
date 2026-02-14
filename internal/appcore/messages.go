@@ -72,14 +72,18 @@ func (a *AppCore) SendText(contactID, text, replyToID string) error {
 		// Re-calculate ChatID if it was empty (now we have PK)
 		if contact.ChatID == "" {
 			contact.ChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
-			a.Repo.SaveContact(a.Ctx, contact)
+			if err := a.Repo.SaveContact(a.Ctx, contact); err != nil {
+				log.Printf("[AppCore] Failed to save contact after handshake: %v", err)
+			}
 			// Critical: Emit event so frontend knows the new ChatID
 			a.Emitter.Emit("contact_updated", contact)
 		}
 	} else if contact.ChatID == "" {
 		// If PK existed but ChatID was empty (shouldn't happen often but possible)
 		contact.ChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
-		a.Repo.SaveContact(a.Ctx, contact)
+		if err := a.Repo.SaveContact(a.Ctx, contact); err != nil {
+			log.Printf("[AppCore] Failed to save contact: %v", err)
+		}
 		a.Emitter.Emit("contact_updated", contact)
 	}
 
@@ -110,7 +114,9 @@ func (a *AppCore) SendText(contactID, text, replyToID string) error {
 		msg.ReplyToID = &replyToID
 	}
 
-	a.Repo.SaveMessage(a.Ctx, msg)
+	if err := a.Repo.SaveMessage(a.Ctx, msg); err != nil {
+		log.Printf("[AppCore] Failed to save message: %v", err)
+	}
 
 	a.Emitter.Emit("new_message", map[string]interface{}{
 		"ID":           msg.ID,
@@ -371,7 +377,9 @@ func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string
 		if replyToID != "" {
 			msg.ReplyToID = &replyToID
 		}
-		a.Repo.SaveMessage(a.Ctx, msg)
+		if err := a.Repo.SaveMessage(a.Ctx, msg); err != nil {
+			log.Printf("[AppCore] Failed to save message: %v", err)
+		}
 
 		// Формируем вложения для фронтенда
 		infoAttachments := make([]map[string]interface{}, 0, len(msg.Attachments))
@@ -419,8 +427,8 @@ func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string
 		if ext == ".jpg" || ext == ".jpeg" || ext == ".png" {
 			data, err := os.ReadFile(f)
 			if err == nil {
-				stripped, _, err := core.StripMetadata(data, f)
-				if err == nil {
+				stripped, _, errStrip := core.StripMetadata(data, f)
+				if errStrip == nil {
 					// Save stripped file
 					newFilename := fmt.Sprintf("stripped_%d_%s", time.Now().UnixNano(), filepath.Base(f))
 					newPath := filepath.Join(cacheDir, newFilename)
@@ -429,7 +437,7 @@ func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string
 						processedFiles[i] = newPath
 					}
 				} else {
-					log.Printf("[AppCore] Failed to strip metadata from %s: %v", filepath.Base(f), err)
+					log.Printf("[AppCore] Failed to strip metadata from %s: %v", filepath.Base(f), errStrip)
 				}
 			}
 		}
@@ -456,9 +464,6 @@ func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string
 		// Actually, we want to send the clean file but keep the original name in the UI/Offer?
 		// The offer sends 'filenames' list.
 		// If we changed the path to "stripped_...", `filepath.Base(f)` will be "stripped_...".
-		// We should probably preserve the original filename in the offer, but send the stripped content.
-		// `messenger.SendFileOffer` takes filenames.
-		// If I send "stripped_photo.jpg", receiver sees "stripped_photo.jpg".
 		// I should revert the name to original in the offer list.
 
 		// Let's get the original name from the input `files` slice.
@@ -492,9 +497,9 @@ func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string
 
 	coreAttachments := make([]*core.Attachment, 0, len(processedFiles))
 	for i, f := range processedFiles {
-		stat, _ := os.Stat(f)
+		stat, errStat := os.Stat(f)
 		size := int64(0)
-		if stat != nil {
+		if errStat == nil && stat != nil {
 			size = stat.Size()
 		}
 		// Use original filename for the attachment record
@@ -512,7 +517,9 @@ func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string
 		coreAttachments = append(coreAttachments, coreAtt)
 	}
 	msg.Attachments = coreAttachments
-	a.Repo.SaveMessage(a.Ctx, msg)
+	if err := a.Repo.SaveMessage(a.Ctx, msg); err != nil {
+		log.Printf("[AppCore] Failed to save message: %v", err)
+	}
 
 	a.Emitter.Emit("new_message", map[string]interface{}{
 		"ID":           msg.ID,
@@ -539,7 +546,9 @@ func (a *AppCore) SaveAttachment(filename string, data []byte) (string, error) {
 	}
 
 	mediaDir := filepath.Join(a.DataDir, "users", a.Identity.Keys.UserID, "media")
-	os.MkdirAll(mediaDir, 0700)
+	if err := os.MkdirAll(mediaDir, 0700); err != nil {
+		return "", fmt.Errorf("failed to create media dir: %w", err)
+	}
 
 	ext := filepath.Ext(filename)
 	if ext == "" {
@@ -578,7 +587,9 @@ func (a *AppCore) DeclineFileTransfer(messageID string) error {
 		return fmt.Errorf("transfer not found or expired")
 	}
 
-	a.Messenger.SendFileResponse(transfer.Destination, transfer.ChatID, messageID, false)
+	if err := a.Messenger.SendFileResponse(transfer.Destination, transfer.ChatID, messageID, false); err != nil {
+		log.Printf("[AppCore] Failed to send file response: %v", err)
+	}
 
 	a.TransferMu.Lock()
 	delete(a.PendingTransfers, messageID)
@@ -593,8 +604,8 @@ func (a *AppCore) onFileOffer(senderPubKey, messageID, chatID string, filenames 
 		return
 	}
 
-	contact, _ := a.Repo.GetContactByPublicKey(a.Ctx, senderPubKey)
-	if contact == nil {
+	contact, err := a.Repo.GetContactByPublicKey(a.Ctx, senderPubKey)
+	if err != nil || contact == nil {
 		return
 	}
 
@@ -621,7 +632,9 @@ func (a *AppCore) onFileOffer(senderPubKey, messageID, chatID string, filenames 
 		FileCount:   int(fileCount),
 		TotalSize:   totalSize,
 	}
-	a.Repo.SaveMessage(a.Ctx, msg)
+	if err := a.Repo.SaveMessage(a.Ctx, msg); err != nil {
+		log.Printf("[AppCore] Failed to save message: %v", err)
+	}
 
 	a.Emitter.Emit("new_message", map[string]interface{}{
 		"ID":          msg.ID,
@@ -649,7 +662,11 @@ func (a *AppCore) onFileResponse(senderPubKey, messageID, chatID string, accepte
 	if accepted {
 		attachments := make([]*pb.Attachment, 0, len(transfer.Files))
 		for _, filePath := range transfer.Files {
-			data, _ := os.ReadFile(filePath)
+			data, err := os.ReadFile(filePath)
+			if err != nil {
+				log.Printf("[AppCore] Failed to read file during transfer: %v", err)
+				continue
+			}
 			mimeType := mime.TypeByExtension(filepath.Ext(filePath))
 			if mimeType == "" {
 				mimeType = "application/octet-stream"
@@ -665,7 +682,9 @@ func (a *AppCore) onFileResponse(senderPubKey, messageID, chatID string, accepte
 			attachments = append(attachments, att)
 		}
 
-		a.Messenger.SendAttachmentMessageWithID(transfer.Destination, transfer.ChatID, messageID, "", "", attachments)
+		if err := a.Messenger.SendAttachmentMessageWithID(transfer.Destination, transfer.ChatID, messageID, "", "", attachments); err != nil {
+			log.Printf("[AppCore] Failed to send attachment message: %v", err)
+		}
 	}
 
 	a.TransferMu.Lock()

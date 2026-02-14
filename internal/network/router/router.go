@@ -151,8 +151,8 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 
 	if !hasKeys {
 		log.Println("[SAMRouter] Generating new I2P keys... (this may take a while)")
-		keys, err := samConn.NewKeys()
-		if err != nil {
+		keys, errKeys := samConn.NewKeys()
+		if errKeys != nil {
 			// Проверяем, не вызвана ли ошибка закрытием сокета
 			r.mu.Lock()
 			defer r.mu.Unlock()
@@ -160,7 +160,7 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 			if r.ctx.Err() != nil {
 				return r.ctx.Err()
 			}
-			return fmt.Errorf("failed to generate I2P keys: %w", err)
+			return fmt.Errorf("failed to generate I2P keys: %w", errKeys)
 		}
 
 		r.mu.Lock()
@@ -197,14 +197,14 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 	currentKeys := r.keys
 	r.mu.RUnlock()
 
-	session, err := samConn.NewStreamSession(r.config.SessionName, currentKeys, opts)
-	if err != nil {
+	session, errSession := samConn.NewStreamSession(r.config.SessionName, currentKeys, opts)
+	if errSession != nil {
 		r.mu.Lock()
 		defer r.mu.Unlock()
 		if r.ctx.Err() != nil {
 			return r.ctx.Err()
 		}
-		return fmt.Errorf("failed to create SAM session: %w", err)
+		return fmt.Errorf("failed to create SAM session: %w", errSession)
 	}
 
 	r.mu.Lock()

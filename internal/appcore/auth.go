@@ -126,7 +126,9 @@ func (a *AppCore) Login(mnemonic string) error {
 				Avatar:    finalAvatar,
 				UpdatedAt: time.Now(),
 			}
-			a.Repo.SaveUser(a.Ctx, user)
+			if err := a.Repo.SaveUser(a.Ctx, user); err != nil {
+				log.Printf("[Auth] Failed to save user to DB: %v", err)
+			}
 		} else {
 			// Если есть в БД, синхронизируем данные
 			needsUpdateDB := false
@@ -138,7 +140,8 @@ func (a *AppCore) Login(mnemonic string) error {
 				needsUpdateDB = true
 			} else if (dbUser.Nickname != "" && dbUser.Nickname != "User") && (nickname == "" || nickname == "User") {
 				// Если в БД есть имя, а в ПМ нет или дефолтное - обновляем ПМ (синхронизация в обратную сторону)
-				nickname = dbUser.Nickname
+				dbUserNickname := dbUser.Nickname
+				nickname = dbUserNickname
 				needsUpdatePM = true
 			}
 
@@ -156,7 +159,8 @@ func (a *AppCore) Login(mnemonic string) error {
 				}
 			} else if dbUser.Avatar != "" && avatar == "" {
 				// 2. Если в БД есть, а в ПМ нет -> Обновляем ПМ
-				avatar = dbUser.Avatar
+				dbUserAvatar := dbUser.Avatar
+				avatar = dbUserAvatar
 				needsUpdatePM = true
 			} else if dbUser.Avatar != "" && avatar != "" && dbUser.Avatar != avatar {
 				// 3. Если есть в обоих местах, но пути разные.
@@ -180,12 +184,16 @@ func (a *AppCore) Login(mnemonic string) error {
 
 			if needsUpdateDB {
 				log.Printf("[Auth] Syncing DB nickname: %s", dbUser.Nickname)
-				a.Repo.UpdateMyProfile(a.Ctx, dbUser.Nickname, dbUser.Bio, dbUser.Avatar)
+				if err := a.Repo.UpdateMyProfile(a.Ctx, dbUser.Nickname, dbUser.Bio, dbUser.Avatar); err != nil {
+					log.Printf("[Auth] Failed to sync DB profile: %v", err)
+				}
 			}
 			if needsUpdatePM && a.ProfileManager != nil {
 				if meta, _ := a.ProfileManager.GetProfileByUserID(keys.UserID); meta != nil {
 					log.Printf("[Auth] Syncing PM nickname: %s", dbUser.Nickname)
-					a.UpdateMyProfile(dbUser.Nickname, dbUser.Bio, dbUser.Avatar)
+					if err := a.UpdateMyProfile(dbUser.Nickname, dbUser.Bio, dbUser.Avatar); err != nil {
+						log.Printf("[Auth] Failed to sync PM profile: %v", err)
+					}
 				}
 			}
 		}
@@ -214,11 +222,11 @@ func (a *AppCore) Logout() {
 	log.Printf("[AppCore] Logging out...")
 
 	if a.Messenger != nil {
-		a.Messenger.Stop()
+		_ = a.Messenger.Stop()
 		a.Messenger = nil
 	}
 	if a.Router != nil {
-		a.Router.Stop()
+		_ = a.Router.Stop()
 		a.Router = nil
 	}
 	if a.Repo != nil {

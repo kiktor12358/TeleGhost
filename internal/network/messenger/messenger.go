@@ -381,7 +381,7 @@ func (s *Service) removeConnection(destination string) {
 // writePacket пишет пакет в соединение (length-prefixed)
 func (s *Service) writePacket(conn net.Conn, data []byte) error {
 	// Устанавливаем deadline
-	conn.SetWriteDeadline(time.Now().Add(ConnectionTimeout))
+	_ = conn.SetWriteDeadline(time.Now().Add(ConnectionTimeout))
 
 	// Пишем размер (4 байта, big endian)
 	sizeBuf := make([]byte, 4)
@@ -402,7 +402,7 @@ func (s *Service) writePacket(conn net.Conn, data []byte) error {
 // readPacket читает пакет из соединения
 func (s *Service) readPacket(conn net.Conn) ([]byte, error) {
 	// Устанавливаем deadline
-	conn.SetReadDeadline(time.Now().Add(ReadTimeout))
+	_ = conn.SetReadDeadline(time.Now().Add(ReadTimeout))
 
 	// Читаем размер
 	sizeBuf := make([]byte, 4)
@@ -555,7 +555,7 @@ func (s *Service) handlePacket(packet *pb.Packet, remoteAddr string) {
 }
 
 // handleProfileRequest обрабатывает запрос на обновление профиля
-func (s *Service) handleProfileRequest(packet *pb.Packet, senderPubKey string) {
+func (s *Service) handleProfileRequest(_ *pb.Packet, senderPubKey string) {
 	log.Printf("[Messenger] Profile request from %s", senderPubKey[:min(16, len(senderPubKey))])
 
 	// Получаем текущий профиль (или используем дефолтные значения из s.myNickname)

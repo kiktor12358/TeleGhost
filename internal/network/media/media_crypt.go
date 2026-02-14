@@ -98,7 +98,7 @@ func (m *MediaCrypt) NewMediaHandler(storageDir string) http.Handler {
 		w.Header().Set("Content-Type", contentType)
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(plaintext)))
 		w.WriteHeader(http.StatusOK)
-		w.Write(plaintext)
+		_, _ = w.Write(plaintext)
 	})
 }
 
@@ -171,9 +171,4 @@ func (m *MediaCrypt) DecryptDirectory(dir string) error {
 
 		return nil
 	})
-}
-
-func logError(msg string) {
-	// В реальном приложении здесь может быть логгер
-	fmt.Printf("[MediaCrypt] %s\n", msg)
 }

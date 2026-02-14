@@ -236,10 +236,10 @@ func NewAppCore(dataDir string, emitter EventEmitter, platform PlatformServices)
 func (a *AppCore) Init() error {
 	// Создаём директории
 	if err := os.MkdirAll(a.DataDir, 0700); err != nil {
-		log.Printf("[AppCore] Failed to create DataDir: %v", err)
+		return fmt.Errorf("failed to create DataDir: %w", err)
 	}
 	if err := os.MkdirAll(filepath.Join(a.DataDir, "users"), 0700); err != nil {
-		log.Printf("[AppCore] Failed to create users dir: %v", err)
+		return fmt.Errorf("failed to create users dir: %w", err)
 	}
 
 	// Инициализируем менеджер профилей
@@ -258,10 +258,10 @@ func (a *AppCore) Shutdown() {
 	log.Println("[AppCore] Shutting down...")
 
 	if a.Messenger != nil {
-		a.Messenger.Stop()
+		_ = a.Messenger.Stop()
 	}
 	if a.Router != nil {
-		a.Router.Stop()
+		_ = a.Router.Stop()
 	}
 	if a.Repo != nil {
 		a.Repo.Close()
@@ -302,19 +302,24 @@ func (a *AppCore) UpdateMyProfile(nickname, bio, avatar string) error {
 					return fmt.Errorf("аватарка слишком большая (максимум %d КБ)", MaxAvatarSize/1024)
 				}
 				// Сохраняем байты в файл аватара пользователя (НЕ зашифровано!)
-				newPath, err := a.SaveAvatar("my_avatar.png", data)
+				newAvatarPath, err := a.SaveAvatar("my_avatar.png", data)
 				if err == nil {
-					avatarPath = newPath
+					avatarPath = newAvatarPath
 					// Также обновляем в БД путь на локальный, а не base64
-					a.Repo.UpdateMyProfile(a.Ctx, nickname, bio, avatarPath)
+					if err := a.Repo.UpdateMyProfile(a.Ctx, nickname, bio, avatarPath); err != nil {
+						log.Printf("[AppCore] Failed to update profile with local avatar path: %v", err)
+					}
 				}
 			} else {
 				log.Printf("[AppCore] Failed to decode base64 avatar: %v", err)
 			}
 		}
 
-		if meta, _ := a.ProfileManager.GetProfileByUserID(a.Identity.Keys.UserID); meta != nil {
-			a.ProfileManager.UpdateProfile(meta.ID, nickname, avatarPath, false, meta.UsePin, "", a.Identity.Mnemonic)
+		meta, err := a.ProfileManager.GetProfileByUserID(a.Identity.Keys.UserID)
+		if err == nil && meta != nil {
+			if err := a.ProfileManager.UpdateProfile(meta.ID, nickname, avatarPath, false, meta.UsePin, "", a.Identity.Mnemonic); err != nil {
+				log.Printf("[AppCore] Failed to sync profile with PM: %v", err)
+			}
 		}
 	}
 
@@ -340,7 +345,9 @@ func (a *AppCore) ExportAccount() (string, error) {
 
 	// 2. Prepare temp zip file
 	tempDir := filepath.Join(a.DataDir, "temp")
-	os.MkdirAll(tempDir, 0755)
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create temp dir: %w", err)
+	}
 	zipName := fmt.Sprintf("teleghost_export_%s_%d.zip", profileMeta.DisplayName, time.Now().Unix())
 	zipPath := filepath.Join(tempDir, zipName)
 
@@ -351,20 +358,24 @@ func (a *AppCore) ExportAccount() (string, error) {
 	defer outFile.Close()
 
 	w := zip.NewWriter(outFile)
-	defer w.Close()
+	defer func() {
+		if err := w.Close(); err != nil {
+			log.Printf("[AppCore] Failed to close zip writer: %v", err)
+		}
+	}()
 
 	// 3. Add profile JSON file
 	profileJsonPath := filepath.Join(a.DataDir, "profiles", profileMeta.ID+".json")
-	if err := addFileToZip(w, profileJsonPath, "profile.json"); err != nil {
-		return "", fmt.Errorf("failed to add profile json: %w", err)
+	if errZip := addFileToZip(w, profileJsonPath, "profile.json"); errZip != nil {
+		return "", fmt.Errorf("failed to add profile json: %w", errZip)
 	}
 
 	// 4. Add Avatar if separate (it might be referenced in JSON)
 	if profileMeta.AvatarPath != "" {
 		avatarFullPath := filepath.Join(a.DataDir, "profiles", profileMeta.AvatarPath)
-		if _, err := os.Stat(avatarFullPath); err == nil {
-			if err := addFileToZip(w, avatarFullPath, profileMeta.AvatarPath); err != nil {
-				log.Printf("Failed to add avatar to zip: %v", err)
+		if _, errStat := os.Stat(avatarFullPath); errStat == nil {
+			if errZip := addFileToZip(w, avatarFullPath, profileMeta.AvatarPath); errZip != nil {
+				log.Printf("Failed to add avatar to zip: %v", errZip)
 			}
 		}
 	}
@@ -479,7 +490,11 @@ func (a *AppCore) ImportAccount(zipPath string) error {
 			rc.Close()
 			return err
 		}
-		_, err = io.Copy(outFile, rc)
+		if _, err = io.Copy(outFile, rc); err != nil {
+			outFile.Close()
+			rc.Close()
+			return err
+		}
 		outFile.Close()
 		rc.Close()
 	}
@@ -642,7 +657,9 @@ func (a *AppCore) ConnectToI2P() {
 					user.I2PKeys = keysData
 					user.I2PAddress = dest
 					log.Printf("[AppCore] Saving I2P destination to DB: %s", dest)
-					a.Repo.SaveUser(a.Ctx, user)
+					if err := a.Repo.SaveUser(a.Ctx, user); err != nil {
+						log.Printf("[AppCore] Failed to save I2P destination to DB: %v", err)
+					}
 				}
 				os.Remove(keysPath)
 			}
@@ -739,8 +756,9 @@ func (a *AppCore) onProfileUpdate(senderPubKey, nickname, bio string, avatar []b
 			contact.Avatar = path
 		}
 	}
-
-	a.Repo.SaveContact(a.Ctx, contact)
+	if err := a.Repo.SaveContact(a.Ctx, contact); err != nil {
+		log.Printf("[AppCore] Failed to save contact on profile update: %v", err)
+	}
 	a.Emitter.Emit("contact_updated")
 }
 
@@ -772,7 +790,9 @@ func (a *AppCore) onProfileRequest(requestorPubKey string) {
 	// Но у нас есть только PubKey. Ищем контакт в БД.
 	contact, _ := a.Repo.GetContactByPublicKey(a.Ctx, requestorPubKey)
 	if contact != nil {
-		a.Messenger.SendProfileUpdate(contact.I2PAddress, user.Nickname, user.Bio, avatarData)
+		if err := a.Messenger.SendProfileUpdate(contact.I2PAddress, user.Nickname, user.Bio, avatarData); err != nil {
+			log.Printf("[AppCore] Failed to send profile update: %v", err)
+		}
 	}
 }
 
@@ -824,11 +844,21 @@ func (a *AppCore) OnMessageReceived(msg *core.Message, senderPubKey, senderAddr 
 				ChatID:     newChatID,
 				AddedAt:    time.Now(),
 			}
-			a.Repo.SaveContact(a.Ctx, contact)
+			if err := a.Repo.SaveContact(a.Ctx, contact); err != nil {
+				log.Printf("[AppCore] Failed to auto-save contact: %v", err)
+			}
 			a.Emitter.Emit("contact_updated")
 			// Запрашиваем профиль у нового контакта
-			if a.Messenger != nil {
-				go a.Messenger.SendProfileRequest(senderAddr)
+			if msg.ContentType == "text" && !contact.IsVerified {
+				go func(addr string) {
+					if a.Messenger == nil {
+						log.Printf("[AppCore] Messenger not initialized, cannot send auto profile request")
+						return
+					}
+					if err := a.Messenger.SendProfileRequest(addr); err != nil {
+						log.Printf("[AppCore] Failed to send auto profile request: %v", err)
+					}
+				}(senderAddr)
 			}
 		}
 	}
@@ -878,13 +908,14 @@ func (a *AppCore) OnMessageReceived(msg *core.Message, senderPubKey, senderAddr 
 
 	if !msg.IsOutgoing {
 		// Помечаем как прочитанное сразу, если чат активен
-		activeChatID := a.GetActiveChatID()
-		if activeChatID == msg.ChatID {
-			a.Repo.MarkChatAsRead(a.Ctx, msg.ChatID)
+		if a.ActiveChatID == msg.ChatID && a.IsFocused {
+			if err := a.Repo.MarkChatAsRead(a.Ctx, msg.ChatID); err != nil {
+				log.Printf("[AppCore] Failed to mark chat as read: %v", err)
+			}
 		}
 
 		// Подавляем уведомление, если приложение видимо, в фокусе и открыт именно этот чат
-		if !a.IsVisible || !(a.IsFocused && activeChatID == msg.ChatID) {
+		if !a.IsVisible || !(a.IsFocused && a.ActiveChatID == msg.ChatID) {
 			go a.SendNotification(contact.Nickname, msg.Content, msg.ContentType)
 		}
 		go a.UpdateUnreadCount()
@@ -945,8 +976,6 @@ func (a *AppCore) OnContactRequest(pubKey, nickname, i2pAddress string) {
 				// The guard is that we only enter this block if it was DIFFERENT before.
 				go a.Messenger.SendHandshake(contact.I2PAddress)
 			}
-		} else {
-			// No changes needed
 		}
 	} else {
 		// New contact
@@ -959,20 +988,28 @@ func (a *AppCore) OnContactRequest(pubKey, nickname, i2pAddress string) {
 			ChatID:     newChatID,
 			AddedAt:    time.Now(),
 		}
-		if err := a.Repo.SaveContact(a.Ctx, contact); err != nil {
-			log.Printf("[AppCore] Failed to save new contact: %v", err)
-			return
-		}
-		a.Emitter.Emit("new_contact", map[string]interface{}{
-			"nickname": nickname,
-		})
-		a.Emitter.Emit("contact_updated")
+		if err := a.Repo.SaveContact(a.Ctx, contact); err == nil {
+			a.Emitter.Emit("new_contact", map[string]interface{}{
+				"nickname": nickname,
+			})
+			a.Emitter.Emit("contact_updated")
 
-		// Send handshake back to new contact so they get our key
-		if a.Messenger != nil {
-			go a.Messenger.SendHandshake(i2pAddress)
-			// Also request profile
-			go a.Messenger.SendProfileRequest(i2pAddress)
+			// Send handshake back to new contact so they get our key
+			if a.Messenger != nil {
+				go func(addr string) {
+					if err := a.Messenger.SendHandshake(addr); err != nil {
+						log.Printf("[AppCore] Failed to send handshake: %v", err)
+					}
+				}(contact.I2PAddress)
+				// Also request profile
+				go func(addr string) {
+					if err := a.Messenger.SendProfileRequest(addr); err != nil {
+						log.Printf("[AppCore] Failed to send profile request: %v", err)
+					}
+				}(i2pAddress)
+			}
+		} else {
+			log.Printf("[AppCore] Failed to save new contact: %v", err)
 		}
 	}
 }
