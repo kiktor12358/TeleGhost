@@ -5,7 +5,6 @@
   import * as AppActions from '../wailsjs/go/main/App.js';
   import { writable } from 'svelte/store';
   import { Icons } from './Icons.js'; 
-  import logo from './assets/images/logo.png';
   
   // Components
   import Toasts from './components/Toasts.svelte';
@@ -924,7 +923,7 @@
     {/if}
 
     {#if screen === 'login'}
-        <Auth {logo} {onLoginSuccess} />
+        <Auth {onLoginSuccess} />
     {:else}
         <div class="main-screen" class:mobile-layout={isMobile}>
             {#if isMobile}
@@ -1059,90 +1058,150 @@
     />
 
     {#if previewImage}
-        <div class="fullscreen-preview" on:click={() => previewImage = null}>
+        <button 
+          class="fullscreen-preview" 
+          on:click={() => previewImage = null}
+          aria-label="Закрыть предпросмотр"
+          type="button"
+        >
             <img src={previewImage} alt="Preview" />
-        </div>
+        </button>
     {/if}
 
     {#if contextMenu.show}
-        <div class="menu-backdrop" on:click={() => contextMenu.show = false} on:touchmove|preventDefault></div>
+        <button 
+          class="menu-backdrop" 
+          on:click={() => contextMenu.show = false} 
+          on:touchmove|preventDefault
+          type="button"
+          aria-label="Закрыть меню"
+        ></button>
         <div class="context-menu" style="top: {contextMenu.y}px; left: {contextMenu.x}px">
             {#if folders.length > 0}
                 {@const inFolders = folders.filter(f => (f.ChatIDs || f.chat_ids || []).includes(contextMenu.contact.ID))}
                 {@const notInFolders = folders.filter(f => !(f.ChatIDs || f.chat_ids || []).includes(contextMenu.contact.ID))}
 
                 {#if notInFolders.length > 0}
-                    <div class="context-item submenu-parent">
+                    <div class="context-item submenu-parent" role="menu">
                         Добавить в папку
                         <div class="context-submenu">
                             {#each notInFolders as folder}
-                                <div class="context-item" on:click={async () => {
+                                <button 
+                                  class="context-item" 
+                                  type="button"
+                                  role="menuitem"
+                                  on:click={async () => {
                                     await AppActions.AddChatToFolder(folder.ID || folder.id, contextMenu.contact.ID);
                                     loadFolders();
                                     contextMenu.show = false;
                                     showToast(`Добавлено в папку "${folder.Name || folder.name}"`, 'success');
-                                }}>{folder.Icon || folder.icon} {folder.Name || folder.name}</div>
+                                  }}
+                                >{folder.Icon || folder.icon} {folder.Name || folder.name}</button>
                             {/each}
                         </div>
                     </div>
                 {/if}
 
                 {#if inFolders.length > 0}
-                    <div class="context-item submenu-parent">
+                    <div class="context-item submenu-parent" role="menu">
                         Удалить из папки
                         <div class="context-submenu">
                             {#each inFolders as folder}
-                                <div class="context-item" on:click={async () => {
+                                <button 
+                                  class="context-item" 
+                                  type="button"
+                                  role="menuitem"
+                                  on:click={async () => {
                                     await AppActions.RemoveChatFromFolder(folder.ID || folder.id, contextMenu.contact.ID);
                                     loadFolders();
                                     contextMenu.show = false;
                                     showToast(`Удалено из папки "${folder.Name || folder.name}"`, 'success');
-                                }}>{folder.Icon || folder.icon} {folder.Name || folder.name}</div>
+                                  }}
+                                >{folder.Icon || folder.icon} {folder.Name || folder.name}</button>
                             {/each}
                         </div>
                     </div>
                 {/if}
             {/if}
-            <div class="context-item" on:click={() => {
+            <button 
+              class="context-item" 
+              type="button"
+              on:click={() => {
                 sidebarHandlers.onTogglePin(contextMenu.contact.ID);
                 contextMenu.show = false;
-            }}>
+              }}
+            >
                 {pinnedChats.includes(contextMenu.contact.ID) ? 'Открепить' : 'Закрепить'}
-            </div>
+            </button>
             {#if pinnedChats.includes(contextMenu.contact.ID)}
-                <div class="context-item" on:click={() => {
+                <button 
+                  class="context-item" 
+                  type="button"
+                  on:click={() => {
                     sidebarHandlers.onMovePin(contextMenu.contact.ID, -1);
                     contextMenu.show = false;
-                }}>Переместить выше</div>
-                <div class="context-item" on:click={() => {
+                  }}
+                >Переместить выше</button>
+                <button 
+                  class="context-item" 
+                  type="button"
+                  on:click={() => {
                     sidebarHandlers.onMovePin(contextMenu.contact.ID, 1);
                     contextMenu.show = false;
-                }}>Переместить ниже</div>
+                  }}
+                >Переместить ниже</button>
             {/if}
-            <div class="context-item danger" on:click={() => { 
+            <button 
+              class="context-item danger" 
+              type="button"
+              on:click={() => { 
                 AppActions.DeleteContact(contextMenu.contact.ID); 
                 loadContacts();
-            }}>Удалить контакт</div>
+              }}
+            >Удалить контакт</button>
         </div>
     {/if}
 
     {#if folderContextMenu.show}
-        <div class="menu-backdrop" on:click={() => folderContextMenu.show = false} on:touchmove|preventDefault></div>
+        <button 
+          class="menu-backdrop" 
+          on:click={() => folderContextMenu.show = false} 
+          on:touchmove|preventDefault
+          type="button"
+          aria-label="Закрыть меню"
+        ></button>
         <div class="context-menu" style="top: {folderContextMenu.y}px; left: {folderContextMenu.x}px">
-            <div class="context-item" on:click={() => { 
+            <button 
+              class="context-item" 
+              type="button"
+              on:click={() => { 
                 sidebarHandlers.onEditFolder(folderContextMenu.folder);
                 folderContextMenu.show = false;
-            }}>Редактировать</div>
-            <div class="context-item danger" on:click={() => {
+              }}
+            >Редактировать</button>
+            <button 
+              class="context-item danger" 
+              type="button"
+              on:click={() => {
                 modalHandlers.onDeleteFolder();
-            }}>Удалить папку</div>
+              }}
+            >Удалить папку</button>
         </div>
     {/if}
 
     {#if messageContextMenu.show}
-        <div class="menu-backdrop" on:click={() => messageContextMenu.show = false} on:touchmove|preventDefault></div>
+        <button 
+          class="menu-backdrop" 
+          on:click={() => messageContextMenu.show = false} 
+          on:touchmove|preventDefault
+          type="button"
+          aria-label="Закрыть меню"
+        ></button>
         <div class="context-menu" style="top: {messageContextMenu.y}px; left: {messageContextMenu.x}px">
-            <div class="context-item" on:click={() => {
+            <button 
+              class="context-item" 
+              type="button"
+              on:click={() => {
                 replyingTo = messageContextMenu.message;
                 messageContextMenu.show = false;
                 // Focus textarea
@@ -1150,26 +1209,39 @@
                     const ta = document.querySelector('.message-input');
                     if (ta) ta.focus();
                 }, 100);
-            }}>Ответить</div>
+              }}
+            >Ответить</button>
             {#if messageContextMenu.message?.Content}
-                <div class="context-item" on:click={() => {
+                <button 
+                  class="context-item" 
+                  type="button"
+                  on:click={() => {
                     AppActions.CopyToClipboard(messageContextMenu.message.Content);
                     showToast('Текст скопирован', 'success');
                     messageContextMenu.show = false;
-                }}>Копировать текст</div>
+                  }}
+                >Копировать текст</button>
             {/if}
             {#if messageContextMenu.message?.IsOutgoing}
-                <div class="context-item" on:click={() => {
+                <button 
+                  class="context-item" 
+                  type="button"
+                  on:click={() => {
                     editingMessageId = messageContextMenu.message.ID;
                     editMessageContent = messageContextMenu.message.Content;
                     messageContextMenu.show = false;
-                }}>Редактировать</div>
+                  }}
+                >Редактировать</button>
             {/if}
-            <div class="context-item danger" on:click={() => {
+            <button 
+              class="context-item danger" 
+              type="button"
+              on:click={() => {
                 AppActions.DeleteMessage(messageContextMenu.message.ID);
                 loadMessages(selectedContact.ID);
                 messageContextMenu.show = false;
-            }}>Удалить</div>
+              }}
+            >Удалить</button>
         </div>
     {/if}
 </main>
@@ -1204,7 +1276,7 @@
     .menu-backdrop {
         position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.1);
     }
-    .context-item { padding: 10px 16px; cursor: pointer; border-radius: 4px; font-size: 14px; position: relative; }
+    .context-item { padding: 10px 16px; cursor: pointer; border-radius: 4px; font-size: 14px; position: relative; border: none; background: transparent; text-align: left; transition: background 0.2s ease; font-family: inherit; color: inherit; }
     .context-item:hover { background: rgba(255,255,255,0.1); }
     .context-item.danger { color: #ff6b6b; }
 
@@ -1228,19 +1300,12 @@
         margin-left: 4px;
     }
 
-    .btn-danger {
-        background: #ff4757;
-        color: white;
-        border: none;
-    }
-    .btn-danger:hover {
-        background: #ff6b81;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+    .menu-backdrop {
+        position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.1); border: none; padding: 0; cursor: default;
     }
 
     .fullscreen-preview {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: flex; align-items: center; justify-content: center;
+        position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 20000; display: flex; align-items: center; justify-content: center; border: none; padding: 0; cursor: pointer;
     }
     .fullscreen-preview img { max-width: 90%; max-height: 90%; object-fit: contain; }
 
@@ -1273,14 +1338,4 @@
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-    
-    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-slide-down { animation: slideDown 0.3s ease-out forwards; }
-
-    @keyframes messageSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-message { animation: messageSlide 0.2s ease-out forwards; }
-
-    /* Mobile layout specific fixes */
-    .mobile-layout .sidebar { width: 100% !important; border-right: none; }
-    .mobile-layout .content-area { width: 100%; height: 100%; }
 </style>

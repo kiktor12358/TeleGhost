@@ -17,7 +17,6 @@
     } from '../../wailsjs/go/main/App.js';
     import { getInitials } from '../utils.js';
 
-    export let logo;
     export let onLoginSuccess;
 
     let isLoading = false;
@@ -247,7 +246,11 @@
     }
 </script>
 
-<div class="login-screen bg-animated" in:fade={{duration: 400}} on:click={hideContextMenu}>
+<div 
+  class="login-screen bg-animated" 
+  in:fade={{duration: 400}} 
+  role="main"
+>
   <div class="login-container glass-panel animate-fade-in" 
        in:scale={{duration: 500, start: 0.95}}
        style="max-width: {authScreen === 'profiles' ? '540px' : '440px'}; padding: 40px; border-radius: 28px;">
@@ -335,7 +338,6 @@
                 placeholder="••••" 
                 bind:value={pinInput} 
                 on:keydown={(e) => e.key === 'Enter' && handleUnlock()}
-                autoFocus 
               />
               <button class="btn-primary-premium full-width" on:click={handleUnlock} disabled={isLoading || pinInput.length < 1}>
                 {#if isLoading}<span class="spinner"></span>{:else}Разблокировать{/if}
@@ -458,8 +460,13 @@
     class="context-menu" 
     style="top: {profileContextMenu.y}px; left: {profileContextMenu.x}px;"
     on:click|stopPropagation
+    role="presentation"
 >
-    <button class="context-item delete" on:click={() => confirmDeleteProfile(profileContextMenu.profile)}>
+    <button 
+      class="context-item delete" 
+      type="button"
+      on:click={() => confirmDeleteProfile(profileContextMenu.profile)}
+    >
         <span class="icon-svg-sm">{@html Icons.Trash}</span>
         Удалить аккаунт
     </button>
@@ -607,7 +614,6 @@
   .btn-glass {
     border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color: #fff; padding: 14px; border-radius: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s;
   }
-  .accent-text { color: var(--accent, #6366f1); border-color: rgba(99, 102, 241, 0.3); }
 
   .full-width { width: 100%; }
 
@@ -661,10 +667,6 @@
   .avatar-placeholder-mini {
       width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
       color: white; font-size: 18px; font-weight: 700;
-  }
-  .avatar-placeholder-large {
-      width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
-      color: white; font-size: 32px; font-weight: 700;
   }
   .clickable-btn { cursor: pointer !important; position: relative; z-index: 10002; }
   .clickable-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
