@@ -61,3 +61,5 @@ android/app/build/
 android/app/libs/*.aar
 *.aar
 mobile/dist/*
+# i2pd logs
+i2pd.log
