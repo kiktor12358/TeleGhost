@@ -16,7 +16,7 @@
   import QRModal from './components/QRModal.svelte';
   
   import { showToast } from './stores.js';
-  import { getInitials, formatTime, parseMarkdown, getStatusColor, getStatusText } from './utils.js';
+  import { getInitials, formatTime, getStatusColor, getStatusText } from './utils.js';
 
   // --- Global State ---
   let screen = 'login'; // login | main
@@ -1252,10 +1252,12 @@
         --bg-secondary: #1e1e2e;
         --bg-tertiary: #11111b;
         --bg-input: #0c0c14;
+        --bg-hover: #2a2a3e;
         --text-primary: #ffffff;
         --text-secondary: #a0a0ba;
         --accent: #6366f1;
         --border: rgba(255,255,255,0.05);
+        --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
     :global(body) {
