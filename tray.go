@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"fyne.io/systray"
@@ -10,10 +9,9 @@ import (
 
 // TrayManager управляет иконкой в системном трее
 type TrayManager struct {
-	app         *App
-	iconData    []byte
-	isVisible   bool
-	unreadCount int
+	app       *App
+	iconData  []byte
+	isVisible bool
 }
 
 // NewTrayManager создаёт менеджер трея
@@ -86,20 +84,6 @@ func (t *TrayManager) toggleWindow() {
 // Stop останавливает трей
 func (t *TrayManager) Stop() {
 	systray.Quit()
-}
-
-// updateUnreadCount обновляет счетчик непрочитанных сообщений
-func (t *TrayManager) updateUnreadCount(count int) {
-	t.unreadCount = count
-
-	// Обновляем tooltip с количеством непрочитанных
-	if count > 0 {
-		systray.SetTitle("TeleGhost")
-		systray.SetTooltip(fmt.Sprintf("TeleGhost — %d непрочитанных", count))
-	} else {
-		systray.SetTitle("TeleGhost")
-		systray.SetTooltip("TeleGhost — Анонимный мессенджер I2P")
-	}
 }
 
 // onExit вызывается при выходе

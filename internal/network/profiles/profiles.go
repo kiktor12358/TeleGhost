@@ -163,7 +163,7 @@ func (pm *ProfileManager) UpdateProfile(profileID string, name string, avatarPat
 	}
 
 	var vault Vault
-	if err := json.Unmarshal(data, &vault); err != nil {
+	if errUnmarshal := json.Unmarshal(data, &vault); errUnmarshal != nil {
 		return fmt.Errorf("ошибка чтения формата профиля")
 	}
 
@@ -193,9 +193,9 @@ func (pm *ProfileManager) UpdateProfile(profileID string, name string, avatarPat
 		destPath := filepath.Join(pm.storageDir, newAvatarName)
 
 		// Copy file
-		input, err := os.ReadFile(avatarPath)
-		if err == nil {
-			if err := os.WriteFile(destPath, input, 0600); err == nil {
+		input, errRead := os.ReadFile(avatarPath)
+		if errRead == nil {
+			if errWrite := os.WriteFile(destPath, input, 0600); errWrite == nil {
 				vault.AvatarPath = newAvatarName
 			}
 		}
@@ -211,8 +211,8 @@ func (pm *ProfileManager) UpdateProfile(profileID string, name string, avatarPat
 		}
 
 		salt := make([]byte, 16)
-		if _, err := io.ReadFull(rand.Reader, salt); err != nil {
-			return err
+		if _, errSalt := io.ReadFull(rand.Reader, salt); errSalt != nil {
+			return errSalt
 		}
 
 		vault.Salt = base64.StdEncoding.EncodeToString(salt)
@@ -305,7 +305,7 @@ func (pm *ProfileManager) UnlockProfile(profileID string, pin string) (string, e
 	}
 
 	var vault Vault
-	if err := json.Unmarshal(data, &vault); err != nil {
+	if errUnmarshal := json.Unmarshal(data, &vault); errUnmarshal != nil {
 		return "", fmt.Errorf("ошибка чтения формата профиля")
 	}
 

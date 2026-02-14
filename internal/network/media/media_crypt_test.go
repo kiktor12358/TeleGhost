@@ -47,7 +47,8 @@ func TestMediaCrypt(t *testing.T) {
 	// 2. Test Migration
 	plainFile := filepath.Join(tempDir, "plain.txt")
 	plainData := []byte("this is plain text")
-	if err := os.WriteFile(plainFile, plainData, 0644); err != nil {
+	err = os.WriteFile(plainFile, plainData, 0644)
+	if err != nil {
 		t.Fatalf("Failed to write plain file: %v", err)
 	}
 

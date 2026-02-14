@@ -288,7 +288,9 @@ func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string
 		destination = contact.I2PAddress
 		if contact.ChatID == "" {
 			contact.ChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
-			a.Repo.SaveContact(a.Ctx, contact)
+			if errSave := a.Repo.SaveContact(a.Ctx, contact); errSave != nil {
+				log.Printf("[AppCore] Failed to save contact during message send: %v", errSave)
+			}
 		}
 		actualChatID = contact.ChatID
 

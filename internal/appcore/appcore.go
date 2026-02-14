@@ -302,12 +302,12 @@ func (a *AppCore) UpdateMyProfile(nickname, bio, avatar string) error {
 					return fmt.Errorf("аватарка слишком большая (максимум %d КБ)", MaxAvatarSize/1024)
 				}
 				// Сохраняем байты в файл аватара пользователя (НЕ зашифровано!)
-				newAvatarPath, err := a.SaveAvatar("my_avatar.png", data)
-				if err == nil {
-					avatarPath = newAvatarPath
+				newPath, saveErr := a.SaveAvatar("my_avatar.png", data)
+				if saveErr == nil {
+					avatarPath = newPath
 					// Также обновляем в БД путь на локальный, а не base64
-					if err := a.Repo.UpdateMyProfile(a.Ctx, nickname, bio, avatarPath); err != nil {
-						log.Printf("[AppCore] Failed to update profile with local avatar path: %v", err)
+					if errUpdate := a.Repo.UpdateMyProfile(a.Ctx, nickname, bio, avatarPath); errUpdate != nil {
+						log.Printf("[AppCore] Failed to update profile with local avatar path: %v", errUpdate)
 					}
 				}
 			} else {
@@ -345,8 +345,8 @@ func (a *AppCore) ExportAccount() (string, error) {
 
 	// 2. Prepare temp zip file
 	tempDir := filepath.Join(a.DataDir, "temp")
-	if err := os.MkdirAll(tempDir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create temp dir: %w", err)
+	if errMkdir := os.MkdirAll(tempDir, 0755); errMkdir != nil {
+		return "", fmt.Errorf("failed to create temp dir: %w", errMkdir)
 	}
 	zipName := fmt.Sprintf("teleghost_export_%s_%d.zip", profileMeta.DisplayName, time.Now().Unix())
 	zipPath := filepath.Join(tempDir, zipName)
@@ -359,8 +359,8 @@ func (a *AppCore) ExportAccount() (string, error) {
 
 	w := zip.NewWriter(outFile)
 	defer func() {
-		if err := w.Close(); err != nil {
-			log.Printf("[AppCore] Failed to close zip writer: %v", err)
+		if errClose := w.Close(); errClose != nil {
+			log.Printf("[AppCore] Failed to close zip writer: %v", errClose)
 		}
 	}()
 
@@ -974,7 +974,11 @@ func (a *AppCore) OnContactRequest(pubKey, nickname, i2pAddress string) {
 			if publicKeyChanged && a.Messenger != nil {
 				// We just updated it to pubKey, so checking == is always true here.
 				// The guard is that we only enter this block if it was DIFFERENT before.
-				go a.Messenger.SendHandshake(contact.I2PAddress)
+				go func(addr string) {
+					if errHandshake := a.Messenger.SendHandshake(addr); errHandshake != nil {
+						log.Printf("[AppCore] Failed to send handshake: %v", errHandshake)
+					}
+				}(contact.I2PAddress)
 			}
 		}
 	} else {
@@ -997,14 +1001,14 @@ func (a *AppCore) OnContactRequest(pubKey, nickname, i2pAddress string) {
 			// Send handshake back to new contact so they get our key
 			if a.Messenger != nil {
 				go func(addr string) {
-					if err := a.Messenger.SendHandshake(addr); err != nil {
-						log.Printf("[AppCore] Failed to send handshake: %v", err)
+					if errH := a.Messenger.SendHandshake(addr); errH != nil {
+						log.Printf("[AppCore] Failed to send handshake: %v", errH)
 					}
 				}(contact.I2PAddress)
 				// Also request profile
 				go func(addr string) {
-					if err := a.Messenger.SendProfileRequest(addr); err != nil {
-						log.Printf("[AppCore] Failed to send profile request: %v", err)
+					if errP := a.Messenger.SendProfileRequest(addr); errP != nil {
+						log.Printf("[AppCore] Failed to send profile request: %v", errP)
 					}
 				}(i2pAddress)
 			}

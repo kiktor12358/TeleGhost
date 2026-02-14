@@ -473,7 +473,9 @@ func (a *App) ExportReseed() (string, error) {
 	os.Remove(tempPath) // Удаляем временный файл
 
 	// 4. Открываем папку с сохраненным файлом
-	a.ShareFile(destPath)
+	if shareErr := a.ShareFile(destPath); shareErr != nil {
+		log.Printf("[App] Failed to share file: %v", shareErr)
+	}
 
 	return destPath, nil
 }
@@ -523,7 +525,9 @@ func (a *App) ExportAccount() (string, error) {
 	}
 	os.Remove(tempPath)
 
-	a.ShareFile(destPath)
+	if shareErr := a.ShareFile(destPath); shareErr != nil {
+		log.Printf("[App] Failed to share file: %v", shareErr)
+	}
 
 	return destPath, nil
 }

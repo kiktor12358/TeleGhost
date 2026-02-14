@@ -38,12 +38,11 @@ func (a *AppCore) ListProfiles() ([]map[string]interface{}, error) {
 func (a *AppCore) CreateProfile(name, pin, mnemonic, existingUserID, avatarPath string, usePin bool) error {
 	log.Printf("[AppCore] Creating/Updating profile for: %s", name)
 
-	var userID string
-	if existingUserID != "" {
-		userID = existingUserID
-	} else {
+	if a.ProfileManager == nil {
 		return fmt.Errorf("profile manager not initialized")
 	}
+
+	var userID string
 
 	// Если мнемоника не передана, генерируем новую
 	if mnemonic == "" {
@@ -62,7 +61,7 @@ func (a *AppCore) CreateProfile(name, pin, mnemonic, existingUserID, avatarPath 
 		userID = keys.UserID
 	}
 
-	return a.ProfileManager.CreateProfile(name, pin, mnemonic, userID, avatarPath, usePin, "")
+	return a.ProfileManager.CreateProfile(name, pin, mnemonic, userID, avatarPath, usePin, existingUserID)
 }
 
 // UnlockProfile проверяет PIN и возвращает мнемонику.
@@ -140,8 +139,6 @@ func (a *AppCore) Login(mnemonic string) error {
 				needsUpdateDB = true
 			} else if (dbUser.Nickname != "" && dbUser.Nickname != "User") && (nickname == "" || nickname == "User") {
 				// Если в БД есть имя, а в ПМ нет или дефолтное - обновляем ПМ (синхронизация в обратную сторону)
-				dbUserNickname := dbUser.Nickname
-				nickname = dbUserNickname
 				needsUpdatePM = true
 			}
 
@@ -159,8 +156,6 @@ func (a *AppCore) Login(mnemonic string) error {
 				}
 			} else if dbUser.Avatar != "" && avatar == "" {
 				// 2. Если в БД есть, а в ПМ нет -> Обновляем ПМ
-				dbUserAvatar := dbUser.Avatar
-				avatar = dbUserAvatar
 				needsUpdatePM = true
 			} else if dbUser.Avatar != "" && avatar != "" && dbUser.Avatar != avatar {
 				// 3. Если есть в обоих местах, но пути разные.
@@ -175,10 +170,10 @@ func (a *AppCore) Login(mnemonic string) error {
 					if data, err := os.ReadFile(avatar); err == nil {
 						if savedPath, err := a.SaveAvatar("my_avatar.png", data); err == nil {
 							dbUser.Avatar = savedPath
-							needsUpdateDB = true
 						}
 					}
 				}
+				needsUpdateDB = true
 				// Если isDbInternal, то оставляем как есть в БД.
 			}
 

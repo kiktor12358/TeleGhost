@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -158,7 +159,9 @@ func (a *AppCore) ImportReseed(zipPath string) error {
 			return err
 		}
 
-		_, err = io.Copy(outFile, rc)
+		if _, err := io.Copy(outFile, rc); err != nil {
+			log.Printf("[AppCore] Failed to copy reseed file: %v", err)
+		}
 
 		outFile.Close()
 		rc.Close()
