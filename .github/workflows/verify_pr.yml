@@ -50,6 +50,11 @@ jobs:
         with:
           args: -exclude=G104,G304,G115,G103 ./...
 
+      - name: Dependency Vulnerability Check (govulncheck)
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
       - name: Run Tests
         run: go test -v -short ./...
 
@@ -72,6 +77,16 @@ jobs:
         run: |
           cd frontend
           npm ci
+
+      - name: Security Audit (npm audit)
+        run: |
+          cd frontend
+          npm audit --audit-level=high
+
+      - name: Code Quality Check (svelte-check)
+        run: |
+          cd frontend
+          npm run check
 
       - name: Build Check
         run: |
