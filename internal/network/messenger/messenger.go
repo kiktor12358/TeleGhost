@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net"
 	"sync"
 	"time"
@@ -384,6 +385,10 @@ func (s *Service) writePacket(conn net.Conn, data []byte) error {
 	_ = conn.SetWriteDeadline(time.Now().Add(ConnectionTimeout))
 
 	// Пишем размер (4 байта, big endian)
+	const maxUint32 = math.MaxUint32
+	if uint64(len(data)) > maxUint32 {
+		return fmt.Errorf("packet too large for uint32: %d", len(data))
+	}
 	if len(data) > 100*1024*1024 { // 100 MB limit for safety
 		return fmt.Errorf("packet too large: %d", len(data))
 	}

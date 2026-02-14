@@ -3,10 +3,10 @@ package appcore
 import (
 	"archive/zip"
 	"crypto/rand"
-	"encoding/binary"
 	"fmt"
 	"io"
 	"log"
+	"math/big"
 	"os"
 	"path/filepath"
 	"strings"
@@ -54,9 +54,11 @@ func (a *AppCore) ExportReseed() (string, error) {
 	// Используем crypto/rand для перемешивания (чтобы не использовать слабый math/rand)
 	// Хотя math/rand здесь не критичен, gosec требует crypto/rand
 	for i := len(files) - 1; i > 0; i-- {
-		b := make([]byte, 8)
-		_, _ = rand.Read(b)
-		j := int(binary.BigEndian.Uint64(b) % uint64(i+1))
+		n, err := rand.Int(rand.Reader, big.NewInt(int64(i+1)))
+		if err != nil {
+			continue // Should not happen with rand.Reader
+		}
+		j := int(n.Int64())
 		files[i], files[j] = files[j], files[i]
 	}
 

@@ -30,7 +30,7 @@ func CompressImage(path string, maxWidth, maxHeight uint) ([]byte, string, int, 
 
 	// If image is small enough, don't resize, just re-encode (or keep original if raw needed, but this function implies compression)
 	// Actually, we should resize if it's huge.
-	if uint(width) > maxWidth || uint(height) > maxHeight {
+	if (width > 0 && uint(width) > maxWidth) || (height > 0 && uint(height) > maxHeight) {
 		img = resize.Thumbnail(maxWidth, maxHeight, img, resize.Lanczos3)
 		width = img.Bounds().Dx()
 		height = img.Bounds().Dy()

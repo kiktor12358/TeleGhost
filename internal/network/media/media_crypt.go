@@ -64,10 +64,12 @@ func (m *MediaCrypt) NewMediaHandler(storageDir string) http.Handler {
 		relPath := strings.TrimPrefix(r.URL.Path, "/secure/")
 		fullPath := filepath.Join(storageDir, relPath)
 
-		// Очищаем путь и проверяем, что он внутри хранилища (простая защита от ../)
+		// Очищаем путь и проверяем, что он внутри хранилища
 		cleanPath := filepath.Clean(fullPath)
-		if strings.Contains(cleanPath, "..") {
-			http.Error(w, "Invalid path", http.StatusBadRequest)
+		absStorage, _ := filepath.Abs(storageDir)
+		absClean, _ := filepath.Abs(cleanPath)
+		if !strings.HasPrefix(absClean, absStorage) {
+			http.Error(w, "Access denied", http.StatusForbidden)
 			return
 		}
 
