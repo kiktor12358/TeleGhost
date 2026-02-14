@@ -2,11 +2,11 @@ package appcore
 
 import (
 	"archive/zip"
+	"crypto/rand"
 	"encoding/binary"
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
