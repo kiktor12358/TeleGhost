@@ -1180,10 +1180,12 @@
         --bg-secondary: #1e1e2e;
         --bg-tertiary: #11111b;
         --bg-input: #0c0c14;
+        --bg-hover: #2a2a3e;
         --text-primary: #ffffff;
         --text-secondary: #a0a0ba;
         --accent: #6366f1;
         --border: rgba(255,255,255,0.05);
+        --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
     :global(body) {
