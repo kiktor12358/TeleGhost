@@ -70,7 +70,7 @@ func (a *AppCore) ExportReseed() (string, error) {
 
 	// 4. Создаем ZIP архив во временной папке внутри DataDir (для Android)
 	tmpDir := filepath.Join(a.DataDir, "tmp")
-	os.MkdirAll(tmpDir, 0700)
+	_ = os.MkdirAll(tmpDir, 0700)
 	archiveName := fmt.Sprintf("i2p_reseed_%s.zip", time.Now().Format("20060102_150405"))
 	archivePath := filepath.Join(tmpDir, archiveName)
 
@@ -92,20 +92,21 @@ func (a *AppCore) ExportReseed() (string, error) {
 
 		f, err := os.Open(file)
 		if err != nil {
+			_ = f.Close()
 			continue
 		}
 
 		w, err := writer.Create(relPath)
 		if err != nil {
-			f.Close()
+			_ = f.Close()
 			continue
 		}
 
 		if _, err := io.Copy(w, f); err != nil {
-			f.Close()
+			_ = f.Close()
 			continue
 		}
-		f.Close()
+		_ = f.Close()
 	}
 
 	return archivePath, nil
@@ -126,11 +127,11 @@ func (a *AppCore) ImportReseed(zipPath string) error {
 			netDbPath = filepath.Join(baseDir, "netDb")
 		} else {
 			// Создаем дефолтную
-			os.MkdirAll(netDbPath, 0755)
+			_ = os.MkdirAll(netDbPath, 0700)
 		}
 	} else {
 		// Base dir exists, check netDb
-		os.MkdirAll(netDbPath, 0755)
+		_ = os.MkdirAll(netDbPath, 0700)
 	}
 
 	// 2. Открываем ZIP

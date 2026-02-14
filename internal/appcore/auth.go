@@ -225,7 +225,7 @@ func (a *AppCore) Logout() {
 		a.Router = nil
 	}
 	if a.Repo != nil {
-		a.Repo.Close()
+		_ = a.Repo.Close()
 		a.Repo = nil
 	}
 

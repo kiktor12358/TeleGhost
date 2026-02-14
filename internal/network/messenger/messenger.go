@@ -139,7 +139,7 @@ func (s *Service) Stop() error {
 	// Закрываем все соединения
 	s.connMu.Lock()
 	for dest, conn := range s.connections {
-		conn.Close()
+		_ = conn.Close()
 		delete(s.connections, dest)
 	}
 	s.connMu.Unlock()
@@ -358,7 +358,7 @@ func (s *Service) getOrCreateConnection(destination string) (net.Conn, error) {
 
 	// На случай, если кто-то другой уже успел создать соединение
 	if conn, exists = s.connections[destination]; exists {
-		newConn.Close()
+		_ = newConn.Close()
 		return conn, nil
 	}
 
@@ -374,7 +374,7 @@ func (s *Service) removeConnection(destination string) {
 	defer s.connMu.Unlock()
 
 	if conn, exists := s.connections[destination]; exists {
-		conn.Close()
+		_ = conn.Close()
 		delete(s.connections, destination)
 	}
 }

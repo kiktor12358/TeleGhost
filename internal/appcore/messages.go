@@ -482,6 +482,14 @@ func (a *AppCore) sendAsCompressedImages(destination, actualChatID, msgID, text,
 			continue
 		}
 
+		// Явное приведение типов с проверкой диапазона для gosec (G115)
+		w32 := int32(width)
+		h32 := int32(height)
+		if int(w32) != width || int(h32) != height {
+			w32 = 0
+			h32 = 0
+		}
+
 		att := &pb.Attachment{
 			Id:           uuid.New().String(),
 			Filename:     filepath.Base(filePath),
@@ -489,8 +497,8 @@ func (a *AppCore) sendAsCompressedImages(destination, actualChatID, msgID, text,
 			Size:         int64(len(data)),
 			Data:         data,
 			IsCompressed: true,
-			Width:        int32(width),
-			Height:       int32(height),
+			Width:        w32,
+			Height:       h32,
 		}
 		attachments = append(attachments, att)
 	}

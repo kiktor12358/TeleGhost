@@ -245,19 +245,19 @@ func (r *SAMRouter) Stop() error {
 	r.ready = false
 
 	if r.listener != nil {
-		r.listener.Close()
+		_ = r.listener.Close()
 		r.listener = nil
 	}
 
 	// Закрываем сессию (это закроет и connection-ы от нее)
 	if r.session != nil {
-		r.session.Close()
+		_ = r.session.Close()
 		r.session = nil
 	}
 
 	// Закрываем SAM соединение (это прервет создание ключей или сессии)
 	if r.sam != nil {
-		r.sam.Close()
+		_ = r.sam.Close()
 		r.sam = nil
 	}
 

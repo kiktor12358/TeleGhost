@@ -365,10 +365,10 @@ func (a *App) SaveTempImage(base64Data, filename string) (string, error) {
 	}
 
 	tempDir := filepath.Join(a.core.DataDir, "temp")
-	os.MkdirAll(tempDir, 0755)
+	_ = os.MkdirAll(tempDir, 0700)
 
 	filePath := filepath.Join(tempDir, filename)
-	if err := os.WriteFile(filePath, data, 0644); err != nil {
+	if err := os.WriteFile(filePath, data, 0600); err != nil {
 		return "", err
 	}
 
@@ -401,7 +401,7 @@ func (a *App) SaveFileToLocation(path, filename string) (string, error) {
 		return "", err
 	}
 
-	if err := os.WriteFile(dest, input, 0644); err != nil {
+	if err := os.WriteFile(dest, input, 0600); err != nil {
 		return "", err
 	}
 
@@ -467,10 +467,10 @@ func (a *App) ExportReseed() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := os.WriteFile(destPath, input, 0644); err != nil {
+	if err := os.WriteFile(destPath, input, 0600); err != nil {
 		return "", err
 	}
-	os.Remove(tempPath) // Удаляем временный файл
+	_ = os.Remove(tempPath) // Удаляем временный файл
 
 	// 4. Открываем папку с сохраненным файлом
 	if shareErr := a.ShareFile(destPath); shareErr != nil {
@@ -520,10 +520,10 @@ func (a *App) ExportAccount() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := os.WriteFile(destPath, input, 0644); err != nil {
+	if err := os.WriteFile(destPath, input, 0600); err != nil {
 		return "", err
 	}
-	os.Remove(tempPath)
+	_ = os.Remove(tempPath)
 
 	if shareErr := a.ShareFile(destPath); shareErr != nil {
 		log.Printf("[App] Failed to share file: %v", shareErr)

@@ -127,10 +127,10 @@ func (a *AppCore) SaveAvatar(filename string, data []byte) (string, error) {
 
 	userDir := filepath.Join(a.DataDir, "users", a.Identity.Keys.UserID)
 	avatarsDir := filepath.Join(userDir, "avatars")
-	os.MkdirAll(avatarsDir, 0755)
+	_ = os.MkdirAll(avatarsDir, 0700)
 
 	fullPath := filepath.Join(avatarsDir, filename)
-	if err := os.WriteFile(fullPath, data, 0644); err != nil {
+	if err := os.WriteFile(fullPath, data, 0600); err != nil {
 		return "", err
 	}
 
@@ -345,7 +345,7 @@ func (a *AppCore) ExportAccount() (string, error) {
 
 	// 2. Prepare temp zip file
 	tempDir := filepath.Join(a.DataDir, "temp")
-	if errMkdir := os.MkdirAll(tempDir, 0755); errMkdir != nil {
+	if errMkdir := os.MkdirAll(tempDir, 0700); errMkdir != nil {
 		return "", fmt.Errorf("failed to create temp dir: %w", errMkdir)
 	}
 	zipName := fmt.Sprintf("teleghost_export_%s_%d.zip", profileMeta.DisplayName, time.Now().Unix())
@@ -485,7 +485,7 @@ func (a *AppCore) ImportAccount(zipPath string) error {
 		} else if f.Name == meta.AvatarPath {
 			destPath = filepath.Join(a.DataDir, "profiles", f.Name)
 		} else {
-			rc.Close()
+			_ = rc.Close()
 			continue
 		}
 
@@ -498,12 +498,12 @@ func (a *AppCore) ImportAccount(zipPath string) error {
 		}
 		// Ограничиваем размер (защита от decompression bomb) - макс 100 МБ на файл
 		if _, err = io.Copy(outFile, io.LimitReader(rc, 100*1024*1024)); err != nil {
-			outFile.Close()
-			rc.Close()
+			_ = outFile.Close()
+			_ = rc.Close()
 			return err
 		}
-		outFile.Close()
-		rc.Close()
+		_ = outFile.Close()
+		_ = rc.Close()
 	}
 
 	log.Printf("Imported account: %s (%s)", meta.DisplayName, meta.ID)
@@ -589,7 +589,7 @@ func (a *AppCore) GetFileBase64(path string) (string, error) {
 // InitUserRepository инициализирует БД пользователя.
 func (a *AppCore) InitUserRepository(userID string) error {
 	userDir := filepath.Join(a.DataDir, "users", userID)
-	os.MkdirAll(userDir, 0700)
+	_ = os.MkdirAll(userDir, 0700)
 
 	dbPath := filepath.Join(userDir, "data.db")
 
@@ -635,8 +635,7 @@ func (a *AppCore) ConnectToI2P() {
 				} else {
 					log.Printf("[AppCore] Failed to load I2P keys from %s: %v", keysPath, err)
 				}
-				// Удаляем временный файл ключей после загрузки (опционально, но безопаснее хранить в БД)
-				os.Remove(keysPath)
+				_ = os.Remove(keysPath)
 			}
 		}
 	}
@@ -668,7 +667,7 @@ func (a *AppCore) ConnectToI2P() {
 						log.Printf("[AppCore] Failed to save I2P destination to DB: %v", err)
 					}
 				}
-				os.Remove(keysPath)
+				_ = os.Remove(keysPath)
 			}
 		}
 	}
