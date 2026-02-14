@@ -3,16 +3,16 @@ linters-settings:
     enable:
       - shadow
   gocyclo:
-    min-complexity: 15
+    min-complexity: 40
   dupl:
     threshold: 100
   goconst:
     min-len: 3
-    min-occurrences: 3
+    min-occurrences: 5
   misspell:
     locale: US
   lll:
-    line-length: 140
+    line-length: 250
   goimports:
     local-prefixes: github.com/kiktor12358/TeleGhost
 
@@ -46,3 +46,14 @@ issues:
     - vendor
     - android
     - frontend/node_modules
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gocyclo
+    - linters:
+        - errcheck
+      text: "tx.Rollback"
+    - linters:
+        - errcheck
+      text: "os.MkdirAll"

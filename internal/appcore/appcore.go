@@ -235,8 +235,12 @@ func NewAppCore(dataDir string, emitter EventEmitter, platform PlatformServices)
 // Init инициализирует компоненты приложения (директории, профиль-менеджер).
 func (a *AppCore) Init() error {
 	// Создаём директории
-	os.MkdirAll(a.DataDir, 0700)
-	os.MkdirAll(filepath.Join(a.DataDir, "users"), 0700)
+	if err := os.MkdirAll(a.DataDir, 0700); err != nil {
+		log.Printf("[AppCore] Failed to create DataDir: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(a.DataDir, "users"), 0700); err != nil {
+		log.Printf("[AppCore] Failed to create users dir: %v", err)
+	}
 
 	// Инициализируем менеджер профилей
 	profilesDir := filepath.Join(a.DataDir, "profiles")
