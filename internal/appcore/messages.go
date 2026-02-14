@@ -622,7 +622,11 @@ func (a *AppCore) sendAsFileOffer(destination, actualChatID, msgID, text, replyT
 	}
 
 	if !isSelf {
-		if err := a.Messenger.SendFileOffer(destination, actualChatID, msgID, filenames, totalSize, int32(len(files))); err != nil {
+		fileCount := len(files)
+		if fileCount > 1000 { // limit for sanity
+			return fmt.Errorf("too many files in one offer")
+		}
+		if err := a.Messenger.SendFileOffer(destination, actualChatID, msgID, filenames, totalSize, int32(fileCount)); err != nil {
 			return fmt.Errorf("failed to send file offer: %w", err)
 		}
 	}

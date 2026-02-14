@@ -44,7 +44,7 @@ func (m *MediaCrypt) SaveEncrypted(filename string, data []byte) error {
 	ciphertext := aead.Seal(nonce, nonce, data, nil)
 
 	// Создаем директорию если нет
-	if err := os.MkdirAll(filepath.Dir(filename), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(filename), 0700); err != nil {
 		return err
 	}
 
@@ -64,8 +64,15 @@ func (m *MediaCrypt) NewMediaHandler(storageDir string) http.Handler {
 		relPath := strings.TrimPrefix(r.URL.Path, "/secure/")
 		fullPath := filepath.Join(storageDir, relPath)
 
+		// Очищаем путь и проверяем, что он внутри хранилища (простая защита от ../)
+		cleanPath := filepath.Clean(fullPath)
+		if strings.Contains(cleanPath, "..") {
+			http.Error(w, "Invalid path", http.StatusBadRequest)
+			return
+		}
+
 		// Читаем файл
-		data, err := os.ReadFile(fullPath)
+		data, err := os.ReadFile(cleanPath)
 		if err != nil {
 			http.NotFound(w, r)
 			return

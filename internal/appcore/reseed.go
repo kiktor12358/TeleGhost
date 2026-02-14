@@ -2,6 +2,7 @@ package appcore
 
 import (
 	"archive/zip"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"log"
@@ -50,8 +51,14 @@ func (a *AppCore) ExportReseed() (string, error) {
 	}
 
 	// 3. Выбираем случайные 50-100 файлов
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	rng.Shuffle(len(files), func(i, j int) { files[i], files[j] = files[j], files[i] })
+	// Используем crypto/rand для перемешивания (чтобы не использовать слабый math/rand)
+	// Хотя math/rand здесь не критичен, gosec требует crypto/rand
+	for i := len(files) - 1; i > 0; i-- {
+		b := make([]byte, 8)
+		_, _ = rand.Read(b)
+		j := int(binary.BigEndian.Uint64(b) % uint64(i+1))
+		files[i], files[j] = files[j], files[i]
+	}
 
 	count := 100
 	if len(files) < count {
@@ -140,11 +147,11 @@ func (a *AppCore) ImportReseed(zipPath string) error {
 		}
 
 		if file.FileInfo().IsDir() {
-			os.MkdirAll(fpath, os.ModePerm)
+			_ = os.MkdirAll(fpath, 0700)
 			continue
 		}
 
-		if err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+		if err := os.MkdirAll(filepath.Dir(fpath), 0700); err != nil {
 			return err
 		}
 
@@ -159,12 +166,12 @@ func (a *AppCore) ImportReseed(zipPath string) error {
 			return err
 		}
 
-		if _, err := io.Copy(outFile, rc); err != nil {
+		if _, err := io.Copy(outFile, io.LimitReader(rc, 1024*1024)); err != nil {
 			log.Printf("[AppCore] Failed to copy reseed file: %v", err)
 		}
 
 		outFile.Close()
-		rc.Close()
+		_ = rc.Close()
 	}
 
 	// 4. Попытка Graceful Reload (опционально)

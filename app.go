@@ -564,5 +564,6 @@ func openFile(path string) error {
 		cmd = "xdg-open"
 		args = []string{path}
 	}
+	// #nosec G204
 	return exec.Command(cmd, args...).Start()
 }

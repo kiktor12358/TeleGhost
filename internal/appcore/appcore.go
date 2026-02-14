@@ -472,6 +472,12 @@ func (a *AppCore) ImportAccount(zipPath string) error {
 			return err
 		}
 
+		// Защита от Zip Slip
+		if strings.Contains(f.Name, "..") {
+			rc.Close()
+			continue
+		}
+
 		var destPath string
 		if strings.HasPrefix(f.Name, "user_data/") {
 			rel := strings.TrimPrefix(f.Name, "user_data/")
@@ -483,14 +489,15 @@ func (a *AppCore) ImportAccount(zipPath string) error {
 			continue
 		}
 
-		os.MkdirAll(filepath.Dir(destPath), 0755)
+		_ = os.MkdirAll(filepath.Dir(destPath), 0700)
 
 		outFile, err := os.Create(destPath)
 		if err != nil {
 			rc.Close()
 			return err
 		}
-		if _, err = io.Copy(outFile, rc); err != nil {
+		// Ограничиваем размер (защита от decompression bomb) - макс 100 МБ на файл
+		if _, err = io.Copy(outFile, io.LimitReader(rc, 100*1024*1024)); err != nil {
 			outFile.Close()
 			rc.Close()
 			return err

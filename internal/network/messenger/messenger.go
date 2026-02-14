@@ -384,6 +384,9 @@ func (s *Service) writePacket(conn net.Conn, data []byte) error {
 	_ = conn.SetWriteDeadline(time.Now().Add(ConnectionTimeout))
 
 	// Пишем размер (4 байта, big endian)
+	if len(data) > 100*1024*1024 { // 100 MB limit for safety
+		return fmt.Errorf("packet too large: %d", len(data))
+	}
 	sizeBuf := make([]byte, 4)
 	binary.BigEndian.PutUint32(sizeBuf, uint32(len(data)))
 
