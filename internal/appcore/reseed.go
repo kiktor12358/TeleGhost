@@ -144,10 +144,11 @@ func (a *AppCore) ImportReseed(zipPath string) error {
 	// 3. Распаковываем
 	for _, file := range reader.File {
 		// Защита от Zip Slip
-		fpath := filepath.Join(netDbPath, file.Name)
-		if !strings.HasPrefix(fpath, filepath.Clean(netDbPath)+string(os.PathSeparator)) {
+		cleanName := filepath.Clean(file.Name)
+		if strings.HasPrefix(cleanName, "..") || filepath.IsAbs(cleanName) {
 			continue
 		}
+		fpath := filepath.Join(netDbPath, cleanName)
 
 		if file.FileInfo().IsDir() {
 			_ = os.MkdirAll(fpath, 0700)

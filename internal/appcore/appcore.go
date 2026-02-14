@@ -473,8 +473,9 @@ func (a *AppCore) ImportAccount(zipPath string) error {
 		}
 
 		// Защита от Zip Slip
-		if strings.Contains(f.Name, "..") {
-			rc.Close()
+		cleanName := filepath.Clean(f.Name)
+		if strings.HasPrefix(cleanName, "..") || filepath.IsAbs(cleanName) {
+			_ = rc.Close()
 			continue
 		}
 

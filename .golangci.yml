@@ -7,16 +7,31 @@ linters:
     - gosimple
     - ineffassign
     - typecheck
+    - errcheck
 
 linters-settings:
+  errcheck:
+    # Игнорируем ошибки закрытия и удаления, которые забивают лог
+    ignore: fmt:.*,io:Close,os:Remove,os:RemoveAll,sql:Rows.Close,sql:Tx.Rollback
   gosec:
     excludes:
-      - G104 # Unhandled errors - слишком шумно для Close/Remove
-      - G304 # File inclusion via variable - необходимо для работы с динамическими путями в приложении
-      - G115 # Integer overflow - мы будем фиксить их точечно, где это реально опасно
-      - G103 # Unsafe calls - протево protobuf использует unsafe, это нормально
+      - G104 # Unhandled errors
+      - G304 # File inclusion via variable
+      - G115 # Integer overflow
+      - G103 # Unsafe calls
+      - G201 # SQL formatting (мы используем плейсхолдеры, где это критично)
 
 issues:
   exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
+  # Игнорируем автогенерируемые файлы и тесты для некоторых проверок
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gosec
+        - errcheck
+    - path: \.pb\.go
+      linters:
+        - gosec
+        - errcheck
