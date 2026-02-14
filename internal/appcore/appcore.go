@@ -480,11 +480,11 @@ func (a *AppCore) ImportAccount(zipPath string) error {
 		}
 
 		var destPath string
-		if strings.HasPrefix(f.Name, "user_data/") {
-			rel := strings.TrimPrefix(f.Name, "user_data/")
+		if strings.HasPrefix(cleanName, "user_data/") {
+			rel := strings.TrimPrefix(cleanName, "user_data/")
 			destPath = filepath.Join(a.DataDir, "users", meta.UserID, rel)
-		} else if f.Name == meta.AvatarPath {
-			destPath = filepath.Join(a.DataDir, "profiles", f.Name)
+		} else if cleanName == meta.AvatarPath {
+			destPath = filepath.Join(a.DataDir, "profiles", cleanName)
 		} else {
 			_ = rc.Close()
 			continue

@@ -133,7 +133,7 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 	// Сохраняем samConn сразу, чтобы Stop мог его закрыть
 	r.mu.Lock()
 	if r.ctx.Err() != nil {
-		samConn.Close()
+		_ = samConn.Close()
 		r.mu.Unlock()
 		return r.ctx.Err()
 	}
@@ -212,7 +212,7 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 
 	// Финальная проверка
 	if r.ctx.Err() != nil {
-		session.Close()
+		_ = session.Close()
 		return r.ctx.Err()
 	}
 
@@ -330,7 +330,7 @@ func (r *SAMRouter) Dial(destination string) (net.Conn, error) {
 			newSam, samErr := sam3.NewSAM(r.config.SAMAddress)
 			if samErr == nil {
 				r.mu.Lock()
-				r.sam.Close()
+				_ = r.sam.Close()
 				r.sam = newSam
 				samConn = newSam
 				r.mu.Unlock()

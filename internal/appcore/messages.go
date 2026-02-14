@@ -591,7 +591,7 @@ func (a *AppCore) sendAsFileOffer(destination, actualChatID, msgID, text, replyT
 
 	// Create cache dir for stripped images
 	cacheDir := filepath.Join(a.DataDir, "cache", "stripped")
-	os.MkdirAll(cacheDir, 0700)
+	_ = os.MkdirAll(cacheDir, 0700)
 
 	for i, f := range files {
 		ext := strings.ToLower(filepath.Ext(f))
