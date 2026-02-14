@@ -54,8 +54,8 @@ func (a *AppCore) ExportReseed() (string, error) {
 	// Используем crypto/rand для перемешивания (чтобы не использовать слабый math/rand)
 	// Хотя math/rand здесь не критичен, gosec требует crypto/rand
 	for i := len(files) - 1; i > 0; i-- {
-		n, err := rand.Int(rand.Reader, big.NewInt(int64(i+1)))
-		if err != nil {
+		n, errRand := rand.Int(rand.Reader, big.NewInt(int64(i+1)))
+		if errRand != nil {
 			continue // Should not happen with rand.Reader
 		}
 		j := int(n.Int64())
