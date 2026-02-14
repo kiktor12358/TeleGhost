@@ -2,6 +2,7 @@ package appcore
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"teleghost/internal/core"
@@ -71,7 +72,11 @@ func (a *AppCore) AddContact(name, destination string) (*ContactInfo, error) {
 
 	// Отправляем handshake для установления связи
 	if a.Messenger != nil {
-		go a.Messenger.SendHandshake(destination)
+		go func(dst string) {
+			if err := a.Messenger.SendHandshake(dst); err != nil {
+				log.Printf("[AppCore] Failed to send handshake to %s: %v", dst, err)
+			}
+		}(destination)
 	}
 
 	a.Emitter.Emit("contact_updated")

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net"
 	"sync"
 	"time"
@@ -138,7 +139,7 @@ func (s *Service) Stop() error {
 	// Закрываем все соединения
 	s.connMu.Lock()
 	for dest, conn := range s.connections {
-		conn.Close()
+		_ = conn.Close()
 		delete(s.connections, dest)
 	}
 	s.connMu.Unlock()
@@ -357,7 +358,7 @@ func (s *Service) getOrCreateConnection(destination string) (net.Conn, error) {
 
 	// На случай, если кто-то другой уже успел создать соединение
 	if conn, exists = s.connections[destination]; exists {
-		newConn.Close()
+		_ = newConn.Close()
 		return conn, nil
 	}
 
@@ -373,7 +374,7 @@ func (s *Service) removeConnection(destination string) {
 	defer s.connMu.Unlock()
 
 	if conn, exists := s.connections[destination]; exists {
-		conn.Close()
+		_ = conn.Close()
 		delete(s.connections, destination)
 	}
 }
@@ -381,10 +382,18 @@ func (s *Service) removeConnection(destination string) {
 // writePacket пишет пакет в соединение (length-prefixed)
 func (s *Service) writePacket(conn net.Conn, data []byte) error {
 	// Устанавливаем deadline
-	conn.SetWriteDeadline(time.Now().Add(ConnectionTimeout))
+	_ = conn.SetWriteDeadline(time.Now().Add(ConnectionTimeout))
 
 	// Пишем размер (4 байта, big endian)
+	const maxUint32 = math.MaxUint32
+	if uint64(len(data)) > maxUint32 {
+		return fmt.Errorf("packet too large for uint32: %d", len(data))
+	}
+	if len(data) > 100*1024*1024 { // 100 MB limit for safety
+		return fmt.Errorf("packet too large: %d", len(data))
+	}
 	sizeBuf := make([]byte, 4)
+	// #nosec G115
 	binary.BigEndian.PutUint32(sizeBuf, uint32(len(data)))
 
 	if _, err := conn.Write(sizeBuf); err != nil {
@@ -402,7 +411,7 @@ func (s *Service) writePacket(conn net.Conn, data []byte) error {
 // readPacket читает пакет из соединения
 func (s *Service) readPacket(conn net.Conn) ([]byte, error) {
 	// Устанавливаем deadline
-	conn.SetReadDeadline(time.Now().Add(ReadTimeout))
+	_ = conn.SetReadDeadline(time.Now().Add(ReadTimeout))
 
 	// Читаем размер
 	sizeBuf := make([]byte, 4)
@@ -555,7 +564,7 @@ func (s *Service) handlePacket(packet *pb.Packet, remoteAddr string) {
 }
 
 // handleProfileRequest обрабатывает запрос на обновление профиля
-func (s *Service) handleProfileRequest(packet *pb.Packet, senderPubKey string) {
+func (s *Service) handleProfileRequest(_ *pb.Packet, senderPubKey string) {
 	log.Printf("[Messenger] Profile request from %s", senderPubKey[:min(16, len(senderPubKey))])
 
 	// Получаем текущий профиль (или используем дефолтные значения из s.myNickname)

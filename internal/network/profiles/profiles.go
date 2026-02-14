@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -113,7 +113,7 @@ func (pm *ProfileManager) CreateProfile(name string, pin string, mnemonic string
 		// Copy file
 		input, err := os.ReadFile(avatarPath)
 		if err == nil {
-			if err := ioutil.WriteFile(destPath, input, 0600); err == nil {
+			if err := os.WriteFile(destPath, input, 0600); err == nil {
 				storedAvatarPath = newAvatarName
 			}
 		}
@@ -137,7 +137,7 @@ func (pm *ProfileManager) CreateProfile(name string, pin string, mnemonic string
 	}
 
 	filePath := filepath.Join(pm.storageDir, id+".json")
-	return ioutil.WriteFile(filePath, data, 0600)
+	return os.WriteFile(filePath, data, 0600)
 }
 
 // GetProfileByUserID ищет профиль по UserID
@@ -157,13 +157,13 @@ func (pm *ProfileManager) GetProfileByUserID(userID string) (*ProfileMetadata, e
 // UpdateProfile обновляет данные профиля
 func (pm *ProfileManager) UpdateProfile(profileID string, name string, avatarPath string, deleteAvatar bool, usePin bool, newPin string, mnemonic string) error {
 	filePath := filepath.Join(pm.storageDir, profileID+".json")
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("профиль не найден")
 	}
 
 	var vault Vault
-	if err := json.Unmarshal(data, &vault); err != nil {
+	if errUnmarshal := json.Unmarshal(data, &vault); errUnmarshal != nil {
 		return fmt.Errorf("ошибка чтения формата профиля")
 	}
 
@@ -179,13 +179,13 @@ func (pm *ProfileManager) UpdateProfile(profileID string, name string, avatarPat
 	if deleteAvatar {
 		// Удаляем старый если был
 		if vault.AvatarPath != "" {
-			os.Remove(filepath.Join(pm.storageDir, vault.AvatarPath))
+			_ = os.Remove(filepath.Join(pm.storageDir, vault.AvatarPath))
 			vault.AvatarPath = ""
 		}
 	} else if avatarPath != "" {
 		// Удаляем старый если был
 		if vault.AvatarPath != "" {
-			os.Remove(filepath.Join(pm.storageDir, vault.AvatarPath))
+			_ = os.Remove(filepath.Join(pm.storageDir, vault.AvatarPath))
 		}
 
 		ext := filepath.Ext(avatarPath)
@@ -193,9 +193,10 @@ func (pm *ProfileManager) UpdateProfile(profileID string, name string, avatarPat
 		destPath := filepath.Join(pm.storageDir, newAvatarName)
 
 		// Copy file
-		input, err := os.ReadFile(avatarPath)
-		if err == nil {
-			if err := ioutil.WriteFile(destPath, input, 0600); err == nil {
+		// #nosec G304
+		input, errRead := os.ReadFile(avatarPath)
+		if errRead == nil {
+			if errWrite := os.WriteFile(destPath, input, 0600); errWrite == nil {
 				vault.AvatarPath = newAvatarName
 			}
 		}
@@ -211,8 +212,8 @@ func (pm *ProfileManager) UpdateProfile(profileID string, name string, avatarPat
 		}
 
 		salt := make([]byte, 16)
-		if _, err := io.ReadFull(rand.Reader, salt); err != nil {
-			return err
+		if _, errSalt := io.ReadFull(rand.Reader, salt); errSalt != nil {
+			return errSalt
 		}
 
 		vault.Salt = base64.StdEncoding.EncodeToString(salt)
@@ -223,14 +224,14 @@ func (pm *ProfileManager) UpdateProfile(profileID string, name string, avatarPat
 		}
 
 		key := argon2.IDKey([]byte(newPin), salt, vault.ArgonParams.Time, vault.ArgonParams.Memory, vault.ArgonParams.Threads, chacha20poly1305.KeySize)
-		aead, err := chacha20poly1305.NewX(key)
-		if err != nil {
-			return err
+		aead, errAEAD := chacha20poly1305.NewX(key)
+		if errAEAD != nil {
+			return errAEAD
 		}
 
 		nonce := make([]byte, aead.NonceSize())
-		if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-			return err
+		if _, errNonce := io.ReadFull(rand.Reader, nonce); errNonce != nil {
+			return errNonce
 		}
 
 		ciphertext := aead.Seal(nil, nonce, []byte(mnemonic), nil)
@@ -249,12 +250,12 @@ func (pm *ProfileManager) UpdateProfile(profileID string, name string, avatarPat
 		return err
 	}
 
-	return ioutil.WriteFile(filePath, newData, 0600)
+	return os.WriteFile(filePath, newData, 0600)
 }
 
 // ListProfiles возвращает список доступных профилей
 func (pm *ProfileManager) ListProfiles() ([]ProfileMetadata, error) {
-	files, err := ioutil.ReadDir(pm.storageDir)
+	files, err := os.ReadDir(pm.storageDir)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +263,7 @@ func (pm *ProfileManager) ListProfiles() ([]ProfileMetadata, error) {
 	var profiles []ProfileMetadata
 	for _, f := range files {
 		if !f.IsDir() && strings.HasSuffix(f.Name(), ".json") {
-			data, err := ioutil.ReadFile(filepath.Join(pm.storageDir, f.Name()))
+			data, err := os.ReadFile(filepath.Join(pm.storageDir, f.Name()))
 			if err != nil {
 				continue
 			}
@@ -271,9 +272,10 @@ func (pm *ProfileManager) ListProfiles() ([]ProfileMetadata, error) {
 			if err := json.Unmarshal(data, &vault); err == nil {
 				// Backward compatibility for existing profiles
 				if vault.UserID == "" && vault.Ciphertext != "" {
-					// We can't easily recover UserID without decrypting,
+					// TODO: We can't easily recover UserID without decrypting,
 					// so existing profiles will rely on decryption to get ID.
 					// Or we could have UI ask for pin to migrate.
+					log.Printf("[ProfileManager] Found legacy profile %s, needs migration", vault.ID)
 				}
 
 				avatarPath := ""
@@ -298,13 +300,14 @@ func (pm *ProfileManager) ListProfiles() ([]ProfileMetadata, error) {
 // UnlockProfile проверяет ПИН и возвращает мнемонику
 func (pm *ProfileManager) UnlockProfile(profileID string, pin string) (string, error) {
 	filePath := filepath.Join(pm.storageDir, profileID+".json")
-	data, err := ioutil.ReadFile(filePath)
+	// #nosec G304
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return "", fmt.Errorf("профиль не найден")
 	}
 
 	var vault Vault
-	if err := json.Unmarshal(data, &vault); err != nil {
+	if errUnmarshal := json.Unmarshal(data, &vault); errUnmarshal != nil {
 		return "", fmt.Errorf("ошибка чтения формата профиля")
 	}
 
@@ -349,7 +352,7 @@ func (pm *ProfileManager) UnlockProfile(profileID string, pin string) (string, e
 // DeleteProfile удаляет профиль и его файлы
 func (pm *ProfileManager) DeleteProfile(profileID string) error {
 	filePath := filepath.Join(pm.storageDir, profileID+".json")
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("профиль не найден")
 	}
@@ -357,7 +360,7 @@ func (pm *ProfileManager) DeleteProfile(profileID string) error {
 	var vault Vault
 	if err := json.Unmarshal(data, &vault); err == nil {
 		if vault.AvatarPath != "" {
-			os.Remove(filepath.Join(pm.storageDir, vault.AvatarPath))
+			_ = os.Remove(filepath.Join(pm.storageDir, vault.AvatarPath))
 		}
 	}
 

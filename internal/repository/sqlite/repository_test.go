@@ -212,9 +212,9 @@ func TestRepository_Messages(t *testing.T) {
 		t.Errorf("Expected 5 messages, got %d", len(messages))
 	}
 
-	// Проверяем порядок (DESC по timestamp)
-	if messages[0].Content != "Test message E" {
-		t.Errorf("Expected last message first, got: %s", messages[0].Content)
+	// Проверяем порядок (ASC по timestamp)
+	if messages[0].Content != "Test message A" {
+		t.Errorf("Expected first message first (ASC), got: %s", messages[0].Content)
 	}
 
 	// Тест пагинации

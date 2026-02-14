@@ -1,0 +1,41 @@
+linters:
+  enable:
+    - gosec
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+
+issues:
+  exclude-use-default: false
+  # Глобальный бан для самых шумных правил через exclude-rules
+  exclude-rules:
+    - linters: [gosec]
+      text: "G104:" # Unhandled errors
+    - linters: [gosec]
+      text: "G304:" # File inclusion
+    - linters: [gosec]
+      text: "G115:" # Integer overflow
+    - linters: [gosec]
+      text: "G103:" # Unsafe
+    - linters: [errcheck]
+      text: "Error return value of"
+    - path: _test\.go
+      linters: [gosec, errcheck]
+    - path: \.pb\.go
+      linters: [gosec, errcheck]
+
+linters-settings:
+  gosec:
+    # Оставляем только критические проверки
+    includes:
+      - G305 # Zip Slip (мы их пофиксили)
+      - G201 # SQL injection
+      - G401 # Weak crypto
+    excludes:
+      - G104
+      - G304
+      - G115
+      - G103

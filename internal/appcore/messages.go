@@ -72,14 +72,18 @@ func (a *AppCore) SendText(contactID, text, replyToID string) error {
 		// Re-calculate ChatID if it was empty (now we have PK)
 		if contact.ChatID == "" {
 			contact.ChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
-			a.Repo.SaveContact(a.Ctx, contact)
+			if err := a.Repo.SaveContact(a.Ctx, contact); err != nil {
+				log.Printf("[AppCore] Failed to save contact after handshake: %v", err)
+			}
 			// Critical: Emit event so frontend knows the new ChatID
 			a.Emitter.Emit("contact_updated", contact)
 		}
 	} else if contact.ChatID == "" {
 		// If PK existed but ChatID was empty (shouldn't happen often but possible)
 		contact.ChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
-		a.Repo.SaveContact(a.Ctx, contact)
+		if err := a.Repo.SaveContact(a.Ctx, contact); err != nil {
+			log.Printf("[AppCore] Failed to save contact: %v", err)
+		}
 		a.Emitter.Emit("contact_updated", contact)
 	}
 
@@ -110,7 +114,9 @@ func (a *AppCore) SendText(contactID, text, replyToID string) error {
 		msg.ReplyToID = &replyToID
 	}
 
-	a.Repo.SaveMessage(a.Ctx, msg)
+	if err := a.Repo.SaveMessage(a.Ctx, msg); err != nil {
+		log.Printf("[AppCore] Failed to save message: %v", err)
+	}
 
 	a.Emitter.Emit("new_message", map[string]interface{}{
 		"ID":           msg.ID,
@@ -263,35 +269,9 @@ func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string
 		return fmt.Errorf("messenger not started")
 	}
 
-	var destination string
-	var actualChatID string
-	var isSelf bool
-
-	var contact *core.Contact
-	if chatID == a.Identity.Keys.UserID {
-		destination = ""
-		actualChatID = a.Identity.Keys.UserID
-		isSelf = true
-	} else {
-		var err error
-		contact, err = a.Repo.GetContact(a.Ctx, chatID)
-		if err != nil || contact == nil {
-			return fmt.Errorf("contact not found")
-		}
-
-		destination = contact.I2PAddress
-		if contact.ChatID == "" {
-			contact.ChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
-			a.Repo.SaveContact(a.Ctx, contact)
-		}
-		actualChatID = contact.ChatID
-
-		if contact.PublicKey == "" {
-			log.Printf("[AppCore] No public key for %s, sending handshake first...", contact.Nickname)
-			if err := a.Messenger.SendHandshake(contact.I2PAddress); err != nil {
-				log.Printf("[AppCore] Handshake failed: %v", err)
-			}
-		}
+	destination, actualChatID, isSelf, contact, err := a.resolveChatDestination(chatID)
+	if err != nil {
+		return err
 	}
 
 	now := time.Now().UnixMilli()
@@ -308,228 +288,10 @@ func (a *AppCore) SendFileMessage(chatID, text, replyToID string, files []string
 	}
 
 	if !isRaw && allImages {
-		attachments := make([]*pb.Attachment, 0, len(files))
-		for _, filePath := range files {
-			data, mimeType, width, height, err := utils.CompressImage(filePath, 1280, 1280)
-			if err != nil {
-				continue
-			}
-
-			att := &pb.Attachment{
-				Id:           uuid.New().String(),
-				Filename:     filepath.Base(filePath),
-				MimeType:     mimeType,
-				Size:         int64(len(data)),
-				Data:         data,
-				IsCompressed: true,
-				Width:        int32(width),
-				Height:       int32(height),
-			}
-			attachments = append(attachments, att)
-		}
-
-		if len(attachments) == 0 {
-			return fmt.Errorf("failed to compress any images")
-		}
-
-		if !isSelf {
-			if err := a.Messenger.SendAttachmentMessageWithID(destination, actualChatID, msgID, text, replyToID, attachments); err != nil {
-				return fmt.Errorf("failed to send message: %w", err)
-			}
-		}
-
-		coreAttachments := make([]*core.Attachment, 0, len(attachments))
-		for _, att := range attachments {
-			savedPath, _ := a.SaveAttachment(att.Filename, att.Data)
-			coreAtt := &core.Attachment{
-				ID:           att.Id,
-				Filename:     att.Filename,
-				MimeType:     att.MimeType,
-				Size:         att.Size,
-				LocalPath:    savedPath,
-				IsCompressed: att.IsCompressed,
-				Width:        int(att.Width),
-				Height:       int(att.Height),
-			}
-			coreAttachments = append(coreAttachments, coreAtt)
-		}
-
-		msg := &core.Message{
-			ID:          msgID,
-			ChatID:      actualChatID,
-			SenderID:    a.Identity.Keys.UserID,
-			Content:     text,
-			ContentType: "mixed",
-			Status:      core.MessageStatusSent,
-			IsOutgoing:  true,
-			Timestamp:   now,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
-			Attachments: coreAttachments,
-		}
-
-		if replyToID != "" {
-			msg.ReplyToID = &replyToID
-		}
-		a.Repo.SaveMessage(a.Ctx, msg)
-
-		// Формируем вложения для фронтенда
-		infoAttachments := make([]map[string]interface{}, 0, len(msg.Attachments))
-		for _, att := range msg.Attachments {
-			infoAttachments = append(infoAttachments, map[string]interface{}{
-				"ID":           att.ID,
-				"Filename":     att.Filename,
-				"Size":         att.Size,
-				"LocalPath":    att.LocalPath,
-				"MimeType":     att.MimeType,
-				"IsCompressed": att.IsCompressed,
-				"Width":        att.Width,
-				"Height":       att.Height,
-			})
-		}
-
-		a.Emitter.Emit("new_message", map[string]interface{}{
-			"ID":           msg.ID,
-			"ChatID":       msg.ChatID,
-			"SenderID":     msg.SenderID,
-			"Content":      msg.Content,
-			"Timestamp":    msg.Timestamp,
-			"IsOutgoing":   msg.IsOutgoing,
-			"ContentType":  msg.ContentType,
-			"Status":       msg.Status.String(),
-			"ReplyToID":    replyToID,
-			"ReplyPreview": a.getReplyPreview(replyToID, contact),
-			"Attachments":  infoAttachments,
-		})
-
-		return nil
+		return a.sendAsCompressedImages(destination, actualChatID, msgID, text, replyToID, files, isSelf, now, contact)
 	}
 
-	// Offer Flow
-	// Pre-process images to strip metadata
-	processedFiles := make([]string, len(files))
-	copy(processedFiles, files)
-
-	// Create cache dir for stripped images
-	cacheDir := filepath.Join(a.DataDir, "cache", "stripped")
-	os.MkdirAll(cacheDir, 0700)
-
-	for i, f := range files {
-		ext := strings.ToLower(filepath.Ext(f))
-		if ext == ".jpg" || ext == ".jpeg" || ext == ".png" {
-			data, err := os.ReadFile(f)
-			if err == nil {
-				stripped, _, err := core.StripMetadata(data, f)
-				if err == nil {
-					// Save stripped file
-					newFilename := fmt.Sprintf("stripped_%d_%s", time.Now().UnixNano(), filepath.Base(f))
-					newPath := filepath.Join(cacheDir, newFilename)
-					if err := os.WriteFile(newPath, stripped, 0600); err == nil {
-						log.Printf("[AppCore] Stripped metadata from %s", filepath.Base(f))
-						processedFiles[i] = newPath
-					}
-				} else {
-					log.Printf("[AppCore] Failed to strip metadata from %s: %v", filepath.Base(f), err)
-				}
-			}
-		}
-	}
-
-	a.TransferMu.Lock()
-	a.PendingTransfers[msgID] = &PendingTransfer{
-		Destination: destination,
-		ChatID:      actualChatID,
-		Files:       processedFiles,
-		MessageID:   msgID,
-		Timestamp:   now,
-	}
-	a.TransferMu.Unlock()
-
-	var totalSize int64
-	filenames := make([]string, len(processedFiles))
-	for i, f := range processedFiles {
-		info, _ := os.Stat(f)
-		if info != nil {
-			totalSize += info.Size()
-		}
-		// Use original filename for display if it was stripped (remove "stripped_" prefix logic or just use original name)
-		// Actually, we want to send the clean file but keep the original name in the UI/Offer?
-		// The offer sends 'filenames' list.
-		// If we changed the path to "stripped_...", `filepath.Base(f)` will be "stripped_...".
-		// We should probably preserve the original filename in the offer, but send the stripped content.
-		// `messenger.SendFileOffer` takes filenames.
-		// If I send "stripped_photo.jpg", receiver sees "stripped_photo.jpg".
-		// I should revert the name to original in the offer list.
-
-		// Let's get the original name from the input `files` slice.
-		originalName := filepath.Base(files[i])
-		filenames[i] = originalName
-	}
-
-	if !isSelf {
-		if err := a.Messenger.SendFileOffer(destination, actualChatID, msgID, filenames, totalSize, int32(len(files))); err != nil {
-			return fmt.Errorf("failed to send file offer: %w", err)
-		}
-	}
-
-	msg := &core.Message{
-		ID:          msgID,
-		ChatID:      actualChatID,
-		SenderID:    a.Identity.Keys.UserID,
-		Content:     text,
-		ContentType: "file_offer",
-		Status:      core.MessageStatusSent,
-		IsOutgoing:  true,
-		Timestamp:   now,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-		FileCount:   len(files), // Cast to int
-		TotalSize:   totalSize,
-	}
-	if replyToID != "" {
-		msg.ReplyToID = &replyToID
-	}
-
-	coreAttachments := make([]*core.Attachment, 0, len(processedFiles))
-	for i, f := range processedFiles {
-		stat, _ := os.Stat(f)
-		size := int64(0)
-		if stat != nil {
-			size = stat.Size()
-		}
-		// Use original filename for the attachment record
-		originalName := filepath.Base(files[i])
-
-		coreAtt := &core.Attachment{
-			ID:           uuid.New().String(),
-			MessageID:    msgID,
-			Filename:     originalName,
-			MimeType:     "application/octet-stream",
-			Size:         size,
-			LocalPath:    f,
-			IsCompressed: false,
-		}
-		coreAttachments = append(coreAttachments, coreAtt)
-	}
-	msg.Attachments = coreAttachments
-	a.Repo.SaveMessage(a.Ctx, msg)
-
-	a.Emitter.Emit("new_message", map[string]interface{}{
-		"ID":           msg.ID,
-		"ChatID":       msg.ChatID,
-		"SenderID":     msg.SenderID,
-		"Content":      msg.Content,
-		"Timestamp":    msg.Timestamp,
-		"IsOutgoing":   msg.IsOutgoing,
-		"ContentType":  "file_offer",
-		"FileCount":    len(files),
-		"TotalSize":    totalSize,
-		"Filenames":    filenames,
-		"ReplyToID":    replyToID,
-		"ReplyPreview": a.getReplyPreview(replyToID, contact),
-	})
-
-	return nil
+	return a.sendAsFileOffer(destination, actualChatID, msgID, text, replyToID, files, isSelf, now, contact)
 }
 
 // SaveAttachment сохраняет вложение на диск
@@ -539,7 +301,9 @@ func (a *AppCore) SaveAttachment(filename string, data []byte) (string, error) {
 	}
 
 	mediaDir := filepath.Join(a.DataDir, "users", a.Identity.Keys.UserID, "media")
-	os.MkdirAll(mediaDir, 0700)
+	if err := os.MkdirAll(mediaDir, 0700); err != nil {
+		return "", fmt.Errorf("failed to create media dir: %w", err)
+	}
 
 	ext := filepath.Ext(filename)
 	if ext == "" {
@@ -578,7 +342,9 @@ func (a *AppCore) DeclineFileTransfer(messageID string) error {
 		return fmt.Errorf("transfer not found or expired")
 	}
 
-	a.Messenger.SendFileResponse(transfer.Destination, transfer.ChatID, messageID, false)
+	if err := a.Messenger.SendFileResponse(transfer.Destination, transfer.ChatID, messageID, false); err != nil {
+		log.Printf("[AppCore] Failed to send file response: %v", err)
+	}
 
 	a.TransferMu.Lock()
 	delete(a.PendingTransfers, messageID)
@@ -593,8 +359,8 @@ func (a *AppCore) onFileOffer(senderPubKey, messageID, chatID string, filenames 
 		return
 	}
 
-	contact, _ := a.Repo.GetContactByPublicKey(a.Ctx, senderPubKey)
-	if contact == nil {
+	contact, err := a.Repo.GetContactByPublicKey(a.Ctx, senderPubKey)
+	if err != nil || contact == nil {
 		return
 	}
 
@@ -621,7 +387,9 @@ func (a *AppCore) onFileOffer(senderPubKey, messageID, chatID string, filenames 
 		FileCount:   int(fileCount),
 		TotalSize:   totalSize,
 	}
-	a.Repo.SaveMessage(a.Ctx, msg)
+	if err := a.Repo.SaveMessage(a.Ctx, msg); err != nil {
+		log.Printf("[AppCore] Failed to save message: %v", err)
+	}
 
 	a.Emitter.Emit("new_message", map[string]interface{}{
 		"ID":          msg.ID,
@@ -649,7 +417,11 @@ func (a *AppCore) onFileResponse(senderPubKey, messageID, chatID string, accepte
 	if accepted {
 		attachments := make([]*pb.Attachment, 0, len(transfer.Files))
 		for _, filePath := range transfer.Files {
-			data, _ := os.ReadFile(filePath)
+			data, err := os.ReadFile(filePath)
+			if err != nil {
+				log.Printf("[AppCore] Failed to read file during transfer: %v", err)
+				continue
+			}
 			mimeType := mime.TypeByExtension(filepath.Ext(filePath))
 			if mimeType == "" {
 				mimeType = "application/octet-stream"
@@ -665,10 +437,265 @@ func (a *AppCore) onFileResponse(senderPubKey, messageID, chatID string, accepte
 			attachments = append(attachments, att)
 		}
 
-		a.Messenger.SendAttachmentMessageWithID(transfer.Destination, transfer.ChatID, messageID, "", "", attachments)
+		if err := a.Messenger.SendAttachmentMessageWithID(transfer.Destination, transfer.ChatID, messageID, "", "", attachments); err != nil {
+			log.Printf("[AppCore] Failed to send attachment message: %v", err)
+		}
 	}
 
 	a.TransferMu.Lock()
 	delete(a.PendingTransfers, messageID)
 	a.TransferMu.Unlock()
+}
+
+func (a *AppCore) resolveChatDestination(chatID string) (string, string, bool, *core.Contact, error) {
+	if chatID == a.Identity.Keys.UserID {
+		return "", a.Identity.Keys.UserID, true, nil, nil
+	}
+	contact, err := a.Repo.GetContact(a.Ctx, chatID)
+	if err != nil || contact == nil {
+		return "", "", false, nil, fmt.Errorf("contact not found")
+	}
+
+	destination := contact.I2PAddress
+	if contact.ChatID == "" {
+		contact.ChatID = identity.CalculateChatID(a.Identity.Keys.PublicKeyBase64, contact.PublicKey)
+		if errSave := a.Repo.SaveContact(a.Ctx, contact); errSave != nil {
+			log.Printf("[AppCore] Failed to save contact during message send: %v", errSave)
+		}
+	}
+	actualChatID := contact.ChatID
+
+	if contact.PublicKey == "" && a.Messenger != nil {
+		log.Printf("[AppCore] No public key for %s, sending handshake first...", contact.Nickname)
+		if errH := a.Messenger.SendHandshake(contact.I2PAddress); errH != nil {
+			log.Printf("[AppCore] Handshake failed: %v", errH)
+		}
+	}
+	return destination, actualChatID, false, contact, nil
+}
+
+func (a *AppCore) sendAsCompressedImages(destination, actualChatID, msgID, text, replyToID string, files []string, isSelf bool, now int64, contact *core.Contact) error {
+	attachments := make([]*pb.Attachment, 0, len(files))
+	for _, filePath := range files {
+		data, mimeType, width, height, err := utils.CompressImage(filePath, 1280, 1280)
+		if err != nil {
+			continue
+		}
+
+		// Явное приведение типов с проверкой диапазона для gosec (G115)
+		// #nosec G115
+		w32 := int32(width)
+		// #nosec G115
+		h32 := int32(height)
+		if int(w32) != width || int(h32) != height {
+			w32 = 0
+			h32 = 0
+		}
+
+		att := &pb.Attachment{
+			Id:           uuid.New().String(),
+			Filename:     filepath.Base(filePath),
+			MimeType:     mimeType,
+			Size:         int64(len(data)),
+			Data:         data,
+			IsCompressed: true,
+			Width:        w32,
+			Height:       h32,
+		}
+		attachments = append(attachments, att)
+	}
+
+	if len(attachments) == 0 {
+		return fmt.Errorf("failed to compress any images")
+	}
+
+	if !isSelf {
+		if err := a.Messenger.SendAttachmentMessageWithID(destination, actualChatID, msgID, text, replyToID, attachments); err != nil {
+			return fmt.Errorf("failed to send message: %w", err)
+		}
+	}
+
+	coreAttachments := make([]*core.Attachment, 0, len(attachments))
+	for _, att := range attachments {
+		savedPath, _ := a.SaveAttachment(att.Filename, att.Data)
+		coreAtt := &core.Attachment{
+			ID:           att.Id,
+			Filename:     att.Filename,
+			MimeType:     att.MimeType,
+			Size:         att.Size,
+			LocalPath:    savedPath,
+			IsCompressed: att.IsCompressed,
+			Width:        int(att.Width),
+			Height:       int(att.Height),
+		}
+		coreAttachments = append(coreAttachments, coreAtt)
+	}
+
+	msg := &core.Message{
+		ID:          msgID,
+		ChatID:      actualChatID,
+		SenderID:    a.Identity.Keys.UserID,
+		Content:     text,
+		ContentType: "mixed",
+		Status:      core.MessageStatusSent,
+		IsOutgoing:  true,
+		Timestamp:   now,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		Attachments: coreAttachments,
+	}
+
+	if replyToID != "" {
+		msg.ReplyToID = &replyToID
+	}
+	if err := a.Repo.SaveMessage(a.Ctx, msg); err != nil {
+		log.Printf("[AppCore] Failed to save message: %v", err)
+	}
+
+	// Формируем вложения для фронтенда
+	infoAttachments := make([]map[string]interface{}, 0, len(msg.Attachments))
+	for _, att := range msg.Attachments {
+		infoAttachments = append(infoAttachments, map[string]interface{}{
+			"ID":           att.ID,
+			"Filename":     att.Filename,
+			"Size":         att.Size,
+			"LocalPath":    att.LocalPath,
+			"MimeType":     att.MimeType,
+			"IsCompressed": att.IsCompressed,
+			"Width":        att.Width,
+			"Height":       att.Height,
+		})
+	}
+
+	a.Emitter.Emit("new_message", map[string]interface{}{
+		"ID":           msg.ID,
+		"ChatID":       msg.ChatID,
+		"SenderID":     msg.SenderID,
+		"Content":      msg.Content,
+		"Timestamp":    msg.Timestamp,
+		"IsOutgoing":   msg.IsOutgoing,
+		"ContentType":  msg.ContentType,
+		"Status":       msg.Status.String(),
+		"ReplyToID":    replyToID,
+		"ReplyPreview": a.getReplyPreview(replyToID, contact),
+		"Attachments":  infoAttachments,
+	})
+
+	return nil
+}
+
+func (a *AppCore) sendAsFileOffer(destination, actualChatID, msgID, text, replyToID string, files []string, isSelf bool, now int64, contact *core.Contact) error {
+	// Pre-process images to strip metadata
+	processedFiles := make([]string, len(files))
+	copy(processedFiles, files)
+
+	// Create cache dir for stripped images
+	cacheDir := filepath.Join(a.DataDir, "cache", "stripped")
+	_ = os.MkdirAll(cacheDir, 0700)
+
+	for i, f := range files {
+		ext := strings.ToLower(filepath.Ext(f))
+		if ext == ".jpg" || ext == ".jpeg" || ext == ".png" {
+			data, errRead := os.ReadFile(f)
+			if errRead == nil {
+				stripped, _, errStrip := core.StripMetadata(data, f)
+				if errStrip == nil {
+					// Save stripped file
+					newFilename := fmt.Sprintf("stripped_%d_%s", time.Now().UnixNano(), filepath.Base(f))
+					newPath := filepath.Join(cacheDir, newFilename)
+					if errWrite := os.WriteFile(newPath, stripped, 0600); errWrite == nil {
+						processedFiles[i] = newPath
+					}
+				}
+			}
+		}
+	}
+
+	a.TransferMu.Lock()
+	a.PendingTransfers[msgID] = &PendingTransfer{
+		Destination: destination,
+		ChatID:      actualChatID,
+		Files:       processedFiles,
+		MessageID:   msgID,
+		Timestamp:   now,
+	}
+	a.TransferMu.Unlock()
+
+	var totalSize int64
+	filenames := make([]string, len(processedFiles))
+	for i, f := range processedFiles {
+		info, _ := os.Stat(f)
+		if info != nil {
+			totalSize += info.Size()
+		}
+		filenames[i] = filepath.Base(files[i])
+	}
+
+	if !isSelf {
+		fileCount := len(files)
+		if fileCount > 1000 { // limit for sanity
+			return fmt.Errorf("too many files in one offer")
+		}
+		if err := a.Messenger.SendFileOffer(destination, actualChatID, msgID, filenames, totalSize, int32(fileCount)); err != nil {
+			return fmt.Errorf("failed to send file offer: %w", err)
+		}
+	}
+
+	msg := &core.Message{
+		ID:          msgID,
+		ChatID:      actualChatID,
+		SenderID:    a.Identity.Keys.UserID,
+		Content:     text,
+		ContentType: "file_offer",
+		Status:      core.MessageStatusSent,
+		IsOutgoing:  true,
+		Timestamp:   now,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+		FileCount:   len(files),
+		TotalSize:   totalSize,
+	}
+	if replyToID != "" {
+		msg.ReplyToID = &replyToID
+	}
+
+	coreAttachments := make([]*core.Attachment, 0, len(processedFiles))
+	for i, f := range processedFiles {
+		stat, _ := os.Stat(f)
+		size := int64(0)
+		if stat != nil {
+			size = stat.Size()
+		}
+		coreAtt := &core.Attachment{
+			ID:           uuid.New().String(),
+			MessageID:    msgID,
+			Filename:     filepath.Base(files[i]),
+			MimeType:     "application/octet-stream",
+			Size:         size,
+			LocalPath:    f,
+			IsCompressed: false,
+		}
+		coreAttachments = append(coreAttachments, coreAtt)
+	}
+	msg.Attachments = coreAttachments
+	if errRepo := a.Repo.SaveMessage(a.Ctx, msg); errRepo != nil {
+		log.Printf("[AppCore] Failed to save message: %v", errRepo)
+	}
+
+	a.Emitter.Emit("new_message", map[string]interface{}{
+		"ID":           msg.ID,
+		"ChatID":       msg.ChatID,
+		"SenderID":     msg.SenderID,
+		"Content":      msg.Content,
+		"Timestamp":    msg.Timestamp,
+		"IsOutgoing":   msg.IsOutgoing,
+		"ContentType":  "file_offer",
+		"FileCount":    len(files),
+		"TotalSize":    totalSize,
+		"Filenames":    filenames,
+		"ReplyToID":    replyToID,
+		"ReplyPreview": a.getReplyPreview(replyToID, contact),
+	})
+
+	return nil
 }

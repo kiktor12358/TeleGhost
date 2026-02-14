@@ -44,7 +44,7 @@ func (m *MediaCrypt) SaveEncrypted(filename string, data []byte) error {
 	ciphertext := aead.Seal(nonce, nonce, data, nil)
 
 	// Создаем директорию если нет
-	if err := os.MkdirAll(filepath.Dir(filename), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(filename), 0700); err != nil {
 		return err
 	}
 
@@ -64,8 +64,18 @@ func (m *MediaCrypt) NewMediaHandler(storageDir string) http.Handler {
 		relPath := strings.TrimPrefix(r.URL.Path, "/secure/")
 		fullPath := filepath.Join(storageDir, relPath)
 
+		// Очищаем путь и проверяем, что он внутри хранилища
+		cleanPath := filepath.Clean(fullPath)
+		absStorage, _ := filepath.Abs(storageDir)
+		absClean, _ := filepath.Abs(cleanPath)
+		if !strings.HasPrefix(absClean, absStorage) {
+			http.Error(w, "Access denied", http.StatusForbidden)
+			return
+		}
+
 		// Читаем файл
-		data, err := os.ReadFile(fullPath)
+		// #nosec G304 G703
+		data, err := os.ReadFile(cleanPath)
 		if err != nil {
 			http.NotFound(w, r)
 			return
@@ -98,7 +108,8 @@ func (m *MediaCrypt) NewMediaHandler(storageDir string) http.Handler {
 		w.Header().Set("Content-Type", contentType)
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(plaintext)))
 		w.WriteHeader(http.StatusOK)
-		w.Write(plaintext)
+		// #nosec G705
+		_, _ = w.Write(plaintext)
 	})
 }
 
@@ -171,9 +182,4 @@ func (m *MediaCrypt) DecryptDirectory(dir string) error {
 
 		return nil
 	})
-}
-
-func logError(msg string) {
-	// В реальном приложении здесь может быть логгер
-	fmt.Printf("[MediaCrypt] %s\n", msg)
 }

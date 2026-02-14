@@ -12,6 +12,7 @@ import (
 
 // CompressImage resizes and compresses an image for sending
 func CompressImage(path string, maxWidth, maxHeight uint) ([]byte, string, int, int, error) {
+	// #nosec G304
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, "", 0, 0, err
@@ -28,9 +29,7 @@ func CompressImage(path string, maxWidth, maxHeight uint) ([]byte, string, int, 
 	width := bounds.Dx()
 	height := bounds.Dy()
 
-	// If image is small enough, don't resize, just re-encode (or keep original if raw needed, but this function implies compression)
-	// Actually, we should resize if it's huge.
-	if uint(width) > maxWidth || uint(height) > maxHeight {
+	if (width > 0 && uint(width) > maxWidth) || (height > 0 && uint(height) > maxHeight) {
 		img = resize.Thumbnail(maxWidth, maxHeight, img, resize.Lanczos3)
 		width = img.Bounds().Dx()
 		height = img.Bounds().Dy()
@@ -45,17 +44,12 @@ func CompressImage(path string, maxWidth, maxHeight uint) ([]byte, string, int, 
 		return nil, "", 0, 0, err
 	}
 
-	// Convert original png to jpeg for consistency/compression if desired?
-	// Or keep png if transparency matters?
-	// User said "compress to not weigh much". JPEG is best for photos.
-	// If original was PNG with transparency, JPEG turns transparency to black.
-	// Let's stick to JPEG for general photos. If raw, we use raw file.
-
 	return buf.Bytes(), mimeType, width, height, nil
 }
 
 // GetImageDimensions returns width and height of an image file
 func GetImageDimensions(path string) (int, int, error) {
+	// #nosec G304
 	file, err := os.Open(path)
 	if err != nil {
 		return 0, 0, err

@@ -107,7 +107,6 @@ type App struct {
 	ctx  context.Context
 	core *appcore.AppCore
 
-	mediaCrypt     *media.MediaCrypt
 	embeddedRouter interface {
 		IsReady() bool
 		Start(context.Context) error
@@ -146,7 +145,7 @@ func (p *WailsPlatform) SaveFileDialog(title, defaultFilename string) (string, e
 }
 
 func (p *WailsPlatform) ClipboardSet(text string) {
-	wailsRuntime.ClipboardSetText(p.ctx, text)
+	_ = wailsRuntime.ClipboardSetText(p.ctx, text)
 }
 
 func (p *WailsPlatform) ClipboardGet() (string, error) {
@@ -183,7 +182,7 @@ type FileSelector interface {
 
 // ClipboardSet sets text to clipboard
 func (a *App) ClipboardSet(text string) {
-	wailsRuntime.ClipboardSetText(a.ctx, text)
+	_ = wailsRuntime.ClipboardSetText(a.ctx, text)
 }
 
 // SetFileSelector sets the file selector implementation
@@ -211,7 +210,10 @@ func (a *App) startup(ctx context.Context) {
 		log.Printf("[App] Failed to init clipboard: %v", err)
 	}
 
-	appDataDir, _ := os.UserConfigDir()
+	appDataDir, err := os.UserConfigDir()
+	if err != nil {
+		appDataDir = "."
+	}
 	dataDir := filepath.Join(appDataDir, "TeleGhost")
 
 	emitter := &WailsEmitter{ctx: ctx}
@@ -250,7 +252,7 @@ func (a *App) shutdown(ctx context.Context) {
 	}
 	if a.embeddedStop != nil {
 		log.Println("[App] Stopping embedded I2P router...")
-		a.embeddedStop()
+		_ = a.embeddedStop()
 	}
 	if a.trayManager != nil {
 		log.Println("[App] Stopping Tray...")
@@ -363,10 +365,10 @@ func (a *App) SaveTempImage(base64Data, filename string) (string, error) {
 	}
 
 	tempDir := filepath.Join(a.core.DataDir, "temp")
-	os.MkdirAll(tempDir, 0755)
+	_ = os.MkdirAll(tempDir, 0700)
 
 	filePath := filepath.Join(tempDir, filename)
-	if err := os.WriteFile(filePath, data, 0644); err != nil {
+	if err := os.WriteFile(filePath, data, 0600); err != nil {
 		return "", err
 	}
 
@@ -399,7 +401,7 @@ func (a *App) SaveFileToLocation(path, filename string) (string, error) {
 		return "", err
 	}
 
-	if err := os.WriteFile(dest, input, 0644); err != nil {
+	if err := os.WriteFile(dest, input, 0600); err != nil {
 		return "", err
 	}
 
@@ -456,7 +458,7 @@ func (a *App) ExportReseed() (string, error) {
 
 	if destPath == "" {
 		// Пользователь отменил сохранение
-		return "", fmt.Errorf("export cancelled")
+		return "", fmt.Errorf("export canceled")
 	}
 
 	// 3. Перемещаем файл из temp в выбранное место
@@ -465,13 +467,15 @@ func (a *App) ExportReseed() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := os.WriteFile(destPath, input, 0644); err != nil {
+	if err := os.WriteFile(destPath, input, 0600); err != nil {
 		return "", err
 	}
-	os.Remove(tempPath) // Удаляем временный файл
+	_ = os.Remove(tempPath) // Удаляем временный файл
 
 	// 4. Открываем папку с сохраненным файлом
-	a.ShareFile(destPath)
+	if shareErr := a.ShareFile(destPath); shareErr != nil {
+		log.Printf("[App] Failed to share file: %v", shareErr)
+	}
 
 	return destPath, nil
 }
@@ -509,19 +513,21 @@ func (a *App) ExportAccount() (string, error) {
 	}
 
 	if destPath == "" {
-		return "", fmt.Errorf("export cancelled")
+		return "", fmt.Errorf("export canceled")
 	}
 
 	input, err := os.ReadFile(tempPath)
 	if err != nil {
 		return "", err
 	}
-	if err := os.WriteFile(destPath, input, 0644); err != nil {
+	if err := os.WriteFile(destPath, input, 0600); err != nil {
 		return "", err
 	}
-	os.Remove(tempPath)
+	_ = os.Remove(tempPath)
 
-	a.ShareFile(destPath)
+	if shareErr := a.ShareFile(destPath); shareErr != nil {
+		log.Printf("[App] Failed to share file: %v", shareErr)
+	}
 
 	return destPath, nil
 }
@@ -558,5 +564,6 @@ func openFile(path string) error {
 		cmd = "xdg-open"
 		args = []string{path}
 	}
+	// #nosec G204
 	return exec.Command(cmd, args...).Start()
 }

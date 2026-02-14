@@ -22,7 +22,7 @@ var iconTrayPNG []byte
 func main() {
 	// Временное решение для проблем с WebKit/NVIDIA/Wayland на Linux
 	// Пользователи сообщают, что без этого флага приложение падает или работает некорректно
-	os.Setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1")
+	_ = os.Setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1")
 
 	// Также можно принудительно попробовать X11, если Wayland совсем не работает,
 	// но пока ограничимся композитингом, так как это помогло.

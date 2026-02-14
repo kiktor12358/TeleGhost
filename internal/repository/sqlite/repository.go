@@ -48,6 +48,22 @@ func New(dbPath string, keys *identity.Keys) (*Repository, error) {
 
 // Migrate выполняет миграции базы данных
 func (r *Repository) Migrate(ctx context.Context) error {
+	if err := r.createSchema(ctx); err != nil {
+		return err
+	}
+
+	r.migrateContactsTable(ctx)
+	r.migrateMessagesTable(ctx)
+
+	// Миграция: Исправление пустых ChatID
+	if err := r.FixMissingChatIDs(ctx); err != nil {
+		log.Printf("[Repo] Failed to fix missing chat IDs: %v", err)
+	}
+
+	return nil
+}
+
+func (r *Repository) createSchema(ctx context.Context) error {
 	schema := `
 	-- Таблица пользователя (текущий профиль)
 	CREATE TABLE IF NOT EXISTS users (
@@ -157,118 +173,109 @@ func (r *Repository) Migrate(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
-
-	// Миграция: Проверяем, является ли public_key в контактах NOT NULL
-	// В SQLite нельзя легко изменить колонку, нужно пересоздавать таблицу или проверить PRAGMA
-	rows, err := r.db.QueryContext(ctx, "PRAGMA table_info(contacts)")
-	if err == nil {
-		defer rows.Close()
-		publicKeyNotNull := false
-		for rows.Next() {
-			var cid int
-			var name, ctype string
-			var notnull, pk int
-			var dflt_value interface{}
-			if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt_value, &pk); err == nil {
-				if name == "public_key" && notnull == 1 {
-					publicKeyNotNull = true
-				}
-			}
-		}
-
-		if publicKeyNotNull {
-			log.Println("[Repo] Migrating contacts table to allow NULL public_key...")
-			migrationQuery := `
-				PRAGMA foreign_keys=off;
-				BEGIN TRANSACTION;
-				CREATE TABLE contacts_new (
-					id TEXT PRIMARY KEY,
-					public_key TEXT UNIQUE,
-					nickname TEXT DEFAULT '',
-					bio TEXT DEFAULT '',
-					avatar TEXT DEFAULT '',
-					i2p_address TEXT NOT NULL,
-					chat_id TEXT NOT NULL,
-					is_blocked INTEGER DEFAULT 0,
-					is_verified INTEGER DEFAULT 0,
-					last_seen DATETIME,
-					added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-					updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-				);
-				INSERT INTO contacts_new (id, public_key, nickname, bio, avatar, i2p_address, chat_id, is_blocked, is_verified, last_seen, added_at, updated_at)
-				SELECT id, public_key, nickname, bio, avatar, i2p_address, chat_id, is_blocked, is_verified, last_seen, added_at, updated_at FROM contacts;
-				DROP TABLE contacts;
-				ALTER TABLE contacts_new RENAME TO contacts;
-				COMMIT;
-				PRAGMA foreign_keys=on;
-			`
-			_, err = r.db.ExecContext(ctx, migrationQuery)
-			if err != nil {
-				log.Printf("[Repo] Contacts migration failed: %v", err)
-				_, _ = r.db.ExecContext(ctx, "ROLLBACK;")
-			} else {
-				log.Println("[Repo] Contacts table migrated successfully.")
-			}
-		}
-	}
-
-	// Миграция: Добавляем поле is_read в таблицу messages, если его нет
-	rows, err = r.db.QueryContext(ctx, "PRAGMA table_info(messages)")
-	if err == nil {
-		defer rows.Close()
-		hasIsRead := false
-		hasFileCount := false
-		hasTotalSize := false
-
-		for rows.Next() {
-			var cid int
-			var name, ctype string
-			var notnull, pk int
-			var dflt_value interface{}
-			if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt_value, &pk); err == nil {
-				if name == "is_read" {
-					hasIsRead = true
-				}
-				if name == "file_count" {
-					hasFileCount = true
-				}
-				if name == "total_size" {
-					hasTotalSize = true
-				}
-			}
-		}
-
-		if !hasIsRead {
-			log.Println("[Repo] Adding is_read column to messages table...")
-			_, err = r.db.ExecContext(ctx, "ALTER TABLE messages ADD COLUMN is_read INTEGER DEFAULT 0")
-			if err != nil {
-				log.Printf("[Repo] Failed to add is_read column: %v", err)
-			}
-		}
-
-		if !hasFileCount {
-			log.Println("[Repo] Adding file_count column to messages table...")
-			_, err = r.db.ExecContext(ctx, "ALTER TABLE messages ADD COLUMN file_count INTEGER DEFAULT 0")
-			if err != nil {
-				log.Printf("[Repo] Failed to add file_count column: %v", err)
-			}
-		}
-
-		if !hasTotalSize {
-			log.Println("[Repo] Adding total_size column to messages table...")
-			_, err = r.db.ExecContext(ctx, "ALTER TABLE messages ADD COLUMN total_size INTEGER DEFAULT 0")
-			if err != nil {
-				log.Printf("[Repo] Failed to add total_size column: %v", err)
-			}
-		}
-	}
-
-	// Миграция: Исправление пустых ChatID
-	if err := r.FixMissingChatIDs(ctx); err != nil {
-		log.Printf("[Repo] Failed to fix missing chat IDs: %v", err)
-	}
-
 	return nil
+}
+
+func (r *Repository) migrateContactsTable(ctx context.Context) {
+	// Миграция: Проверяем, является ли public_key в контактах NOT NULL
+	rows, err := r.db.QueryContext(ctx, "PRAGMA table_info(contacts)")
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	publicKeyNotNull := false
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull, pk int
+		var dfltValue interface{}
+		if errScan := rows.Scan(&cid, &name, &ctype, &notnull, &dfltValue, &pk); errScan == nil {
+			if name == "public_key" && notnull == 1 {
+				publicKeyNotNull = true
+			}
+		}
+	}
+
+	if publicKeyNotNull {
+		log.Println("[Repo] Migrating contacts table to allow NULL public_key...")
+		migrationQuery := `
+			PRAGMA foreign_keys=off;
+			BEGIN TRANSACTION;
+			CREATE TABLE contacts_new (
+				id TEXT PRIMARY KEY,
+				public_key TEXT UNIQUE,
+				nickname TEXT DEFAULT '',
+				bio TEXT DEFAULT '',
+				avatar TEXT DEFAULT '',
+				i2p_address TEXT NOT NULL,
+				chat_id TEXT NOT NULL,
+				is_blocked INTEGER DEFAULT 0,
+				is_verified INTEGER DEFAULT 0,
+				last_seen DATETIME,
+				added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+				updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			);
+			INSERT INTO contacts_new (id, public_key, nickname, bio, avatar, i2p_address, chat_id, is_blocked, is_verified, last_seen, added_at, updated_at)
+			SELECT id, public_key, nickname, bio, avatar, i2p_address, chat_id, is_blocked, is_verified, last_seen, added_at, updated_at FROM contacts;
+			DROP TABLE contacts;
+			ALTER TABLE contacts_new RENAME TO contacts;
+			COMMIT;
+			PRAGMA foreign_keys=on;
+		`
+		_, err = r.db.ExecContext(ctx, migrationQuery)
+		if err != nil {
+			log.Printf("[Repo] Contacts migration failed: %v", err)
+			_, _ = r.db.ExecContext(ctx, "ROLLBACK;")
+		} else {
+			log.Println("[Repo] Contacts table migrated successfully.")
+		}
+	}
+}
+
+func (r *Repository) migrateMessagesTable(ctx context.Context) {
+	rows, err := r.db.QueryContext(ctx, "PRAGMA table_info(messages)")
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	hasIsRead := false
+	hasFileCount := false
+	hasTotalSize := false
+
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull, pk int
+		var dfltValue interface{}
+		if errScan := rows.Scan(&cid, &name, &ctype, &notnull, &dfltValue, &pk); errScan == nil {
+			if name == "is_read" {
+				hasIsRead = true
+			}
+			if name == "file_count" {
+				hasFileCount = true
+			}
+			if name == "total_size" {
+				hasTotalSize = true
+			}
+		}
+	}
+
+	if !hasIsRead {
+		log.Println("[Repo] Adding is_read column to messages table...")
+		_, _ = r.db.ExecContext(ctx, "ALTER TABLE messages ADD COLUMN is_read INTEGER DEFAULT 0")
+	}
+
+	if !hasFileCount {
+		log.Println("[Repo] Adding file_count column to messages table...")
+		_, _ = r.db.ExecContext(ctx, "ALTER TABLE messages ADD COLUMN file_count INTEGER DEFAULT 0")
+	}
+
+	if !hasTotalSize {
+		log.Println("[Repo] Adding total_size column to messages table...")
+		_, _ = r.db.ExecContext(ctx, "ALTER TABLE messages ADD COLUMN total_size INTEGER DEFAULT 0")
+	}
 }
 
 // FixMissingChatIDs проверяет контакты на наличие пустых ChatID и исправляет их
@@ -288,7 +295,7 @@ func (r *Repository) FixMissingChatIDs(ctx context.Context) error {
 			expectedID := identity.CalculateChatID(user.PublicKey, c.PublicKey)
 			if c.ChatID != expectedID {
 				if err := r.UpdateContactAndMigrateChatID(ctx, c, c.ChatID, expectedID); err != nil {
-					// silent fail
+					log.Printf("[Repo] Failed to migrate chat ID during fix: %v", err)
 				}
 			}
 		}
@@ -304,94 +311,107 @@ func (r *Repository) MigrateEncryption(ctx context.Context) error {
 
 	log.Println("[Repo] Checking for encryption migration...")
 
-	// Проверяем, была ли уже выполнена миграция
-	var val string
-	err := r.db.QueryRowContext(ctx, "SELECT value FROM db_metadata WHERE key = ?", "encryption_migrated").Scan(&val)
-	if err == nil && val == "true" {
+	if r.isEncryptionMigrated(ctx) {
 		log.Println("[Repo] Encryption already migrated.")
 		return nil
 	}
 
-	// 1. Профили пользователей
+	r.migrateUserEncryption(ctx)
+	r.migrateContactsEncryption(ctx)
+	r.migrateMessagesEncryption(ctx)
+
+	r.markEncryptionMigrated(ctx)
+	return nil
+}
+
+func (r *Repository) isEncryptionMigrated(ctx context.Context) bool {
+	var val string
+	err := r.db.QueryRowContext(ctx, "SELECT value FROM db_metadata WHERE key = ?", "encryption_migrated").Scan(&val)
+	return err == nil && val == "true"
+}
+
+func (r *Repository) markEncryptionMigrated(ctx context.Context) {
+	_, _ = r.db.ExecContext(ctx, "INSERT OR REPLACE INTO db_metadata (key, value) VALUES (?, ?)", "encryption_migrated", "true")
+}
+
+func (r *Repository) migrateUserEncryption(ctx context.Context) {
 	user, err := r.GetMyProfile(ctx)
-	if err == nil && user != nil {
-		// Проверяем, зашифрован ли уже приватный ключ
-		var rawPriv []byte
-		_ = r.db.QueryRowContext(ctx, "SELECT private_key FROM users LIMIT 1").Scan(&rawPriv)
-
-		_, errDec := r.keys.Decrypt(rawPriv)
-		if errDec != nil {
-			// Ошибка дешифровки -> данные были открыты. Сохраняем (SaveUser зашифрует их)
-			log.Println("[Repo] Migrating user profile to encrypted format...")
-			_ = r.SaveUser(ctx, user)
-		}
+	if err != nil || user == nil {
+		return
 	}
 
-	// 2. Контакты
+	var rawPriv []byte
+	_ = r.db.QueryRowContext(ctx, "SELECT private_key FROM users LIMIT 1").Scan(&rawPriv)
+
+	if _, errDec := r.keys.Decrypt(rawPriv); errDec != nil {
+		log.Println("[Repo] Migrating user profile to encrypted format...")
+		_ = r.SaveUser(ctx, user)
+	}
+}
+
+func (r *Repository) migrateContactsEncryption(ctx context.Context) {
 	contacts, err := r.ListContacts(ctx)
-	if err == nil && len(contacts) > 0 {
-		// Проверяем первый контакт (если его ник не зашифрован, мигрируем все)
-		var rawNickname string
-		_ = r.db.QueryRowContext(ctx, "SELECT nickname FROM contacts LIMIT 1").Scan(&rawNickname)
-
-		if rawNickname != "" && r.decryptString(rawNickname) == rawNickname {
-			// Дешифровка вернула ту же строку -> она не была зашифрована
-			log.Printf("[Repo] Migrating %d contacts to encrypted format...", len(contacts))
-			for _, c := range contacts {
-				_ = r.SaveContact(ctx, c)
-			}
-		}
+	if err != nil || len(contacts) == 0 {
+		return
 	}
 
-	// 3. Сообщения
-	// Чтобы не перебирать тысячи сообщений каждый раз, проверяем последнее
+	var rawNickname string
+	_ = r.db.QueryRowContext(ctx, "SELECT nickname FROM contacts LIMIT 1").Scan(&rawNickname)
+
+	if rawNickname != "" && r.decryptString(rawNickname) == rawNickname {
+		log.Printf("[Repo] Migrating %d contacts to encrypted format...", len(contacts))
+		for _, c := range contacts {
+			_ = r.SaveContact(ctx, c)
+		}
+	}
+}
+
+func (r *Repository) migrateMessagesEncryption(ctx context.Context) {
 	var lastMsgID string
 	var rawContent string
-	err = r.db.QueryRowContext(ctx, "SELECT id, content FROM messages ORDER BY timestamp DESC LIMIT 1").Scan(&lastMsgID, &rawContent)
-	if err == nil && rawContent != "" {
-		if r.decryptString(rawContent) == rawContent {
-			log.Println("[Repo] Migrating messages to encrypted format in batches...")
-			lastID := ""
-			for {
-				var msgIDs []string
-				rows, err := r.db.QueryContext(ctx, "SELECT id FROM messages WHERE id > ? ORDER BY id LIMIT 100", lastID)
-				if err != nil {
-					log.Printf("[Repo] Failed to query messages for migration: %v", err)
-					break
-				}
-				for rows.Next() {
-					var id string
-					if err := rows.Scan(&id); err != nil {
-						log.Printf("[Repo] Failed to scan message ID during migration: %v", err)
-						// We break to avoid infinite loop if Scan fails
-						break
-					}
-					msgIDs = append(msgIDs, id)
-					lastID = id
-				}
-				rows.Close()
-
-				if len(msgIDs) == 0 {
-					break
-				}
-
-				for _, id := range msgIDs {
-					msg, err := r.GetMessage(ctx, id)
-					if err == nil && msg != nil {
-						_ = r.SaveMessage(ctx, msg)
-					}
-				}
-				log.Printf("[Repo] Migrated batch of %d messages...", len(msgIDs))
-				// Небольшая пауза, чтобы дать другим горутинам доступ к БД
-				time.Sleep(50 * time.Millisecond)
-			}
-		}
+	err := r.db.QueryRowContext(ctx, "SELECT id, content FROM messages ORDER BY timestamp DESC LIMIT 1").Scan(&lastMsgID, &rawContent)
+	if err != nil || rawContent == "" {
+		return
 	}
 
-	// Сохраняем отметку об успешной миграции
-	_, _ = r.db.ExecContext(ctx, "INSERT OR REPLACE INTO db_metadata (key, value) VALUES (?, ?)", "encryption_migrated", "true")
+	if r.decryptString(rawContent) != rawContent {
+		return
+	}
 
-	return nil
+	log.Println("[Repo] Migrating messages to encrypted format in batches...")
+	lastID := ""
+	for {
+		msgIDs := r.getNextMessageBatch(ctx, lastID)
+		if len(msgIDs) == 0 {
+			break
+		}
+
+		for _, id := range msgIDs {
+			if msg, err := r.GetMessage(ctx, id); err == nil && msg != nil {
+				_ = r.SaveMessage(ctx, msg)
+			}
+			lastID = id
+		}
+		log.Printf("[Repo] Migrated batch of %d messages...", len(msgIDs))
+		time.Sleep(50 * time.Millisecond)
+	}
+}
+
+func (r *Repository) getNextMessageBatch(ctx context.Context, lastID string) []string {
+	var msgIDs []string
+	rows, err := r.db.QueryContext(ctx, "SELECT id FROM messages WHERE id > ? ORDER BY id LIMIT 100", lastID)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id string
+		if errScan := rows.Scan(&id); errScan == nil {
+			msgIDs = append(msgIDs, id)
+		}
+	}
+	return msgIDs
 }
 
 // Close закрывает соединение с БД
@@ -899,6 +919,7 @@ func (r *Repository) enrichMessagesWithAttachments(ctx context.Context, messages
 		placeholders += "?"
 	}
 
+	// #nosec G201
 	query := fmt.Sprintf(`SELECT id, message_id, filename, mime_type, size, local_path, is_compressed, width, height FROM message_attachments WHERE message_id IN (%s)`, placeholders)
 
 	rows, err := r.db.QueryContext(ctx, query, ids...)

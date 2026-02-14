@@ -133,7 +133,7 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 	// Сохраняем samConn сразу, чтобы Stop мог его закрыть
 	r.mu.Lock()
 	if r.ctx.Err() != nil {
-		samConn.Close()
+		_ = samConn.Close()
 		r.mu.Unlock()
 		return r.ctx.Err()
 	}
@@ -151,8 +151,8 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 
 	if !hasKeys {
 		log.Println("[SAMRouter] Generating new I2P keys... (this may take a while)")
-		keys, err := samConn.NewKeys()
-		if err != nil {
+		keys, errKeys := samConn.NewKeys()
+		if errKeys != nil {
 			// Проверяем, не вызвана ли ошибка закрытием сокета
 			r.mu.Lock()
 			defer r.mu.Unlock()
@@ -160,7 +160,7 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 			if r.ctx.Err() != nil {
 				return r.ctx.Err()
 			}
-			return fmt.Errorf("failed to generate I2P keys: %w", err)
+			return fmt.Errorf("failed to generate I2P keys: %w", errKeys)
 		}
 
 		r.mu.Lock()
@@ -197,14 +197,14 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 	currentKeys := r.keys
 	r.mu.RUnlock()
 
-	session, err := samConn.NewStreamSession(r.config.SessionName, currentKeys, opts)
-	if err != nil {
+	session, errSession := samConn.NewStreamSession(r.config.SessionName, currentKeys, opts)
+	if errSession != nil {
 		r.mu.Lock()
 		defer r.mu.Unlock()
 		if r.ctx.Err() != nil {
 			return r.ctx.Err()
 		}
-		return fmt.Errorf("failed to create SAM session: %w", err)
+		return fmt.Errorf("failed to create SAM session: %w", errSession)
 	}
 
 	r.mu.Lock()
@@ -212,7 +212,7 @@ func (r *SAMRouter) Start(ctx context.Context) error {
 
 	// Финальная проверка
 	if r.ctx.Err() != nil {
-		session.Close()
+		_ = session.Close()
 		return r.ctx.Err()
 	}
 
@@ -245,19 +245,19 @@ func (r *SAMRouter) Stop() error {
 	r.ready = false
 
 	if r.listener != nil {
-		r.listener.Close()
+		_ = r.listener.Close()
 		r.listener = nil
 	}
 
 	// Закрываем сессию (это закроет и connection-ы от нее)
 	if r.session != nil {
-		r.session.Close()
+		_ = r.session.Close()
 		r.session = nil
 	}
 
 	// Закрываем SAM соединение (это прервет создание ключей или сессии)
 	if r.sam != nil {
-		r.sam.Close()
+		_ = r.sam.Close()
 		r.sam = nil
 	}
 
@@ -330,7 +330,7 @@ func (r *SAMRouter) Dial(destination string) (net.Conn, error) {
 			newSam, samErr := sam3.NewSAM(r.config.SAMAddress)
 			if samErr == nil {
 				r.mu.Lock()
-				r.sam.Close()
+				_ = r.sam.Close()
 				r.sam = newSam
 				samConn = newSam
 				r.mu.Unlock()
