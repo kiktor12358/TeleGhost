@@ -58,7 +58,7 @@ jobs:
       - name: Run Tests
         run: go test -v -short ./...
 
-frontend-build-check:
+frontend-check:
     name: Frontend Build Check
     runs-on: ubuntu-latest
     steps:
