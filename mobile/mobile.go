@@ -540,6 +540,8 @@ func dispatch(app *appcore.AppCore, method string, args []json.RawMessage) (inte
 		var path string
 		parseArgs(args, &path)
 		return nil, app.Platform.ShareFile(path)
+
+	case "CreateFolder":
 		var name, icon string
 		parseArgs(args, &name, &icon)
 		return nil, app.CreateFolder(name, icon)
