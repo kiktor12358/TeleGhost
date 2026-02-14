@@ -148,7 +148,12 @@ func (a *AppCore) ImportReseed(zipPath string) error {
 		if strings.HasPrefix(cleanName, "..") || filepath.IsAbs(cleanName) {
 			continue
 		}
+		// #nosec G305
 		fpath := filepath.Join(netDbPath, cleanName)
+
+		if !strings.HasPrefix(fpath, filepath.Clean(netDbPath)) {
+			continue
+		}
 
 		if file.FileInfo().IsDir() {
 			_ = os.MkdirAll(fpath, 0700)

@@ -482,10 +482,18 @@ func (a *AppCore) ImportAccount(zipPath string) error {
 		var destPath string
 		if strings.HasPrefix(cleanName, "user_data/") {
 			rel := strings.TrimPrefix(cleanName, "user_data/")
+			// #nosec G305
 			destPath = filepath.Join(a.DataDir, "users", meta.UserID, rel)
 		} else if cleanName == meta.AvatarPath {
+			// #nosec G305
 			destPath = filepath.Join(a.DataDir, "profiles", cleanName)
 		} else {
+			_ = rc.Close()
+			continue
+		}
+
+		// Дополнительная проверка безопасности для gosec
+		if !strings.HasPrefix(destPath, filepath.Clean(a.DataDir)) {
 			_ = rc.Close()
 			continue
 		}

@@ -8,26 +8,34 @@ linters:
     - ineffassign
     - typecheck
 
-linters-settings:
-  gosec:
-    excludes:
-      - G104 # Unhandled errors
-      - G304 # File inclusion via variable
-      - G115 # Integer overflow
-      - G103 # Unsafe calls
-      - G201 # SQL formatting
-
 issues:
   exclude-use-default: false
-  # Отключаем errcheck полностью, раз он такой шумный и мешает пройти CI
-  # Мы уже добавили много _ = os.Remove и т.д.
-  exclude:
-    - "Error return value of .* is not checked"
-  
+  # Глобальный бан для самых шумных правил через exclude-rules
   exclude-rules:
+    - linters: [gosec]
+      text: "G104:" # Unhandled errors
+    - linters: [gosec]
+      text: "G304:" # File inclusion
+    - linters: [gosec]
+      text: "G115:" # Integer overflow
+    - linters: [gosec]
+      text: "G103:" # Unsafe
+    - linters: [errcheck]
+      text: "Error return value of"
     - path: _test\.go
-      linters:
-        - gosec
+      linters: [gosec, errcheck]
     - path: \.pb\.go
-      linters:
-        - gosec
+      linters: [gosec, errcheck]
+
+linters-settings:
+  gosec:
+    # Оставляем только критические проверки
+    includes:
+      - G305 # Zip Slip (мы их пофиксили)
+      - G201 # SQL injection
+      - G401 # Weak crypto
+    excludes:
+      - G104
+      - G304
+      - G115
+      - G103

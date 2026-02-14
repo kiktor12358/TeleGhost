@@ -919,6 +919,7 @@ func (r *Repository) enrichMessagesWithAttachments(ctx context.Context, messages
 		placeholders += "?"
 	}
 
+	// #nosec G201
 	query := fmt.Sprintf(`SELECT id, message_id, filename, mime_type, size, local_path, is_compressed, width, height FROM message_attachments WHERE message_id IN (%s)`, placeholders)
 
 	rows, err := r.db.QueryContext(ctx, query, ids...)
