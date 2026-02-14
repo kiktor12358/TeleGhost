@@ -4,6 +4,8 @@
     import { fade, fly } from 'svelte/transition';
     import { onMount, tick, createEventDispatcher } from 'svelte';
 
+    const dispatch = createEventDispatcher();
+
     export let selectedContact;
     export let messages = [];
     export let newMessage;
