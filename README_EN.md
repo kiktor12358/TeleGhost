@@ -4,7 +4,7 @@
 
 ---
 
-**TeleGhost** is a modern, fast, and anonymous messenger operating within the I2P network. It provides a high degree of privacy and secure communication using end-to-end encryption and hidden network tunnels.
+**TeleGhost** is a modern, anonymous, and fully decentralized alternative to Telegram. It is a powerful messenger operating within the hidden I2P network, now implemented and fully functional on **Android**! It provides the highest degree of privacy and reliability, unavailable in regular messengers, using end-to-end encryption and hidden network tunnels. The perfect Telegram analog for those who value absolute security and control over their data.
 
 ### ✨ Features
 
@@ -18,9 +18,17 @@
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="assets/login_screen.png" alt="Login Screen" width="45%">
+  <img src="assets/login_screen.png" alt="PC Login Screen" width="45%">
   &nbsp;
-  <img src="assets/main_screen.png" alt="Main Screen" width="45%">
+  <img src="assets/main_screen.png" alt="PC Main Screen" width="45%">
+</p>
+
+### 📱 Android Screenshots
+
+<p align="center">
+  <img src="assets/login_screen.png" alt="Main Screen" width="45%">
+  &nbsp;
+  <img src="assets/main_screen.png" alt="Login Screen" width="45%">
 </p>
 
 ## 🚀 Quick Start
@@ -29,6 +37,7 @@
 
 You can download the latest ready-to-use versions of TeleGhost for your system from the [Releases](https://github.com/kiktor12358/TeleGhost/releases/latest) page:
 
+*   **Android**: Download `teleghost.aar` or `app-release.apk`, install it on your Android smartphone, and enjoy secure communication.
 *   **Windows**: Download `TeleGhost.exe`, run it, and the messenger is ready to work (includes embedded i2pd router).
 *   **Linux**: Download `TeleGhost-linux-amd64`, make the file executable (`chmod +x TeleGhost-linux-amd64`), and run it.
 
@@ -38,8 +47,8 @@ You can download the latest ready-to-use versions of TeleGhost for your system f
 
 ### Rich Media (In Progress)
 - **Voice Messages**: Opus compression + chunked delivery for I2P stability.
-- ~~**Files & Photos**: On-client compression and Resume capability for file transfers.~~
-- ~~**Local Security**: Full SQLite database encryption using a key derived from your Seed phrase.~~
+- [**Implemented**] ~~**Files & Photos**: On-client compression and Resume capability for file transfers.~~
+- [**Implemented**] ~~**Local Security**: Full SQLite database encryption using a key derived from your Seed phrase.~~
 
 ### GhostMail & Federation
 - **Offline Delivery**: Hybrid P2P + Home Server (Store-and-Forward) architecture.
@@ -48,8 +57,8 @@ You can download the latest ready-to-use versions of TeleGhost for your system f
 
 ### Real-Time & Mobility
 - **Calls**: Audio calls via UDP (SSU2) support.
-- ~~**Security Profiles**: On-the-fly tunnel mode switching (🚀 **Fast**, 🛡️ **Default**, 👻 **Invisible**).~~
-- ~~**Mobile Support**: Engine optimization for mobile platforms and development of a native mobile client.~~
+- [**Implemented**] ~~**Security Profiles**: On-the-fly tunnel mode switching (🚀 **Fast**, 🛡️ **Default**, 👻 **Invisible**).~~
+- [**Implemented**] ~~**Mobile Support**: Engine optimization for mobile platforms and development of a native mobile client.~~
 
 
 ---
