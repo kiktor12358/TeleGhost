@@ -1,6 +1,6 @@
 module teleghost
 
-go 1.24.0
+go 1.25.0
 
 require (
 	fyne.io/systray v1.12.0
